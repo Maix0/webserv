@@ -1,0 +1,9 @@
+/build
+/webserv
+/webserv_bonus
+*.d
+*.o
+flake.nix
+flake.lock
+.envrc
+.clangd
