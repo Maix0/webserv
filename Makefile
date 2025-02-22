@@ -6,7 +6,7 @@
 #    By: rparodi <rparodi@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/11/12 11:05:05 by rparodi           #+#    #+#              #
-#    Updated: 2025/01/16 12:38:24 by maiboyer         ###   ########.fr        #
+#    Updated: 2025/02/23 00:06:40 by maiboyer         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -138,12 +138,17 @@ filelist:
 	@rm -f .clangd
 	@echo >> .clangd
 	@echo 'CompileFlags: # Tweak the parse settings' >> .clangd
-	@echo '	Compiler: clang' >> .clangd
-	@echo '	Add:' >> .clangd
-	@echo '		- "-xc++"' >> .clangd
-	@echo '		- "-std=c++98"' >> .clangd
-	@echo '		- "-I$(shell realpath $(INCLUDE_DIR))"' >> .clangd
+	@echo '  Compiler: clang' >> .clangd
+	@echo '  Add:' >> .clangd
+	@echo '    - "-xc++"' >> .clangd
+	@echo '    - "-std=c++98"' >> .clangd
+	@echo '    - "-I$(shell realpath $(INCLUDE_DIR))"' >> .clangd
 	@echo >> .clangd
+
+
+.clang-format:
+	@rm -f .clang-format
+	@curl https://raw.githubusercontent.com/Maix0/42cpp/refs/heads/master/.clang-format -o .clang-format
 
 subject: subject.txt
 	@bat --plain ./subject.txt
@@ -152,4 +157,4 @@ subject.txt:
 	@curl $(SUBJECT_URL) | pdftotext -layout -nopgbrk -q - subject.txt
 
 #	phony
-.PHONY: all bonus clean fclean re header footer filelist .clangd subject
+.PHONY: all bonus clean fclean re header footer filelist .clangd .clang-format subject
