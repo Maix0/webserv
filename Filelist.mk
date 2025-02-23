@@ -1,4 +1,4 @@
 SRC_FILES =                                                                   \
 main                                                                          \
-toml/toml                                                                     \
+toml/TomlValue                                                                \
 
