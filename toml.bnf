@@ -1,0 +1,203 @@
+/* converted on Mon Feb 24, 2025, 17:16 (UTC+01) by w3c-to-w3c v0.69 which is Copyright (c) 2011-2025 by Gunther Rademacher <grd@gmx.net> */
+
+toml     ::= expression ( newline expression )*
+expression
+         ::= ws ( ( keyval | table ) ws )? comment?
+ws       ::= (' ' | '\t')*
+newline  ::= '\n'
+           | '\r\n'
+non-ascii
+         ::= [#x80-#xFF]
+non-eol  ::= '\t' | [#x20-#x7e]
+comment  ::= '#' non-eol*
+keyval   ::= key keyval-sep val
+key      ::= simple-key
+           | dotted-key
+simple-key
+         ::= quoted-key
+           | unquoted-key
+unquoted-key
+         ::= ( ALPHA | DIGIT | '-' | '_' )+
+quoted-key
+         ::= basic-string
+           | literal-string
+dotted-key
+         ::= simple-key ( dot-sep simple-key )+
+dot-sep  ::= ws '.' ws
+keyval-sep
+         ::= ws '=' ws
+val      ::= string
+           | boolean
+           | array
+           | inline-table
+           | date-time
+           | float
+           | integer
+string   ::= ml-basic-string
+           | basic-string
+           | ml-literal-string
+           | literal-string
+basic-string
+         ::= '"' basic-char* '"'
+basic-char
+         ::= basic-unescaped
+           | escaped
+basic-unescaped
+         ::= wschar
+           | [![#x23-#x5C#x20-#x7e]
+           | non-ascii
+escaped  ::= '#x5C' escape-seq-char
+escape-seq-char
+         ::= '"'
+           | '#x5C'
+           | 'b'
+           | 'f'
+           | 'n'
+           | 'r'
+           | 't'
+           | ('u' [A-Fa-f0-9])
+           | ('U' [A-Fa-f0-9])
+ml-basic-string
+         ::= '"""' newline? ml-basic-body '"""'
+ml-basic-body
+         ::= mlb-content* ( mlb-quotes mlb-content+ )* mlb-quotes?
+mlb-content
+         ::= mlb-char
+           | newline
+           | mlb-escaped-nl
+mlb-char ::= mlb-unescaped
+           | escaped
+mlb-quotes
+         ::= '"' '"'?
+mlb-unescaped
+         ::= wschar
+           | [!#x20-#x7e]
+           | non-ascii
+mlb-escaped-nl
+         ::= '\\' ws newline ( wschar | newline )*
+literal-string
+         ::= "'" literal-char* "'"
+literal-char
+         ::= '\t'
+           | [#x20-#x7e]
+           | non-ascii
+ml-literal-string
+         ::= "'''" newline? ml-literal-body "'''"
+ml-literal-body
+         ::= mll-content* ( mll-quotes mll-content+ )* mll-quotes?
+mll-content
+         ::= mll-char
+           | newline
+mll-char ::= '\t'
+           | [#x20-#x7e]
+           | non-ascii
+mll-quotes
+         ::= "'" "'"?
+integer  ::= dec-int
+           | hex-int
+           | oct-int
+           | bin-int
+digit1-9 ::= [1-9]
+digit0-7 ::= [0-7]
+digit0-1 ::= [0-1]
+dec-int  ::= ( '+' | '-' )? unsigned-dec-int
+unsigned-dec-int
+         ::= DIGIT
+           | digit1-9 ( '_'? DIGIT )+
+hex-int  ::= '0x' HEXDIG ( '_'? HEXDIG )*
+oct-int  ::= '0o' digit0-7 ( '_'? digit0-7 )*
+bin-int  ::= '0b' digit0-1 ( '_'? digit0-1 )*
+float    ::= float-int-part ( exp | frac exp? )
+           | special-float
+float-int-part
+         ::= dec-int
+frac     ::= '.' zero-prefixable-int
+zero-prefixable-int
+         ::= DIGIT ( '_'? DIGIT )*
+exp      ::= 'e' float-exp-part
+float-exp-part
+         ::= ( '+' | '-' )? zero-prefixable-int
+special-float
+         ::= ( '+' | '-' )? ( 'inf' | 'nan' )
+boolean  ::= 'true'
+           | 'false'
+date-time
+         ::= offset-date-time
+           | local-date-time
+           | local-date
+           | local-time
+date-fullyear
+         ::= _4DIGIT
+date-month
+         ::= _2DIGIT
+date-mday
+         ::= _2DIGIT
+time-delim
+         ::= 'T'
+           | 't'
+           | ' '
+time-hour
+         ::= _2DIGIT
+time-minute
+         ::= _2DIGIT
+time-second
+         ::= _2DIGIT
+time-secfrac
+         ::= '.' DIGIT+
+time-numoffset
+         ::= ( '+' | '-' ) time-hour ':' time-minute
+time-offset
+         ::= 'Z'
+           | time-numoffset
+partial-time
+         ::= time-hour ':' time-minute ':' time-second time-secfrac?
+full-date
+         ::= date-fullyear '-' date-month '-' date-mday
+full-time
+         ::= partial-time time-offset
+offset-date-time
+         ::= full-date time-delim full-time
+local-date-time
+         ::= full-date time-delim partial-time
+local-date
+         ::= full-date
+local-time
+         ::= partial-time
+array    ::= '[' ws-comment-newline ( val ws-comment-newline ( ',' ws-comment-newline val ws-comment-newline )* ','? ws-comment-newline )? ']'
+ws-comment-newline
+         ::= ( wschar | comment? newline )*
+table    ::= std-table
+           | array-table
+std-table
+         ::= std-table-open key std-table-close
+std-table-open
+         ::= '[' ws
+std-table-close
+         ::= ws ']'
+inline-table
+         ::= inline-table-open ( keyval ( inline-table-sep keyval )* )? inline-table-close
+inline-table-open
+         ::= '{' ws
+inline-table-close
+         ::= ws '}'
+inline-table-sep
+         ::= ws ',' ws
+array-table
+         ::= array-table-open key array-table-close
+array-table-open
+         ::= '[[' ws
+array-table-close
+         ::= ws ']]'
+ALPHA    ::= [a-zA-Z]
+DIGIT    ::= [0-9]
+HEXDIG   ::= DIGIT
+           | 'A'
+           | 'B'
+           | 'C'
+           | 'D'
+           | 'E'
+           | 'F'
+_2DIGIT  ::= DIGIT DIGIT
+_4DIGIT  ::= DIGIT DIGIT DIGIT DIGIT
+_4HEXDIG ::= HEXDIG HEXDIG HEXDIG HEXDIG
+_8HEXDIG ::= _4HEXDIG _4HEXDIG
