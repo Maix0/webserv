@@ -6,12 +6,14 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/22 23:56:11 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/02/23 23:38:35 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/02/24 13:09:41 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "toml/TomlValue.hpp"
+#include <iomanip>
 #include <iostream>
+#include <sstream>
 
 #define IMPL_GETTERS(NAME, FIELD, TY, ETYPE)                 \
 	const TY& TomlValue::get##NAME() const {                 \
@@ -183,6 +185,102 @@ IMPL_GETTERS_PTR(List, list, TomlValue::TomlList, LIST);
 IMPL_GETTERS_PTR(String, string, TomlValue::TomlString, STRING);
 IMPL_GETTERS_PTR(Table, table, TomlValue::TomlTable, TABLE);
 
+#define STRING_ESCAPE_CASE(CHAR, ESCAPED) \
+	case CHAR:                            \
+		buf << ESCAPED;                   \
+		break;
+
+static bool _print_is_utf8(char chr) {
+	// is the hight  bit set (aka not ascii !)
+	return (chr & 0x80);
+}
+
+// Count number of continious bits set starting from the left
+int _countl_one(unsigned char chr) {
+	for (int i = 8; i > 0; i--) {
+		if (!(chr & (1 << (i - 1))))
+			return (8 - i);
+	}
+	return 8;
+}
+
+void _print_handle_utf8(std::stringstream& buf, TomlValue::TomlString::const_iterator& it, TomlValue::TomlString::const_iterator end) {
+	if (it == end)
+		return;	 // Handle empty case
+
+	unsigned char first_byte = static_cast<unsigned char>(*it++);
+	unsigned int  codepoint	 = 0;
+	int			  num_bytes	 = 0;
+
+	if ((first_byte & 0x80) == 0) {
+		return;
+	} else if ((first_byte & 0xE0) == 0xC0) {
+		// 2-byte sequence
+		codepoint = first_byte & 0x1F;
+		num_bytes = 1;
+	} else if ((first_byte & 0xF0) == 0xE0) {
+		// 3-byte sequence
+		codepoint = first_byte & 0x0F;
+		num_bytes = 2;
+	} else if ((first_byte & 0xF8) == 0xF0) {
+		// 4-byte sequence
+		codepoint = first_byte & 0x07;
+		num_bytes = 3;
+	} else {
+		// Invalid UTF-8 start byte
+		codepoint = 0xFFFD;	 // Unicode replacement character
+	}
+
+	for (int i = 0; i < num_bytes; ++i) {
+		if (it == end) {
+			codepoint = 0xFFFD;
+			break;
+		}
+		unsigned char next_byte = static_cast<unsigned char>(*it++);
+		if ((next_byte & 0xC0) != 0x80) {
+			codepoint = 0xFFFD;	 // Unexpected end of string
+			break;
+		}
+		codepoint = (codepoint << 6) | (next_byte & 0x3F);
+	}
+
+	if (codepoint <= 0xFFFF)
+		buf << "\\u" << std::uppercase << std::hex << std::setw(4) << std::setfill('0') << codepoint;
+	else
+		buf << "\\U" << std::uppercase << std::hex << std::setw(8) << std::setfill('0') << codepoint;
+
+	buf << std::dec;
+	return;
+}
+static std::ostream& _print_string_toml(std::ostream& lhs, const TomlValue::TomlString& rhs) {
+	std::stringstream buf;
+	buf << '"';
+	for (TomlValue::TomlString::const_iterator it = rhs.begin(); it != rhs.end(); it++) {
+		switch (*it) {
+			STRING_ESCAPE_CASE('\b', "\\b");
+			STRING_ESCAPE_CASE('\t', "\\t");
+			STRING_ESCAPE_CASE('\n', "\\n");
+			STRING_ESCAPE_CASE('\f', "\\f");
+			STRING_ESCAPE_CASE('\r', "\\r");
+			STRING_ESCAPE_CASE('"', "\\\"");
+			STRING_ESCAPE_CASE('\\', "\\\\");
+
+			default:
+				if (_print_is_utf8(*it)) {
+					_print_handle_utf8(buf, it, rhs.end());
+					if (it == rhs.end())
+						it--;
+				} else
+					buf << *it;
+				break;
+		}
+	}
+	buf << '"';
+	lhs << buf.str();
+
+	return lhs;
+}
+
 std::ostream& operator<<(std::ostream& lhs, const TomlValue& rhs) {
 	switch (rhs.getType()) {
 		case TomlValue::BOOL: {
@@ -207,15 +305,16 @@ std::ostream& operator<<(std::ostream& lhs, const TomlValue& rhs) {
 			lhs << "{";
 			TomlValue::TomlTable::const_iterator it = l.begin();
 			if (it != l.end()) {
-				lhs << "\"" << it->first << "\"" << " = " << it->second;
+				_print_string_toml(lhs, it->first);
+				lhs << " = " << it->second;
 				it++;
 			}
 			for (; it != l.end(); it++) {
 				lhs << ", ";
-				lhs << "\"" << it->first << "\"" << " = " << it->second;
+				_print_string_toml(lhs, it->first);
+				lhs << " = " << it->second;
 			}
 			lhs << "}";
-			break;
 			break;
 		};
 		case TomlValue::INT: {
@@ -231,7 +330,7 @@ std::ostream& operator<<(std::ostream& lhs, const TomlValue& rhs) {
 			break;
 		};
 		case TomlValue::STRING: {
-			lhs << "\"" << rhs.getString() << "\"";
+			_print_string_toml(lhs, rhs.getString());
 			break;
 		};
 	}
