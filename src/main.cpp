@@ -6,24 +6,12 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/23 00:07:08 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/02/24 13:10:13 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/02/25 18:37:29 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <iostream>
-#include <sstream>
-#include <string>
 #include "toml/TomlValue.hpp"
-
-void _print_handle_utf8(std::stringstream& buf, TomlValue::TomlString::const_iterator& it, TomlValue::TomlString::const_iterator end);
-
-void t(const TomlValue::TomlString& chr) {
-	std::stringstream					  ss;
-
-	TomlValue::TomlString::const_iterator it = chr.begin();
-	_print_handle_utf8(ss, it, chr.end());
-	std::cout << "STR: \"" << chr << "\"; MINE: \"" << ss.str() << "\"" << std::endl;
-}
 
 int main(void) {
 	TomlValue val = TomlValue::newBool();

@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/25 13:25:52 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/02/25 13:26:28 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/02/25 18:36:24 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,7 @@ static bool _print_is_utf8(char chr) {
 	return (chr & 0x80);
 }
 
-void _print_handle_utf8(std::stringstream& buf, TomlValue::TomlString::const_iterator& it, TomlValue::TomlString::const_iterator end) {
+void _print_handle_utf8(std::stringstream& buf, TomlString::const_iterator& it, TomlString::const_iterator end) {
 	if (it == end)
 		return;	 // Handle empty case
 
@@ -74,10 +74,10 @@ void _print_handle_utf8(std::stringstream& buf, TomlValue::TomlString::const_ite
 	buf << std::dec;
 	return;
 }
-static std::ostream& _print_string_toml(std::ostream& lhs, const TomlValue::TomlString& rhs) {
+static std::ostream& _print_string_toml(std::ostream& lhs, const TomlString& rhs) {
 	std::stringstream buf;
 	buf << '"';
-	for (TomlValue::TomlString::const_iterator it = rhs.begin(); it != rhs.end(); it++) {
+	for (TomlString::const_iterator it = rhs.begin(); it != rhs.end(); it++) {
 		switch (*it) {
 			STRING_ESCAPE_CASE('\b', "\\b");
 			STRING_ESCAPE_CASE('\t', "\\t");
@@ -110,10 +110,10 @@ std::ostream& operator<<(std::ostream& lhs, const TomlValue& rhs) {
 			break;
 		};
 		case TomlValue::LIST: {
-			const TomlValue::TomlList& l = rhs.getList();
+			const TomlList& l = rhs.getList();
 
 			lhs << "[";
-			TomlValue::TomlList::const_iterator it = l.begin();
+			TomlList::const_iterator it = l.begin();
 			if (it != l.end())
 				lhs << *(it++);
 			for (; it != l.end(); it++)
@@ -122,10 +122,10 @@ std::ostream& operator<<(std::ostream& lhs, const TomlValue& rhs) {
 			break;
 		};
 		case TomlValue::TABLE: {
-			const TomlValue::TomlTable& l = rhs.getTable();
+			const TomlTable& l = rhs.getTable();
 
 			lhs << "{";
-			TomlValue::TomlTable::const_iterator it = l.begin();
+			TomlTable::const_iterator it = l.begin();
 			if (it != l.end()) {
 				_print_string_toml(lhs, it->first);
 				lhs << " = " << it->second;
@@ -159,7 +159,7 @@ std::ostream& operator<<(std::ostream& lhs, const TomlValue& rhs) {
 	return lhs;
 }
 
-std::ostream& operator<<(std::ostream& lhs, const TomlValue::TomlNull& rhs) {
+std::ostream& operator<<(std::ostream& lhs, const TomlNull& rhs) {
 	(void)rhs;
 	return lhs << "null";
 }
