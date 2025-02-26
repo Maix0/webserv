@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/22 23:56:11 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/02/25 18:35:48 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/02/26 09:10:27 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,6 +29,7 @@ const char* TomlValue::InvalidType::what() const throw() {
 #define DESTROY_CASE(STORAGE, TAG, TYPE, FIELD)                                          \
 	case (TAG): {                                                                        \
 		IF_ELSE(STORAGE, delete this->raw._##FIELD.raw, this->raw._##FIELD.raw.~TYPE()); \
+		this->raw._##FIELD.raw = IF_ELSE(STORAGE, NULL, TYPE());                         \
 		break;                                                                           \
 	}
 
