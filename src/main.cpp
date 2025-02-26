@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/23 00:07:08 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/02/25 18:37:29 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/02/26 09:37:07 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,5 +37,10 @@ int main(void) {
 	val2.getTable()["config.maix.me\u20AC"] = TomlValue::newTable();
 
 	std::cout << val2 << std::endl;
+
+	val2 = TomlValue(7);
+	
+	std::cout << val2 << std::endl;
+
 	return 0;
 }

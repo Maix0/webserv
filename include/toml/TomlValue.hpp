@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/22 23:44:37 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/02/25 18:35:16 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/02/26 09:42:42 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,26 +19,26 @@
 
 class TomlValue;
 
-#define _TOML_GETTERS(TYPE, NAME)  \
-	const TYPE& get##NAME() const; \
-	TYPE&		get##NAME();       \
-	bool		is##NAME() const;  \
-	static TomlValue new##NAME();
+#define _TOML_GETTERS(TYPE, NAME)      \
+	const TYPE& get##NAME(void) const; \
+	TYPE&		get##NAME(void);       \
+	bool		is##NAME(void) const;  \
+	static TomlValue new##NAME(void);
 
-#define _UNION_TYPE(TAG, TYPENAME, TYPE)   \
-	struct union_##TYPENAME {              \
-		TomlType tag;                      \
-		TYPE	 raw;                      \
-	} _##TYPENAME;                         \
-	static TomlType getTagFor##TYPENAME(); \
+#define _UNION_TYPE(TAG, TYPENAME, TYPE)       \
+	struct union_##TYPENAME {                  \
+		TomlType tag;                          \
+		TYPE	 raw;                          \
+	} _##TYPENAME;                             \
+	static TomlType getTagFor##TYPENAME(void); \
 	RawTomlValue(TYPE);
 
-#define _UNION_TYPE_PTR(TAG, TYPENAME, TYPE) \
-	struct union_##TYPENAME {                \
-		TomlType tag;                        \
-		TYPE*	 raw;                        \
-	} _##TYPENAME;                           \
-	static TomlType getTagFor##TYPENAME();   \
+#define _UNION_TYPE_PTR(TAG, TYPENAME, TYPE)   \
+	struct union_##TYPENAME {                  \
+		TomlType tag;                          \
+		TYPE*	 raw;                          \
+	} _##TYPENAME;                             \
+	static TomlType getTagFor##TYPENAME(void); \
 	RawTomlValue(TYPE);
 
 typedef bool							 TomlBool;
@@ -83,8 +83,8 @@ public:
 	TomlValue(unsigned long);
 	TomlValue(unsigned short);
 
-	TomlValue();
-	~TomlValue();
+	TomlValue(void);
+	~TomlValue(void);
 	TomlValue(const TomlValue&);
 	TomlValue& operator=(const TomlValue&);
 
@@ -99,7 +99,7 @@ public:
 	_TOML_GETTERS(TomlString, String);
 
 	class InvalidType : public std::exception {
-		virtual const char* what() const throw();
+		virtual const char* what(void) const throw();
 	};
 
 private:

@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/22 23:56:11 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/02/26 09:10:27 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/02/26 09:43:22 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@
 // Expands to IF_inplace or IF_ptr based on SWITCH
 #define IF_ELSE(STORAGE, ptr_code, inplace_code) IF_##STORAGE(ptr_code, inplace_code)
 
-const char* TomlValue::InvalidType::what() const throw() {
+const char* TomlValue::InvalidType::what(void) const throw() {
 	return ("Invalid type requested");
 }
 
@@ -47,11 +47,11 @@ TomlValue::~TomlValue() {
 
 #undef DESTROY_CASE
 
-TomlValue::TomlType TomlValue::getType() const {
+TomlValue::TomlType TomlValue::getType(void) const {
 	return (this->raw._null.tag);
 }
 
-TomlValue::RawTomlValue::RawTomlValue() {
+TomlValue::RawTomlValue::RawTomlValue(void) {
 	this->_null.tag = NULL_;
 	this->_null.raw = TomlNull();
 }
@@ -69,7 +69,7 @@ TomlValue::RawTomlValue::RawTomlValue() {
 // TYPE == ALIAS
 #define TOML_CONSTRUCTOR(STORAGE, TAG, TYPE, FIELD) TOML_CONSTRUCTOR_ALIAS(STORAGE, TAG, TYPE, TYPE, FIELD)
 
-TomlValue::TomlValue() {}
+TomlValue::TomlValue(void) {}
 TOML_CONSTRUCTOR(inplace, NULL_, TomlNull, null);
 TOML_CONSTRUCTOR(inplace, INT, TomlNumber, int);
 TOML_CONSTRUCTOR(inplace, BOOL, TomlBool, bool);
@@ -137,24 +137,24 @@ TomlValue& TomlValue::operator=(const TomlValue& rhs) {
 //
 
 #define IMPL_GETTERS(STORAGE, NAME, FIELD, TY, ETYPE)                                          \
-	const TY& TomlValue::get##NAME() const {                                                   \
+	const TY& TomlValue::get##NAME(void) const {                                               \
 		if (!this->is##NAME())                                                                 \
 			throw TomlValue::InvalidType();                                                    \
 		return (IF_ELSE(STORAGE, *, ) this->raw._##FIELD.raw);                                 \
 	}                                                                                          \
-	TY& TomlValue::get##NAME() {                                                               \
+	TY& TomlValue::get##NAME(void) {                                                           \
 		if (!this->is##NAME())                                                                 \
 			throw TomlValue::InvalidType();                                                    \
 		return (IF_ELSE(STORAGE, *, ) this->raw._##FIELD.raw);                                 \
 	}                                                                                          \
-	bool TomlValue::is##NAME() const {                                                         \
+	bool TomlValue::is##NAME(void) const {                                                     \
 		return (this->raw._##FIELD.tag == TomlValue::ETYPE);                                   \
 	}                                                                                          \
 	TomlValue::RawTomlValue::RawTomlValue(TY rhs) {                                            \
 		this->_##FIELD.tag = TomlValue::ETYPE;                                                 \
 		IF_ELSE(STORAGE, this->_##FIELD.raw = new TY(rhs), new (&this->_##FIELD.raw) TY(rhs)); \
 	}                                                                                          \
-	TomlValue TomlValue::new##NAME() {                                                         \
+	TomlValue TomlValue::new##NAME(void) {                                                     \
 		return (TomlValue(TY()));                                                              \
 	}
 
