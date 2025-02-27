@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/22 23:44:37 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/02/26 09:42:42 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/02/26 17:17:44 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -88,7 +88,9 @@ public:
 	TomlValue(const TomlValue&);
 	TomlValue& operator=(const TomlValue&);
 
-	TomlType   getType() const;
+	TomlType   getType(void) const;
+	bool	   isReadonly(void) const;
+	void	   setReadonly(bool val);
 
 	_TOML_GETTERS(TomlList, List);
 	_TOML_GETTERS(TomlNull, Null);
@@ -119,6 +121,7 @@ private:
 	};
 
 	RawTomlValue raw;
+	bool		 readonly;
 };
 
 std::ostream& operator<<(std::ostream& lhs, const TomlValue& rhs);

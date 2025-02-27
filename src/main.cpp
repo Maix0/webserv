@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/23 00:07:08 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/02/26 10:11:56 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/02/26 18:13:49 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,7 @@
 #include "toml/TomlValue.hpp"
 
 int main(void) {
+	/*
 	TomlValue val = TomlValue::newBool();
 	std::cout << val << std::endl;
 
@@ -43,9 +44,11 @@ int main(void) {
 	val2 = TomlValue(7);
 
 	std::cout << val2 << std::endl;
+	*/
 
 	try {
-		val2 = TomlParser::parseFile("./Makefile");
+		TomlValue val = TomlParser::parseFile("./test.toml");
+		std::cout << val << std::endl;
 	} catch (const std::exception& e) {
 		std::cerr << "Error: " << e.what() << std::endl;
 	}

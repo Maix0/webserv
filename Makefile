@@ -6,7 +6,7 @@
 #    By: rparodi <rparodi@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/11/12 11:05:05 by rparodi           #+#    #+#              #
-#    Updated: 2025/02/23 22:44:51 by maiboyer         ###   ########.fr        #
+#    Updated: 2025/02/26 17:28:03 by maiboyer         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -34,7 +34,7 @@ BOLD = \033[1m
 ITALIC = \033[3m
 UNDERLINE = \033[4m
 
-CFLAGS_ADDITIONAL=
+CXXFLAGS_ADDITIONAL=
 # PMAKE_DISABLE =
 PMAKE =
 ifndef PMAKE_DISABLE
@@ -57,8 +57,9 @@ endif
 
 NAME=webserv
 # TODO: REMOVE THIS WHEN FINISHING THIS:
-CXXFLAGS_ADDITIONAL	+= -O0 -Wno-\#warnings 
+#CXXFLAGS_ADDITIONAL	+= -O0 -Wno-\#warnings
 CXXFLAGS_ADDITIONAL	+= -gcolumn-info -g3 -fno-builtin
+#CXXFLAGS_ADDITIONAL += -fuse-ld=lld -Wno-unused-command-line-argument
 # CXXFLAGS_ADDITIONAL	+= '-DERROR=((void)printf("ERROR HERE: " __FILE__ ":%d in %s\n", __LINE__, __func__), 1)'
 #CXXFLAGS_ADDITIONAL	+= -fsanitize=address
 

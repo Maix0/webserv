@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/22 23:56:11 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/02/26 09:43:22 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/02/27 15:28:04 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,12 +62,14 @@ TomlValue::RawTomlValue::RawTomlValue(void) {
 
 #define TOML_CONSTRUCTOR_ALIAS(STORAGE, TAG, TYPE, ALIAS, FIELD)    \
 	TomlValue::TomlValue(ALIAS val) {                               \
+		this->readonly		   = false;                             \
 		this->raw._##FIELD.tag = TAG;                               \
 		this->raw._##FIELD.raw = IF_ELSE(STORAGE, new, ) TYPE(val); \
 	}
 
 // TYPE == ALIAS
-#define TOML_CONSTRUCTOR(STORAGE, TAG, TYPE, FIELD) TOML_CONSTRUCTOR_ALIAS(STORAGE, TAG, TYPE, TYPE, FIELD)
+#define TOML_CONSTRUCTOR(STORAGE, TAG, TYPE, FIELD) \
+	TOML_CONSTRUCTOR_ALIAS(STORAGE, TAG, TYPE, TYPE, FIELD)
 
 TomlValue::TomlValue(void) {}
 TOML_CONSTRUCTOR(inplace, NULL_, TomlNull, null);
@@ -105,6 +107,7 @@ TOML_CONSTRUCTOR_ALIAS(ptr, STRING, TomlString, const char*, string);
 	}
 
 TomlValue::TomlValue(const TomlValue& rhs) {
+	this->readonly = rhs.readonly;
 	switch (rhs.raw._null.tag) {
 		COPY_CASE(inplace, NULL_, TomlNull, null);
 		COPY_CASE(inplace, INT, TomlNumber, int);
@@ -118,6 +121,7 @@ TomlValue::TomlValue(const TomlValue& rhs) {
 TomlValue& TomlValue::operator=(const TomlValue& rhs) {
 	if (this != &rhs) {
 		this->~TomlValue();
+		this->readonly = rhs.readonly;
 		switch (rhs.raw._null.tag) {
 			COPY_CASE(inplace, NULL_, TomlNull, null);
 			COPY_CASE(inplace, INT, TomlNumber, int);
@@ -168,3 +172,11 @@ IMPL_GETTERS(ptr, String, string, TomlString, STRING);
 IMPL_GETTERS(ptr, Table, table, TomlTable, TABLE);
 
 #undef IMPL_GETTERS
+
+bool TomlValue::isReadonly(void) const {
+	return this->readonly;
+}
+
+void TomlValue::setReadonly(bool val) {
+	this->readonly = val;
+}
