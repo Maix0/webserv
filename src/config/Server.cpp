@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/28 15:40:07 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/02/28 21:48:24 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/02/28 21:54:20 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,7 +66,7 @@ Server Server::fromTomlValue(const TomlValue& toml) {
 			} else
 				throw std::runtime_error(std::string("unknown key"));
 		} catch (const std::exception& e) {
-			throw ServerParseError(it->first + " " + e.what());
+			throw ServerParseError(std::string("\"") + it->first + "\" " + e.what());
 		}
 	}
 	if (seen.count("root") == 0)

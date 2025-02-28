@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/28 15:40:07 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/02/28 21:51:01 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/02/28 21:55:13 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,7 +34,7 @@ Cgi Cgi::fromTomlValue(const TomlValue& toml) {
 			else
 				throw std::runtime_error("unknown key");
 		} catch (const std::exception& e) {
-			throw CgiParseError(it->first + " " + e.what());
+			throw CgiParseError(std::string("\"") + it->first + "\" " + e.what());
 		}
 	}
 	if (seen.count("binary") == 0)

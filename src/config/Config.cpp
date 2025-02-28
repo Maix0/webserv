@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/28 15:40:07 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/02/28 21:52:12 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/02/28 21:55:02 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,7 +29,7 @@ Config Config::fromTomlValue(const TomlValue& toml) {
 			else
 				throw std::runtime_error("unknown key");
 		} catch (const std::exception& e) {
-			throw ConfigParseError(it->first + " " + e.what());
+			throw ConfigParseError(std::string("\"") + it->first + "\" " + e.what());
 		}
 	}
 	return out;

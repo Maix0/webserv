@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/28 15:55:33 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/02/28 21:49:45 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/02/28 21:54:38 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,7 @@ std::map<std::string, T> _handle_map(const TomlValue& val, T (*func)(const TomlV
 		try {
 			out[it->first] = (func)(it->second);
 		} catch (const std::exception& e) {
-			throw std::runtime_error(it->first + " " + e.what());
+			throw std::runtime_error(std::string("\"") + it->first + "\" " + e.what());
 		}
 	}
 	return out;
