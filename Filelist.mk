@@ -3,6 +3,7 @@ config/Cgi                                                                    \
 config/Config                                                                 \
 config/Route                                                                  \
 config/Server                                                                 \
+config/errors                                                                 \
 config/print                                                                  \
 main                                                                          \
 toml/TomlParser/TomlParser                                                    \

@@ -6,10 +6,11 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/28 15:40:07 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/02/28 16:31:07 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/02/28 21:51:01 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
+#include <exception>
 #include <set>
 #include <stdexcept>
 
@@ -24,15 +25,19 @@ Cgi Cgi::fromTomlValue(const TomlValue& toml) {
 	out.from_env = false;
 
 	for (TomlTable::const_iterator it = table.begin(); it != table.end(); it++) {
-		seen.insert(it->first);
-		if (it->first == "binary")
-			out.binary = it->second.getString();
-		else if (it->first == "from_env")
-			out.from_env = it->second.getBool();
-		else
-			throw std::runtime_error(std::string("unknown key \"") + it->first + "\" in Cgi table");
+		try {
+			seen.insert(it->first);
+			if (it->first == "binary")
+				out.binary = it->second.getString();
+			else if (it->first == "from_env")
+				out.from_env = it->second.getBool();
+			else
+				throw std::runtime_error("unknown key");
+		} catch (const std::exception& e) {
+			throw CgiParseError(it->first + " " + e.what());
+		}
 	}
 	if (seen.count("binary") == 0)
-		throw std::runtime_error("Missing key \"binary\" in cgi");
+		throw CgiParseError("missing key \"binary\" in cgi");
 	return out;
 }

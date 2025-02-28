@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/28 14:33:11 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/02/28 17:00:47 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/02/28 21:24:06 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,7 +62,7 @@ struct Route {
 	/// Option.None() => Post are just recieved, and either passed to cgi or ignored
 	/// Option.Some() => Post are written to that directory (if content.size() < max_size). May also
 	/// be passed to cgi
-	Option<std::string>				   post_directory;
+	Option<std::string>				   post_dir;
 
 	/// @default `Option.None()`
 	/// Option.None() => inherit the root of the server
@@ -99,3 +99,24 @@ std::ostream& operator<<(std::ostream&, const Config&);
 std::ostream& operator<<(std::ostream&, const Server&);
 std::ostream& operator<<(std::ostream&, const Route&);
 std::ostream& operator<<(std::ostream&, const Cgi&);
+
+#define ERROR(NAME)                                 \
+	class NAME##Error : public std::exception {     \
+	private:                                        \
+		std::string msg;                            \
+                                                    \
+	public:                                         \
+		NAME##Error& operator=(const NAME##Error&); \
+		NAME##Error();                              \
+		NAME##Error(const NAME##Error&);            \
+		NAME##Error(const std::string& msg);        \
+		virtual const char* what() const throw();   \
+		virtual ~NAME##Error() throw();             \
+	};
+
+ERROR(CgiParse);
+ERROR(ConfigParse);
+ERROR(RouteParse);
+ERROR(ServerParse);
+
+#undef ERROR

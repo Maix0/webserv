@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/22 23:56:11 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/02/28 16:58:27 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/02/28 21:43:38 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,9 +43,9 @@ const char* TomlValue::InvalidType::what(void) const throw() {
 	return (this->msg.c_str());
 }
 
-TomlValue::InvalidType::InvalidType() : msg("Invalid type requested") {}
+TomlValue::InvalidType::InvalidType() : msg("invalid type requested") {}
 TomlValue::InvalidType::InvalidType(TomlValue::TomlType wanted, TomlValue::TomlType had) {
-	this->msg = std::string("Invalid type requested: wanted '") + _toml_type_to_str(wanted) +
+	this->msg = std::string("invalid type requested: wanted '") + _toml_type_to_str(wanted) +
 				"' but had '" + _toml_type_to_str(had) + "'";
 }
 TomlValue::InvalidType::InvalidType(const InvalidType& rhs) : msg(rhs.msg) {}
