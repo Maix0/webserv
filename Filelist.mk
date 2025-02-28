@@ -1,4 +1,9 @@
 SRC_FILES =                                                                   \
+config/Cgi                                                                    \
+config/Config                                                                 \
+config/Route                                                                  \
+config/Server                                                                 \
+config/print                                                                  \
 main                                                                          \
 toml/TomlParser/TomlParser                                                    \
 toml/TomlParser/error/ForbiddenError                                          \

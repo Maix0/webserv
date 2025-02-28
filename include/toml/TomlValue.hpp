@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/22 23:44:37 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/02/26 17:17:44 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/02/28 16:53:48 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -101,6 +101,15 @@ public:
 	_TOML_GETTERS(TomlString, String);
 
 	class InvalidType : public std::exception {
+	private:
+		std::string msg;
+
+	public:
+		InvalidType(TomlType wanted, TomlType had);
+		InvalidType(const InvalidType&);
+		InvalidType();
+		InvalidType operator=(const InvalidType&);
+		virtual ~InvalidType() throw();
 		virtual const char* what(void) const throw();
 	};
 

@@ -1,6 +1,8 @@
 [server.example]
 host = "local.maix.me"
 port = 8080
+errors = { 404 = "404.html" }
+root = "/var/empty"
 
 
 [server.example.routes."/"]

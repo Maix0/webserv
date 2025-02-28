@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/22 23:56:11 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/02/27 15:28:04 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/02/28 16:58:27 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,9 +19,37 @@
 // Expands to IF_inplace or IF_ptr based on SWITCH
 #define IF_ELSE(STORAGE, ptr_code, inplace_code) IF_##STORAGE(ptr_code, inplace_code)
 
-const char* TomlValue::InvalidType::what(void) const throw() {
-	return ("Invalid type requested");
+const char* _toml_type_to_str(TomlValue::TomlType ty) {
+	switch (ty) {
+		case (TomlValue::NULL_):
+			return ("Null");
+		case (TomlValue::STRING):
+			return ("String");
+		case (TomlValue::LIST):
+			return ("List");
+		case (TomlValue::FLOAT):
+			return ("Float");
+		case (TomlValue::BOOL):
+			return ("Boolean");
+		case (TomlValue::INT):
+			return ("Integer");
+		case (TomlValue::TABLE):
+			return ("Table");
+	}
+	return ("<UNKNOWN>");
 }
+
+const char* TomlValue::InvalidType::what(void) const throw() {
+	return (this->msg.c_str());
+}
+
+TomlValue::InvalidType::InvalidType() : msg("Invalid type requested") {}
+TomlValue::InvalidType::InvalidType(TomlValue::TomlType wanted, TomlValue::TomlType had) {
+	this->msg = std::string("Invalid type requested: wanted '") + _toml_type_to_str(wanted) +
+				"' but had '" + _toml_type_to_str(had) + "'";
+}
+TomlValue::InvalidType::InvalidType(const InvalidType& rhs) : msg(rhs.msg) {}
+TomlValue::InvalidType::~InvalidType() throw() {};
 
 //
 // DESTRUCTOR
@@ -143,12 +171,12 @@ TomlValue& TomlValue::operator=(const TomlValue& rhs) {
 #define IMPL_GETTERS(STORAGE, NAME, FIELD, TY, ETYPE)                                          \
 	const TY& TomlValue::get##NAME(void) const {                                               \
 		if (!this->is##NAME())                                                                 \
-			throw TomlValue::InvalidType();                                                    \
+			throw TomlValue::InvalidType(ETYPE, this->getType());                                                    \
 		return (IF_ELSE(STORAGE, *, ) this->raw._##FIELD.raw);                                 \
 	}                                                                                          \
 	TY& TomlValue::get##NAME(void) {                                                           \
 		if (!this->is##NAME())                                                                 \
-			throw TomlValue::InvalidType();                                                    \
+			throw TomlValue::InvalidType(ETYPE, this->getType());                                                    \
 		return (IF_ELSE(STORAGE, *, ) this->raw._##FIELD.raw);                                 \
 	}                                                                                          \
 	bool TomlValue::is##NAME(void) const {                                                     \
