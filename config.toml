@@ -1,0 +1,22 @@
+[server.example]
+host = "local.maix.me"
+port = 8080
+
+
+[server.example.routes."/"]
+allowed = ["GET", "POST", "OPTION", "HEAD"]
+root = "./data/contents"
+index = "index.html"
+listing = false
+max_size = +16_000_000
+post_directory = "./data/uploads"
+cgi = { php = "php_cgi" }
+
+
+[cgi.php_cgi]
+binary = "php_cgi"
+from_env = false
+
+[cgi.env_php_cgi]
+binary = "PHP_CGI_PATH"
+from_env = true

@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/26 09:46:16 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/02/27 15:28:23 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/02/28 14:01:25 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,33 +25,6 @@
 
 TomlParser::TomlParser() {}
 TomlParser::~TomlParser() {}
-
-const char* _tok_str(int ty) {
-	switch (ty) {
-		case (0):
-			return "INVALID ";
-		case (1):
-			return "DOT     ";
-		case (2):
-			return "COMMA   ";
-		case (3):
-			return "EQUAL   ";
-		case (4):
-			return "LBRACE  ";
-		case (5):
-			return "RBRACE  ";
-		case (6):
-			return "NEWLINE ";
-		case (7):
-			return "LBRACKET";
-		case (8):
-			return "RBRACKET";
-		case (9):
-			return "STRING  ";
-		default:
-			return "unknown ";
-	}
-}
 
 TomlValue TomlParser::parseStream(std::istream& s) {
 	(void)(s);

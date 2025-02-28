@@ -9,6 +9,7 @@ toml/TomlParser/parsing/createTomlValueInTable                                \
 toml/TomlParser/parsing/eatToken                                              \
 toml/TomlParser/parsing/nextToken                                             \
 toml/TomlParser/parsing/normalizeBasicStr                                     \
+toml/TomlParser/parsing/normalizeDecimalString                                \
 toml/TomlParser/parsing/normalizeKey                                          \
 toml/TomlParser/parsing/parseArray                                            \
 toml/TomlParser/parsing/parseKeyValue                                         \

@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/26 09:39:19 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/02/28 13:34:28 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/02/28 14:27:32 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -91,6 +91,8 @@ private:
 		void		skipNewlines(bool is_dot_special);
 		void		fillTabPath(void);
 		void		walkTabPath(void);
+		std::string normalizeDecimalString(const std::string& str, std::size_t lineno);
+		void		tryParseDouble(const std::string& str);
 	};
 
 public:

@@ -1,7 +1,0 @@
-[[server.test]]
-host = "example.com"
-port = [ 8080, 8181, 8282 ]
-
-[[server.test]]
-host = "example2.com"
-port = [ '8083', 8184, '8285' ]

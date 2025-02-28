@@ -1,19 +1,21 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Context_parseString.cpp                            :+:      :+:    :+:   */
+/*   parseString.cpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/26 14:53:53 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/02/27 15:29:50 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/02/28 14:31:01 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <cerrno>
 #include <cmath>
 #include <cstdlib>
+#include <iostream>
 #include <sstream>
+#include <string>
 #include "toml/TomlParser.hpp"
 #include "toml/TomlValue.hpp"
 
@@ -34,17 +36,18 @@ TomlValue TomlParser::Context::parseString(const std::string& str, std::size_t l
 			 str[str.length() - 1] == str[0]) {
 		return TomlValue(this->normalizeBasicString(str.begin() + 1, str.end() - 1, lineno));
 	}
-	char*  end = NULL;
-	double strtod_ret;
-	long   strtol_ret;
+	std::string cstr = this->normalizeDecimalString(str, lineno);
+	char*		end			  = NULL;
+	double		strtod_ret;
+	long		strtol_ret;
 
 	errno	   = 0;
-	strtol_ret = std::strtol(str.c_str(), &end, 10);
+	strtol_ret = std::strtol(cstr.c_str(), &end, 10);
 	if (errno == 0 && (end != NULL && *end == 0)) {
 		return (TomlValue(strtol_ret));
 	}
 	errno	   = 0;
-	strtod_ret = std::strtod(str.c_str(), &end);
+	strtod_ret = std::strtod(cstr.c_str(), &end);
 	if (errno == 0 && (end != NULL && *end == 0)) {
 		return (TomlValue(strtod_ret));
 	}
