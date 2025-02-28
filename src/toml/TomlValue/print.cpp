@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/25 13:25:52 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/02/26 10:16:13 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/02/28 13:39:14 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -128,13 +128,13 @@ std::ostream& operator<<(std::ostream& lhs, const TomlValue& rhs) {
 			TomlTable::const_iterator it = l.begin();
 			if (it != l.end()) {
 				_print_string_toml(lhs, it->first);
-				lhs << " = " << it->second;
+				lhs << " : " << it->second;
 				it++;
 			}
 			for (; it != l.end(); it++) {
 				lhs << ", ";
 				_print_string_toml(lhs, it->first);
-				lhs << " = " << it->second;
+				lhs << " : " << it->second;
 			}
 			lhs << "}";
 			break;

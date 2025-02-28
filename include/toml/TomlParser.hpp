@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/26 09:39:19 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/02/27 15:30:03 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/02/28 13:34:28 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 
 #include <cstddef>
 #include <istream>
-#include "TomlValue.hpp"
+#include "toml/TomlValue.hpp"
 
 #define _ERROR(NAME)                              \
 	class NAME : public std::exception {          \
