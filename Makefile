@@ -6,7 +6,7 @@
 #    By: rparodi <rparodi@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/11/12 11:05:05 by rparodi           #+#    #+#              #
-#    Updated: 2025/02/28 21:41:28 by maiboyer         ###   ########.fr        #
+#    Updated: 2025/03/01 19:58:18 by maiboyer         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -17,7 +17,7 @@ INCLUDE_DIR		=	./include
 
 CXX=c++
 
-SUBJECT_URL						= https://cdn.intra.42.fr/pdf/pdf/140049/en.subject.pdf
+SUBJECT_URL						= https://cdn.intra.42.fr/pdf/pdf/150260/en.subject.pdf
 SUBJECT_URL_CGI_TESTER			= https://cdn.intra.42.fr/document/document/27456/cgi_tester
 SUBJECT_URL_TESTER				= https://cdn.intra.42.fr/document/document/27454/tester
 SUBJECT_URL_UBUNTU_CGI_TESTER	= https://cdn.intra.42.fr/document/document/27455/ubuntu_cgi_tester
@@ -94,19 +94,20 @@ header:
 	@echo -e '$(GOLD)              ******    ******* ****** $(END)'
 	@echo -e '$(GOLD)              ******                   $(END)'
 	@echo -e '$(GOLD)              ******                   $(END)'
-	@echo -e '$(GREY)           Made by maiboyerl x bgoulard$(END)'
+	@echo -e '$(GREY)            Made by maiboyerlpb x bebou$(END)'
+
+PROJ = $(CYAN)$(BOLD)$(UNDERLINE)webserv$(END)$(GOLD)
 
 #	Footer
 footer:
-	@echo -e '$(GOLD)$(END)'
-	@echo -e '$(GOLD)   +------+                 +------+   $(END)'
-	@echo -e '$(GOLD)  /|     /|                 |\     |\  $(END)'
-	@echo -e '$(GOLD) +-+----+ |                 | +----+-+ $(END)'
-	@echo -e '$(GOLD) | |    | |      $(CYAN)$(BOLD)$(UNDERLINE)cub3d$(END)$(GOLD)      | |    | | $(END)'
-	@echo -e '$(GOLD) | +----+-+                 +-+----+ | $(END)'
-	@echo -e '$(GOLD) |/     |/                   \|     \| $(END)'
-	@echo -e '$(GOLD) +------+                     +------+ $(END)'
-	@echo -e '$(GOLD)$(END)'
+	@echo -e '$(GOLD)                                       $(END)'
+	@echo -e '$(GOLD)   _____                       _____   $(END)'
+	@echo -e "$(GOLD)--'   __\_____           _____/__   \`--$(END)"
+	@echo -e '$(GOLD)         _____) $(PROJ) (_____         $(END)'
+	@echo -e '$(GOLD)         __)               (__         $(END)'
+	@echo -e '$(GOLD)        __)                 (__        $(END)'
+	@echo -e '$(GOLD)--.______)                   (______.--$(END)'
+	@echo -e '$(GOLD)                                       $(END)'
 	@echo -e '            $(GREY)The compilation is $(END)$(GOLD)finished$(END)'
 	@echo -e '                 $(GREY)Have a good $(END)$(GOLD)correction$(END)'
 
@@ -151,11 +152,11 @@ filelist:
 	@rm -f .clang-format
 	@curl https://raw.githubusercontent.com/Maix0/42cpp/refs/heads/master/.clang-format -o .clang-format
 
-subject: subject.txt
-	@bat --plain ./subject.txt
+subject: .subject.txt
+	@bat --plain ./.subject.txt
 
-subject.txt:
-	@curl $(SUBJECT_URL) | pdftotext -layout -nopgbrk -q - subject.txt
+.subject.txt:
+	@curl $(SUBJECT_URL) | pdftotext -layout -nopgbrk -q - .subject.txt
 
 #	phony
 .PHONY: all bonus clean fclean re header footer filelist .clangd .clang-format subject

@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/28 15:40:07 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/02/28 21:54:20 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/01 12:52:22 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,11 +35,11 @@ Server Server::fromTomlValue(const TomlValue& toml) {
 				out.routes = _handle_map(it->second, Route::fromTomlValue);
 			} else if (it->first == "root")
 				out.root = it->second.getString();
-			else if (it->first == "host") {
+			else if (it->first == "servername") {
 				if (it->second.isNull())
-					out.host = Option<std::string>::None();
+					out.servername = Option<std::string>::None();
 				else
-					out.host = Option<std::string>::Some(it->second.getString());
+					out.servername = Option<std::string>::Some(it->second.getString());
 			} else if (it->first == "errors") {
 				out.errors = _handle_map(it->second, _toml_get_string);
 			} else if (it->first == "port") {
@@ -63,6 +63,8 @@ Server Server::fromTomlValue(const TomlValue& toml) {
 							out.ports.push_back(up);
 					}
 				}
+			} else if (it->first == "host") {
+				out.host = it->second.getString();
 			} else
 				throw std::runtime_error(std::string("unknown key"));
 		} catch (const std::exception& e) {
@@ -73,6 +75,8 @@ Server Server::fromTomlValue(const TomlValue& toml) {
 		throw ServerParseError("missing key \"root\"");
 	if (seen.count("port") == 0)
 		throw ServerParseError("missing key \"port\"");
+	if (seen.count("host") == 0)
+		throw ServerParseError("missing key \"host\"");
 
 	return out;
 }

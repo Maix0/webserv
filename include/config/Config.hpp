@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/28 14:33:11 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/02/28 21:24:06 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/01 12:46:22 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,13 +77,15 @@ struct Server {
 	std::string						   root;
 	/// @required
 	std::vector<unsigned short>		   ports;
+	/// @required
+	std::string						   host;
 
 	std::map<std::string, Route>	   routes;
 
 	/// Map error code to files (relative to `root`)
 	std::map<std::string, std::string> errors;
 
-	Option<std::string>				   host;
+	Option<std::string>				   servername;
 
 	static Server					   fromTomlValue(const TomlValue& toml);
 };

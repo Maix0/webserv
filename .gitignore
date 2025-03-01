@@ -1,6 +1,7 @@
 /build
 /webserv
 /webserv_bonus
+/.gitignore
 *.d
 *.o
 flake.nix
@@ -9,3 +10,4 @@ flake.lock
 .clangd
 vgcore.*
 .idea
+.subject.txt
