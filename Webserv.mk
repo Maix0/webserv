@@ -6,7 +6,7 @@
 #    By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/11/03 13:20:01 by maiboyer          #+#    #+#              #
-#    Updated: 2025/01/16 12:38:44 by maiboyer         ###   ########.fr        #
+#    Updated: 2025/03/02 21:42:40 by maiboyer         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -46,7 +46,6 @@ all: $(NAME)
 $(TARGET): $(OBJ)
 	@echo -e '$(COL_GRAY) Linking \t $(COL_GOLD)$(TARGET)$(COL_RESET)'
 	@$(CXX) $(INCLUDES) $(OBJ) $(CXXFLAGS) -o $(NAME)
-	@#ar rcs $(BUILD_DIR)/$(NAME) $(OBJ)
 
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp
 	@mkdir -p $(dir $@)

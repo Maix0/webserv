@@ -6,7 +6,7 @@
 #    By: rparodi <rparodi@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/11/12 11:05:05 by rparodi           #+#    #+#              #
-#    Updated: 2025/03/02 19:18:27 by maiboyer         ###   ########.fr        #
+#    Updated: 2025/03/02 21:42:58 by maiboyer         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -16,6 +16,8 @@ SRC_DIR			=	./src
 INCLUDE_DIR		=	./include
 
 CXX=c++
+MSG=
+NAME=webserv
 
 SUBJECT_URL						= https://cdn.intra.42.fr/pdf/pdf/150260/en.subject.pdf
 SUBJECT_URL_CGI_TESTER			= https://cdn.intra.42.fr/document/document/27456/cgi_tester
@@ -34,65 +36,68 @@ BOLD = \033[1m
 ITALIC = \033[3m
 UNDERLINE = \033[4m
 
+WSTART = \033[D[$(RED)$(BOLD)$(UNDERLINE)WARNING$(END)]:$(CYAN) 
+WEND = \n$(END)
+
 CXXFLAGS_ADDITIONAL=
 # PMAKE_DISABLE =
 PMAKE =
 ifndef PMAKE_DISABLE
 ifeq ($(shell uname), Linux)
-	PMAKE = -j$(shell grep -c ^processor /proc/cpuinfo)
-	#CFLAGS_ADDITIONAL	+= -DPRINT_BACKTRACE
+    PMAKE = -j$(shell grep -c ^processor /proc/cpuinfo)
+    #CFLAGS_ADDITIONAL    += -DPRINT_BACKTRACE
 endif
 ifeq ($(shell uname), Darwin)
-	PMAKE = -j$(shell sysctl -n hw.ncpu)
-	#CFLAGS_ADDITIONAL	+= -DNVALGRIND
+    PMAKE = -j$(shell sysctl -n hw.ncpu)
+    #CFLAGS_ADDITIONAL    += -DNVALGRIND
 endif
 endif
 
-
+MSG_BONUS=
 
 ifeq ($(MAKECMDGOALS), bonus)
     CFLAGS_ADDITIONAL += -DBONUS=1
     BUILD_DIR := $(BUILD_DIR)/bonus
 endif
 
-MSG=
-NAME=webserv
 # TODO: REMOVE THIS WHEN FINISHING THIS:
 #CXXFLAGS_ADDITIONAL	+= -O0 -Wno-\#warnings
-MSG += "\x1b[D$(RED)WARNING$(END) using -g3\n"
+MSG += "$(WSTART)using $(GOLD)g3$(WEND)"
 CXXFLAGS_ADDITIONAL	+= -gcolumn-info -g3 -fno-builtin
 
 
-MSG += "\x1b[D$(RED)WARNING$(END) using -DLEVEL=debug\n"
+MSG += "$(WSTART)using $(GOLD)debug print$(WEND)"
 CXXFLAGS_ADDITIONAL	+= -DLEVEL=debug
 
 LLD := $(shell command -v lld 2> /dev/null)
 ifdef LLD
-	ifeq ($(MAKECMDGOALS), header)
-		MSG += "\x1b[D$(RED)WARNING$(END) using lld\n"
-	endif
+    ifeq ($(MAKECMDGOALS), header)
+        MSG += "$(WSTART)using $(GOLD)lld$(WEND)"
+    endif
 
-	CXXFLAGS_ADDITIONAL += -fuse-ld=lld -Wno-unused-command-line-argument
+    CXXFLAGS_ADDITIONAL += -fuse-ld=lld -Wno-unused-command-line-argument
 endif
 
 GXX := $(shell command -v g++ 2> /dev/null)
 ifdef GXX
-	ifeq ($(MAKECMDGOALS), header)
-		MSG += "\x1b[D$(RED)WARNING$(END) using g++\n"
-	endif
+    ifeq ($(MAKECMDGOALS), header)
+        MSG += "$(WSTART)using $(GOLD)g++$(WEND)"
+    endif
 
-	CXX=g++
+    CXX=g++
 endif
 
 # CXXFLAGS_ADDITIONAL	+= '-DERROR=((void)printf("ERROR HERE: " __FILE__ ":%d in %s\n", __LINE__, __func__), 1)'
 #CXXFLAGS_ADDITIONAL	+= -fsanitize=address
+
+MSG += "$(MSG_BONUS)"
 
 export BUILD_DIR
 export CXX
 export CXXFLAGS_ADDITIONAL
 export INCLUDE_DIR
 export SRC_DIR
-
+export NAME
 
 # All (make all)
 all:
@@ -101,8 +106,8 @@ all:
 	@$(MAKE) --no-print-directory footer
 
 bonus: 
-	@$(MAKE) --no-print-directory header
-	@$(MAKE) --no-print-directory -f ./Webserv.mk $(PMAKE) bonus
+	@$(MAKE) --no-print-directory header 'MSG_BONUS=\n\x1b[D$(GOLD)         compiling with bonus          $(WEND)\n'
+	@$(MAKE) --no-print-directory -f ./Webserv.mk $(PMAKE) NAME=$(NAME)_bonus
 	@$(MAKE) --no-print-directory footer
 
 #	Header
