@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/28 17:01:09 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/02/28 21:24:06 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/02 17:19:30 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,6 +38,7 @@ void _print_route(std::ostream& o, const Route& route, std::size_t ident) {
 						   << std::endl;
 	_print_ident(o, ident) << "max_size => " << route.max_size << "," << std::endl;
 	_print_ident(o, ident) << "post_dir => " << route.post_dir << "," << std::endl;
+	_print_ident(o, ident) << "redirect => " << route.redirect << "," << std::endl;
 	if (route.allowed.hasValue()) {
 		_print_ident(o, ident) << "port     => Some({ ";
 		for (std::vector<std::string>::const_iterator it = route.allowed.get().begin();

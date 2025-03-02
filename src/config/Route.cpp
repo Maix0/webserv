@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/28 15:40:07 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/02/28 21:54:47 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/02 17:17:55 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -73,7 +73,12 @@ Route Route::fromTomlValue(const TomlValue& toml) {
 					out.index = Option<std::string>::Some(it->second.getString());
 			} else if (it->first == "cgi")
 				out.cgi = _handle_map(it->second, _toml_get_string);
-			else
+			else if (it->first == "redirect") {
+				if (it->second.isNull())
+					out.redirect = Option<std::string>::None();
+				else
+					out.redirect = Option<std::string>::Some(it->second.getString());
+			} else
 				throw std::runtime_error("unknown key");
 		} catch (const std::exception& e) {
 			throw RouteParseError(std::string("\"") + it->first + "\" " + e.what());

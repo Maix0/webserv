@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/28 14:33:11 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/01 12:46:22 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/02 17:17:05 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -68,6 +68,11 @@ struct Route {
 	/// Option.None() => inherit the root of the server
 	/// Option.Some() => set the root when searching for files
 	Option<std::string>				   root;
+
+	/// @default `Option.None()`
+	/// Option.None() => no redirect
+	/// Option.Some() => redirect to said url
+	Option<std::string>				   redirect;
 
 	static Route					   fromTomlValue(const TomlValue& toml);
 };

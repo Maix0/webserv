@@ -1,28 +1,24 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   main.cpp                                           :+:      :+:    :+:   */
+/*   main_shim.cpp                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/02/23 00:07:08 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/02 18:24:33 by maiboyer         ###   ########.fr       */
+/*   Created: 2025/03/02 18:23:58 by maiboyer          #+#    #+#             */
+/*   Updated: 2025/03/02 18:24:24 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <exception>
 #include <iostream>
-#include "config/Config.hpp"
-#include "toml/TomlParser.hpp"
-#include "toml/TomlValue.hpp"
+int wrapped_main(int argc, char* argv[], char* envp[]);
 
-int wrapped_main(int argc, char* argv[], char* envp[]) {
-	(void)(argc);
-	(void)(argv);
-	(void)(envp);
-
-	TomlValue val	 = TomlParser::parseFile("./config.toml");
-	Config	  config = Config::fromTomlValue(val);
-	std::cout << config << std::endl;
-	return 0;
+int main(int argc, char* argv[], char* envp[]) {
+	try {
+		return wrapped_main(argc, argv, envp);
+	} catch (const std::exception& e) {
+		std::cerr << "Error: " << e.what() << std::endl;
+	}
+	return 1;
 }

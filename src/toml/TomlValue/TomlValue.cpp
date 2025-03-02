@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/22 23:56:11 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/02/28 21:43:38 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/02 18:23:29 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@
 // Expands to IF_inplace or IF_ptr based on SWITCH
 #define IF_ELSE(STORAGE, ptr_code, inplace_code) IF_##STORAGE(ptr_code, inplace_code)
 
-const char* _toml_type_to_str(TomlValue::TomlType ty) {
+static const char* _toml_type_to_str(TomlValue::TomlType ty) {
 	switch (ty) {
 		case (TomlValue::NULL_):
 			return ("Null");

@@ -1,16 +1,17 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Context_setToken.cpp                               :+:      :+:    :+:   */
+/*   setToken.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/26 14:53:53 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/02/26 18:37:12 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/02 18:58:48 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <sstream>
+#include "app/Logger.hpp"
 #include "toml/TomlParser.hpp"
 #include "toml/TomlValue.hpp"
 

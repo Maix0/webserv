@@ -6,6 +6,7 @@ config/Server                                                                 \
 config/errors                                                                 \
 config/print                                                                  \
 main                                                                          \
+main_shim                                                                     \
 toml/TomlParser/TomlParser                                                    \
 toml/TomlParser/error/ForbiddenError                                          \
 toml/TomlParser/error/InternalError                                           \
