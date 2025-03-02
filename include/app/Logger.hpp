@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/02 18:29:43 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/02 18:57:19 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/02 22:24:23 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,10 +70,10 @@
 
 #define HEADER_fatal	   "[" COL_RED UNDERLINE BOLD "FATAL" RESET "]"
 #define HEADER_err		   "[" COL_RED BOLD "ERROR" RESET "]"
-#define HEADER_warn		   "[" COLB_YELLOW BOLD " WARN" RESET "]"
-#define HEADER_info		   "[" COL_BLUE BOLD " INFO" RESET "]"
+#define HEADER_warn		   "[" COLB_YELLOW BOLD "WARN " RESET "]"
+#define HEADER_info		   "[" COL_BLUE BOLD "INFO " RESET "]"
 #define HEADER_debug	   "[" COL_MAGENTA BOLD "DEBUG" RESET "]"
-#define HEADER_trace	   "[" COL_WHITE BOLD "TRACE" RESET "]"
+#define HEADER_trace	   "[" COLB_WHITE BOLD "TRACE" RESET "]"
 
 #define FILTER_fatal(code) code
 #define FILTER_err(code)   code
@@ -150,10 +150,10 @@
 
 #undef LEVEL
 
-#define LOG(level, code)                                                                     \
-	do {                                                                                     \
-		FILTER_##level(std::cerr << HEADER_##level << __FUNCTION__ << " in "<< __FILE__ << ":" \
-								 << __LINE__ << " " << code << std::endl;);                  \
-	} while (true);
+#define LOG(level, code)                                                                        \
+	do {                                                                                        \
+		FILTER_##level(std::cerr << HEADER_##level << " " << __FUNCTION__ << " in " << __FILE__ \
+								 << ":" << __LINE__ << " " << code << std::endl;);              \
+	} while (0)
 
 // LOG(info, banane << "code" << "truc");

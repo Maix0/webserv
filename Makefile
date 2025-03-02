@@ -6,7 +6,7 @@
 #    By: rparodi <rparodi@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/11/12 11:05:05 by rparodi           #+#    #+#              #
-#    Updated: 2025/03/02 21:42:58 by maiboyer         ###   ########.fr        #
+#    Updated: 2025/03/02 22:27:53 by maiboyer         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -40,7 +40,6 @@ WSTART = \033[D[$(RED)$(BOLD)$(UNDERLINE)WARNING$(END)]:$(CYAN)
 WEND = \n$(END)
 
 CXXFLAGS_ADDITIONAL=
-# PMAKE_DISABLE =
 PMAKE =
 ifndef PMAKE_DISABLE
 ifeq ($(shell uname), Linux)
@@ -53,20 +52,13 @@ ifeq ($(shell uname), Darwin)
 endif
 endif
 
-MSG_BONUS=
-
 ifeq ($(MAKECMDGOALS), bonus)
     CFLAGS_ADDITIONAL += -DBONUS=1
     BUILD_DIR := $(BUILD_DIR)/bonus
 endif
 
-# TODO: REMOVE THIS WHEN FINISHING THIS:
-#CXXFLAGS_ADDITIONAL	+= -O0 -Wno-\#warnings
-MSG += "$(WSTART)using $(GOLD)g3$(WEND)"
 CXXFLAGS_ADDITIONAL	+= -gcolumn-info -g3 -fno-builtin
-
-
-MSG += "$(WSTART)using $(GOLD)debug print$(WEND)"
+CXXFLAGS_ADDITIONAL += -fdiagnostics-color=always
 CXXFLAGS_ADDITIONAL	+= -DLEVEL=debug
 
 LLD := $(shell command -v lld 2> /dev/null)
@@ -74,23 +66,14 @@ ifdef LLD
     ifeq ($(MAKECMDGOALS), header)
         MSG += "$(WSTART)using $(GOLD)lld$(WEND)"
     endif
-
     CXXFLAGS_ADDITIONAL += -fuse-ld=lld -Wno-unused-command-line-argument
 endif
 
-GXX := $(shell command -v g++ 2> /dev/null)
-ifdef GXX
-    ifeq ($(MAKECMDGOALS), header)
-        MSG += "$(WSTART)using $(GOLD)g++$(WEND)"
-    endif
-
-    CXX=g++
-endif
-
-# CXXFLAGS_ADDITIONAL	+= '-DERROR=((void)printf("ERROR HERE: " __FILE__ ":%d in %s\n", __LINE__, __func__), 1)'
 #CXXFLAGS_ADDITIONAL	+= -fsanitize=address
 
-MSG += "$(MSG_BONUS)"
+ifdef MSG_BONUS
+    MSG += "$(MSG_BONUS)"
+endif
 
 export BUILD_DIR
 export CXX
@@ -101,7 +84,14 @@ export NAME
 
 # All (make all)
 all:
+	$(eval CXXFLAGS_ADDITIONAL += -Werror)
 	@$(MAKE) --no-print-directory header
+	@$(MAKE) --no-print-directory -f ./Webserv.mk $(PMAKE)
+	@$(MAKE) --no-print-directory footer
+
+debug:
+	$(eval CXXFLAGS_ADDITIONAL += -Werror)
+	@$(MAKE) --no-print-directory header 'MSG_BONUS=$(WSTART)$(RED)USING DEBUG BUILD !$(RED)$(WEND)'
 	@$(MAKE) --no-print-directory -f ./Webserv.mk $(PMAKE)
 	@$(MAKE) --no-print-directory footer
 

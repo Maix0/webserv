@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/28 15:40:07 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/02 17:14:20 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/02 22:23:45 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,7 @@
 #include <set>
 #include <stdexcept>
 
+#include "app/Logger.hpp"
 #include "config/Config.hpp"
 #include "config/_ConfigHelper.hpp"
 #include "toml/TomlValue.hpp"
@@ -57,8 +58,7 @@ Server Server::fromTomlValue(const TomlValue& toml) {
 							throw std::runtime_error("port is not out of range (0-65565)");
 						unsigned short up = static_cast<unsigned short>(p);
 						if (std::find(out.ports.begin(), out.ports.end(), up) != out.ports.end())
-							std::cerr << "Duplicate port in server (skipping...): " << up
-									  << std::endl;
+							LOG(warn, "duplicate port in server (skipping...): " << up);
 						else
 							out.ports.push_back(up);
 					}

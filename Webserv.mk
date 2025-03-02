@@ -6,7 +6,7 @@
 #    By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/11/03 13:20:01 by maiboyer          #+#    #+#              #
-#    Updated: 2025/03/02 21:42:40 by maiboyer         ###   ########.fr        #
+#    Updated: 2025/03/02 21:49:50 by maiboyer         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -20,7 +20,7 @@ NAME			=	webserv
 LIB_NAME		?=	
 TARGET			=	./$(NAME)
 CXX				?=	c++
-CXXFLAGS		=	-Wall -Werror -Wextra -MMD -std=c++98
+CXXFLAGS		=	-Wall -Wextra -MMD -std=c++98
 CXXFLAGS		+=	$(CXXFLAGS_ADDITIONAL)
 
 -include 			./Filelist.mk

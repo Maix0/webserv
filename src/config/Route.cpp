@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/28 15:40:07 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/02 17:17:55 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/02 22:23:34 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,7 @@
 #include <set>
 #include <stdexcept>
 
+#include "app/Logger.hpp"
 #include "config/Config.hpp"
 #include "config/_ConfigHelper.hpp"
 #include "toml/TomlValue.hpp"
@@ -50,8 +51,7 @@ Route Route::fromTomlValue(const TomlValue& toml) {
 						const std::vector<std::string>& lists  = out.allowed.get();
 
 						if (std::find(lists.begin(), lists.end(), method) != lists.end())
-							std::cerr << "Duplicate Method for route (skipping...): " << method
-									  << std::endl;
+							LOG(warn, "duplicate Method for route (skipping...): " << method);
 						else
 							out.allowed.get().push_back(method);
 					}

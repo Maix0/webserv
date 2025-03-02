@@ -1,25 +1,27 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   main_shim.cpp                                      :+:      :+:    :+:   */
+/*   Context.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/03/02 18:23:58 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/02 22:24:51 by maiboyer         ###   ########.fr       */
+/*   Created: 2025/03/02 22:07:07 by maiboyer          #+#    #+#             */
+/*   Updated: 2025/03/02 22:16:30 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <exception>
-#include <iostream>
-#include "app/Logger.hpp"
-int wrapped_main(int argc, char* argv[], char* envp[]);
+#pragma once
 
-int main(int argc, char* argv[], char* envp[]) {
-	try {
-		return wrapped_main(argc, argv, envp);
-	} catch (const std::exception& e) {
-		LOG(fatal, e.what());
-	}
-	return 1;
-}
+class Context {
+private:
+	Context();
+	~Context();
+	// No Copy operator/assignement operator since this is a Singleton...
+
+	static Context INSTANCE;
+
+public:
+	
+
+	static Context& getInstance();
+};
