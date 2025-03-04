@@ -1,5 +1,6 @@
 SRC_FILES =                                                                   \
 app/Context                                                                   \
+app/Socket                                                                    \
 config/Cgi                                                                    \
 config/Config                                                                 \
 config/Route                                                                  \
