@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 13:39:20 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/05 17:03:44 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/05 21:13:38 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,10 +76,11 @@ Socket::Socket(const std::string& host, Port port) : port(port) {
 	} else
 		LOG(debug, "successfully bound socket " << this->fd << " onto " << host << ":" << port);
 
-	if (listen(this->fd, BACKLOG) != 0)
+	if (listen(this->fd, BACKLOG) != 0) {
 		LOG(err, "failed to lisen on socket " << this->fd << "(" << host << ":" << port
 											  << "): " << strerror(serr));
-	else
+		throw std::runtime_error("unable to listen on socket");
+	} else
 		LOG(trace, "lisening on socket " << this->fd << " (" << host << ":" << port << ")");
 };
 

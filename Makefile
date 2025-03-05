@@ -6,7 +6,7 @@
 #    By: rparodi <rparodi@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/11/12 11:05:05 by rparodi           #+#    #+#              #
-#    Updated: 2025/03/04 13:55:51 by maiboyer         ###   ########.fr        #
+#    Updated: 2025/03/05 21:49:17 by maiboyer         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -59,7 +59,7 @@ endif
 
 CXXFLAGS_ADDITIONAL	+= -gcolumn-info -g3 -fno-builtin
 CXXFLAGS_ADDITIONAL += -fdiagnostics-color=always
-CXXFLAGS_ADDITIONAL	+= -DLEVEL=debug
+CXXFLAGS_ADDITIONAL	+= -DLOG_LEVEL=debug
 
 LLD := $(shell command -v lld 2> /dev/null)
 ifdef LLD

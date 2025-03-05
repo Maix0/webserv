@@ -6,13 +6,18 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/02 18:29:43 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/02 22:24:23 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/05 21:55:56 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
+#include <cctype>
+#include <cstdlib>
+#include <exception>
 #include <iostream>
+#include <iterator>
+#include <string>
 
 #define RESET		   "\x1b[0m"
 #define BOLD		   "\x1b[1m"
@@ -64,82 +69,100 @@
 #define debug		   4
 #define trace		   5
 
-#ifndef LEVEL
-#	define LEVEL info
+#ifndef LOG_LEVEL
+#	define LOG_LEVEL info
 #endif
 
-#define HEADER_fatal	   "[" COL_RED UNDERLINE BOLD "FATAL" RESET "]"
-#define HEADER_err		   "[" COL_RED BOLD "ERROR" RESET "]"
-#define HEADER_warn		   "[" COLB_YELLOW BOLD "WARN " RESET "]"
-#define HEADER_info		   "[" COL_BLUE BOLD "INFO " RESET "]"
-#define HEADER_debug	   "[" COL_MAGENTA BOLD "DEBUG" RESET "]"
-#define HEADER_trace	   "[" COLB_WHITE BOLD "TRACE" RESET "]"
+/// You shouldn't use this namespace :)
+namespace log {
+enum LogLevel {
+	NONE  = none,
+	FATAL = fatal,
+	ERR	  = err,
+	WARN  = warn,
+	INFO  = info,
+	DEBUG = debug,
+	TRACE = trace,
+};
 
-#define FILTER_fatal(code) code
-#define FILTER_err(code)   code
-#define FILTER_warn(code)  code
-#define FILTER_info(code)  code
-#define FILTER_debug(code) code
-#define FILTER_trace(code) code
+extern LogLevel	   logLevel;
 
-#if LEVEL == none
-#	undef FILTER_fatal
-#	undef FILTER_err
-#	undef FILTER_warn
-#	undef FILTER_info
-#	undef FILTER_debug
-#	undef FILTER_trace
+static inline bool _shouldLog(LogLevel level) {
+	return (level <= logLevel);
+}
 
-#	define FILTER_fatal(code)
-#	define FILTER_err(code)
-#	define FILTER_warn(code)
-#	define FILTER_info(code)
-#	define FILTER_debug(code)
-#	define FILTER_trace(code)
-#elif LEVEL == fatal
-#	undef FILTER_err
-#	undef FILTER_warn
-#	undef FILTER_info
-#	undef FILTER_debug
-#	undef FILTER_trace
+static inline void _setLogCompileTimeLogLevel(void) {
+	if (LOG_LEVEL < none || LOG_LEVEL > trace)
+		logLevel = TRACE;
+	logLevel = (LogLevel)LOG_LEVEL;
+}
 
-#	define FILTER_err(code)
-#	define FILTER_warn(code)
-#	define FILTER_info(code)
-#	define FILTER_debug(code)
-#	define FILTER_trace(code)
-#elif LEVEL == err
-#	undef FILTER_warn
-#	undef FILTER_info
-#	undef FILTER_debug
-#	undef FILTER_trace
+static inline void setLogLevel(LogLevel level) {
+	logLevel = level;
+}
 
-#	define FILTER_warn(code)
-#	define FILTER_info(code)
-#	define FILTER_debug(code)
-#	define FILTER_trace(code)
-#elif LEVEL == warn
-#	undef FILTER_info
-#	undef FILTER_debug
-#	undef FILTER_trace
+static inline void _setEnvLogLevel(char** envp) {
+	try {
+		while (*envp) {
+			std::string			   env = *envp;
+			std::string::size_type eq  = env.find_first_of('=');
+			std::string			   key = env.substr(0, eq);
+			if (key == "LOG_LEVEL") {
+				static std::pair<std::string, LogLevel> levels[] = {
+					// clang-format off
+					std::make_pair("none", NONE),
+					std::make_pair("fatal", FATAL),
+					std::make_pair("err", ERR),
+					std::make_pair("warn", WARN),
+					std::make_pair("info", INFO),
+					std::make_pair("debug", DEBUG),
+					std::make_pair("trace", TRACE),
 
-#	define FILTER_info(code)
-#	define FILTER_debug(code)
-#	define FILTER_trace(code)
-#elif LEVEL == info
-#	undef FILTER_debug
-#	undef FILTER_trace
+					// aliases
+					std::make_pair("error", ERR),
+					std::make_pair("warning", WARN),
+					// maybe should this be set to trace ?
+					std::make_pair("", NONE),
+					// clang-format on
+				};
 
-#	define FILTER_debug(code)
-#	define FILTER_trace(code)
-#elif LEVEL == debug
-#	undef FILTER_trace
+				std::string val = env.substr(eq + 1);
 
-#	define FILTER_trace(code)
-#elif LEVEL == trace
-#else
-#	warning "Invalid LEVEL" LEVEL
-#endif
+				// poor man's string.toLowercase()...
+				for (std::string::iterator it = val.begin(); it != val.end(); it++)
+					*it = std::tolower(*it);
+
+				for (std::size_t i = 0; i < sizeof(levels) / sizeof(levels[0]); i++) {
+					if (levels[i].first == val) {
+						logLevel = levels[i].second;
+					}
+				}
+			}
+			envp++;
+		}
+	} catch (const ::std::exception& e) {
+		std::cerr << "EARLY FATAL: " << e.what() << std::endl;
+		std::exit(1);
+	}
+}
+
+}  // namespace log
+
+#define HEADER_fatal "[" COL_RED UNDERLINE BOLD "FATAL" RESET "]"
+#define HEADER_err	 "[" COL_RED BOLD "ERROR" RESET "]"
+#define HEADER_warn	 "[" COLB_YELLOW BOLD "WARN " RESET "]"
+#define HEADER_info	 "[" COL_BLUE BOLD "INFO " RESET "]"
+#define HEADER_debug "[" COL_MAGENTA BOLD "DEBUG" RESET "]"
+#define HEADER_trace "[" COLB_WHITE BOLD "TRACE" RESET "]"
+
+// clang-format off
+#define FILTER_fatal(code) if (::log::_shouldLog(::log::FATAL)) {code}
+#define FILTER_err(code)   if (::log::_shouldLog(::log::ERR))   {code}
+#define FILTER_warn(code)  if (::log::_shouldLog(::log::WARN))  {code}
+#define FILTER_info(code)  if (::log::_shouldLog(::log::INFO))  {code}
+#define FILTER_debug(code) if (::log::_shouldLog(::log::DEBUG)) {code}
+#define FILTER_trace(code) if (::log::_shouldLog(::log::TRACE)) {code}
+// clang-format on
 
 #undef fatal
 #undef err
@@ -147,8 +170,6 @@
 #undef info
 #undef debug
 #undef trace
-
-#undef LEVEL
 
 #define LOG(level, code)                                                                        \
 	do {                                                                                        \
