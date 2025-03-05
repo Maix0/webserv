@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/28 14:33:11 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/04 14:03:59 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/05 14:51:54 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,6 @@
 #include <vector>
 
 #include "app/Option.hpp"
-#include "app/Socket.hpp"
 #include "toml/TomlValue.hpp"
 
 struct Cgi {
@@ -84,7 +83,7 @@ struct Server {
 	/// @required
 	std::vector<unsigned short>		   ports;
 	/// @required
-	Ip								   host;
+	std::string						   host;
 
 	std::map<std::string, Route>	   routes;
 

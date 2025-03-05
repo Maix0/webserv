@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/28 15:40:07 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/04 14:45:42 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/05 14:50:41 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,38 +24,6 @@
 
 static std::string _toml_get_string(const TomlValue& val) {
 	return (val.getString());
-}
-
-static Ip _parse_ip(const TomlString& s) {
-	Ip						   out;
-	unsigned char*			   inner	= (unsigned char*)&out.inner;
-	std::size_t				   nb		= 0;
-	int						   current	= 0;
-	TomlString::const_iterator it		= s.begin();
-	TomlString::const_iterator start_nb = s.begin();
-
-	for (; it != s.end(); it++) {
-		if (nb >= 4)
-			throw std::runtime_error("invalid ip 3");
-		if (*it == '.') {
-			if (start_nb - it > 4)
-				throw std::runtime_error("invalid ip 1");
-			if (current > 255)
-				throw std::runtime_error("invalid ip 2");
-			inner[nb++] = current;
-			current		= 0;
-			start_nb	= it;
-			continue;
-		}
-		if ('0' <= *it && *it <= '9') {
-			current *= 10;
-			current += *it - '0';
-		} else {
-			throw std::runtime_error("invalid ip 4");
-		}
-	}
-
-	return (out);
 }
 
 Server Server::fromTomlValue(const TomlValue& toml) {
@@ -98,7 +66,7 @@ Server Server::fromTomlValue(const TomlValue& toml) {
 					}
 				}
 			} else if (it->first == "host") {
-				out.host = _parse_ip(it->second.getString());
+				out.host = it->second.getString();
 			} else
 				throw std::runtime_error(std::string("unknown key"));
 		} catch (const std::exception& e) {

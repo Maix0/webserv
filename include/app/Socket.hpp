@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 13:36:52 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/04 13:57:01 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/05 15:51:53 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,23 +16,55 @@
 #include <string>
 
 struct Ip {
-	unsigned int inner;
+	unsigned int		 inner;
+
+	friend std::ostream& operator<<(std::ostream& o, const Ip& rhs) {
+		unsigned char* ptr = (unsigned char*)&rhs.inner;
+		o << (unsigned int)ptr[0] << "." << (unsigned int)ptr[1] << "." << (unsigned int)ptr[2]
+		  << "." << (unsigned int)ptr[3];
+
+		return (o);
+	}
+
+	Ip() : inner(0) {};
+	Ip(unsigned int raw) : inner(raw) {};
+	~Ip() {};
+	Ip(const Ip& rhs) : inner(rhs.inner) {};
+	Ip& operator=(const Ip& rhs) {
+		if (this != &rhs)
+			this->inner = rhs.inner;
+		return (*this);
+	};
 };
 
-std::ostream& operator<<(std::ostream& o, const Ip& rhs);
+struct Port {
+	unsigned short inner;
+	Port(unsigned short i) : inner(i) {};
+	~Port() {};
+	Port(const Port& rhs) : inner(rhs.inner) {};
+	Port& operator=(const Port& rhs) {
+		if (this != &rhs)
+			this->inner = rhs.inner;
+		return (*this);
+	};
+
+	friend std::ostream& operator<<(std::ostream& o, const Port& rhs) { return (o << rhs.inner); }
+};
 
 class Socket {
 private:
-	int			   fd;
-	unsigned short port;
-	Ip			   host;
+	int			fd;
+	Port		port;
+	Ip			host_ip;
+	std::string host_str;
 
 public:
 	Socket();
-	Socket(const Ip& host, unsigned short port);
+	Socket(const std::string& host, Port port);
 	~Socket();
 
-	int			   getFd();
-	unsigned short getPort();
-	Ip			   getHost();
+	int				   getFd();
+	unsigned short	   getPort();
+	Ip				   getHost();
+	const std::string& getHostStr() const;
 };
