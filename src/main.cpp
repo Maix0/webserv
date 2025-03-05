@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/23 00:07:08 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/05 22:06:07 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/05 22:25:22 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,12 +29,12 @@ int wrapped_main(int argc, char* argv[], char* envp[]) {
 		std::cout << "usage: " << (argv[0] ? argv[0] : "webserv") << " <config_file>" << std::endl;
 		return 1;
 	}
-
 	Context&  ctx	 = Context::getInstance();
+	
 	TomlValue val	 = TomlParser::parseFile(argv[1]);
-	// LOG(debug, val);
-	Config	  config = Config::fromTomlValue(val);
-	// LOG(info, config);
+
+	Config&	  config = (ctx.getConfig() = Config::fromTomlValue(val));
+
 	(void)(ctx);
 
 	for (std::map<std::string, Listener>::iterator it = config.listener.begin();
