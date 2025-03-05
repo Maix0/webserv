@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 13:39:20 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/05 21:13:38 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/05 22:14:13 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,8 +50,10 @@ Socket::Socket(const std::string& host, Port port) : port(port) {
 	} else
 		LOG(trace, "addrinfo for " << this->host_str);
 
-	if (res == NULL)
+	if (res == NULL) {
 		LOG(err, "failed to lookup host for " << this->host_str);
+		throw std::runtime_error("addrinfo failed");
+	}
 
 	struct sockaddr_in* ip_sockaddr = (struct sockaddr_in*)res;
 	ip_sockaddr->sin_port			= htonl(port.inner);

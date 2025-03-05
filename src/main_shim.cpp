@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/02 18:23:58 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/05 21:40:12 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/05 22:17:31 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,15 +15,13 @@
 
 namespace log {
 
-LogLevel logLevel = NONE;
+LogLevel logLevel = _compileTimeLogLevel();
 
 }
 
 int wrapped_main(int argc, char* argv[], char* envp[]);
 
 int main(int argc, char* argv[], char* envp[]) {
-	log::_setLogCompileTimeLogLevel();
-	log::_setEnvLogLevel(envp);
 	try {
 		return wrapped_main(argc, argv, envp);
 	} catch (const std::exception& e) {

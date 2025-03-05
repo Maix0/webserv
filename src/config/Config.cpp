@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/28 15:40:07 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/05 16:59:02 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/05 22:11:31 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,6 +43,18 @@ Config Config::fromTomlValue(const TomlValue& toml) {
 			ss << "server '" << it->first << "' tries to use unknown listener '"
 			   << it->second.listener << "'";
 			throw ConfigParseError(ss.str());
+		}
+		for (std::map<std::string, Route>::const_iterator rit = it->second.routes.begin();
+			 rit != it->second.routes.end(); rit++) {
+			for (std::map<std::string, std::string>::const_iterator cit = rit->second.cgi.begin();
+				 cit != rit->second.cgi.end(); cit++) {
+				if (out.cgi.count(cit->second) == 0) {
+					std::stringstream ss;
+					ss << "server '" << it->first << "'.routes.'" << rit->first << "'.cgi.'"
+					   << cit->first << "' uses unknown cgi handler '" << cit->second << "'";
+					throw ConfigParseError(ss.str());
+				}
+			}
 		}
 	}
 	return out;

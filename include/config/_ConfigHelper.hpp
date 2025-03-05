@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/28 15:55:33 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/02/28 21:54:38 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/05 22:02:47 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,12 +35,3 @@ std::map<std::string, T> _handle_map(const TomlValue& val, T (*func)(const TomlV
 	}
 	return out;
 }
-
-#define WRAP_ERROR(TYPE, PREFIX, CODE)                        \
-	do {                                                      \
-		try {                                                 \
-			CODE;                                             \
-		} catch (const std::exception& e) {                   \
-			throw TYPE(std::string(PREFIX) + " " + e.what()); \
-		}                                                     \
-	} while (0)

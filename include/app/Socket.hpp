@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 13:36:52 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/05 17:01:45 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/05 22:03:44 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -68,8 +68,8 @@ public:
 	Socket(const std::string& host, Port port);
 	~Socket();
 
-	int				   getFd();
-	unsigned short	   getPort();
-	Ip				   getHost();
-	const std::string& getHostStr() const;
+	int				   getFd() { return (this->fd); };
+	Port			   getPort() { return (this->port); };
+	Ip				   getHost() { return (this->host_ip); };
+	const std::string& getHostStr() const { return (this->host_str); };
 };

@@ -6,12 +6,13 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/02 18:29:43 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/05 21:55:56 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/05 22:18:32 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
+#include <unistd.h>
 #include <cctype>
 #include <cstdlib>
 #include <exception>
@@ -87,21 +88,7 @@ enum LogLevel {
 
 extern LogLevel	   logLevel;
 
-static inline bool _shouldLog(LogLevel level) {
-	return (level <= logLevel);
-}
-
-static inline void _setLogCompileTimeLogLevel(void) {
-	if (LOG_LEVEL < none || LOG_LEVEL > trace)
-		logLevel = TRACE;
-	logLevel = (LogLevel)LOG_LEVEL;
-}
-
-static inline void setLogLevel(LogLevel level) {
-	logLevel = level;
-}
-
-static inline void _setEnvLogLevel(char** envp) {
+static inline bool _setEnvLogLevel(char** envp) {
 	try {
 		while (*envp) {
 			std::string			   env = *envp;
@@ -135,6 +122,7 @@ static inline void _setEnvLogLevel(char** envp) {
 				for (std::size_t i = 0; i < sizeof(levels) / sizeof(levels[0]); i++) {
 					if (levels[i].first == val) {
 						logLevel = levels[i].second;
+						return true;
 					}
 				}
 			}
@@ -144,6 +132,23 @@ static inline void _setEnvLogLevel(char** envp) {
 		std::cerr << "EARLY FATAL: " << e.what() << std::endl;
 		std::exit(1);
 	}
+	return false;
+}
+
+static inline bool _shouldLog(LogLevel level) {
+	return (level <= logLevel);
+}
+
+static inline LogLevel _compileTimeLogLevel(void) {
+	if (log::_setEnvLogLevel(environ))
+		return logLevel;
+	if (LOG_LEVEL < none || LOG_LEVEL > trace)
+		return (TRACE);
+	return (LogLevel)LOG_LEVEL;
+}
+
+static inline void setLogLevel(LogLevel level) {
+	logLevel = level;
 }
 
 }  // namespace log
@@ -176,5 +181,3 @@ static inline void _setEnvLogLevel(char** envp) {
 		FILTER_##level(std::cerr << HEADER_##level << " " << __FUNCTION__ << " in " << __FILE__ \
 								 << ":" << __LINE__ << " " << code << std::endl;);              \
 	} while (0)
-
-// LOG(info, banane << "code" << "truc");
