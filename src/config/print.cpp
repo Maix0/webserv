@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/28 17:01:09 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/02 17:19:30 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/05 16:58:25 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,7 +40,7 @@ void _print_route(std::ostream& o, const Route& route, std::size_t ident) {
 	_print_ident(o, ident) << "post_dir => " << route.post_dir << "," << std::endl;
 	_print_ident(o, ident) << "redirect => " << route.redirect << "," << std::endl;
 	if (route.allowed.hasValue()) {
-		_print_ident(o, ident) << "port     => Some({ ";
+		_print_ident(o, ident) << "allowed  => Some({ ";
 		for (std::vector<std::string>::const_iterator it = route.allowed.get().begin();
 			 it != route.allowed.get().end(); it++) {
 			if (!first)
@@ -49,7 +49,7 @@ void _print_route(std::ostream& o, const Route& route, std::size_t ident) {
 		}
 		o << "})," << std::endl;
 	} else
-		_print_ident(o, ident) << "port     => None," << std::endl;
+		_print_ident(o, ident) << "allowed   => None," << std::endl;
 	first = true;
 	_print_ident(o, ident) << "cgi      => {" << std::endl;
 	for (std::map<std::string, std::string>::const_iterator it = route.cgi.begin();
@@ -67,18 +67,6 @@ void _print_server(std::ostream& o, const Server& server, std::size_t ident) {
 	o << "{" << std::endl;
 	ident++;
 	_print_ident(o, ident) << "root   => " << server.root << "," << std::endl;
-	_print_ident(o, ident) << "host   => " << server.host << "," << std::endl;
-
-	first = true;
-	_print_ident(o, ident) << "port   => [ ";
-	for (std::vector<unsigned short>::const_iterator it = server.ports.begin();
-		 it != server.ports.end(); it++) {
-		if (!first)
-			first = false, o << ", ";
-		o << *it << " ";
-	}
-	o << "]," << std::endl;
-
 	first = true;
 	_print_ident(o, ident) << "errors => {" << std::endl;
 	for (std::map<std::string, std::string>::const_iterator it = server.errors.begin();
@@ -102,6 +90,26 @@ void _print_server(std::ostream& o, const Server& server, std::size_t ident) {
 	_print_ident(o, ident - 1) << "}";
 }
 
+void _print_listener(std::ostream& o, const Listener& server, std::size_t ident) {
+	_print_ident(o, ident++) << "{" << std::endl;
+	_print_ident(o, ident) << "host   => " << server.host << "," << std::endl;
+
+	bool first = true;
+	_print_ident(o, ident) << "port   => [ ";
+	for (std::vector<Port>::const_iterator it = server.port.begin(); it != server.port.end();
+		 it++) {
+		if (!first)
+			first = false, o << ", ";
+		o << *it << " ";
+	}
+	o << "]" << std::endl;
+	_print_ident(o, ident - 1) << "}" << std::endl;
+}
+
+std::ostream& operator<<(std::ostream& o, const Listener& e) {
+	_print_listener(o, e, 0);
+	return (o);
+}
 std::ostream& operator<<(std::ostream& o, const Config& e) {
 	std::size_t ident = 1;
 	bool		first = true;
@@ -126,6 +134,18 @@ std::ostream& operator<<(std::ostream& o, const Config& e) {
 		first = false;
 		_print_ident(o, ident + 1) << it->first << " => ";
 		_print_server(o, it->second, ident + 1);
+	}
+	o << std::endl;
+	_print_ident(o, ident) << "}" << std::endl;
+
+	_print_ident(o, ident) << "listener => {" << std::endl;
+	for (std::map<std::string, Listener>::const_iterator it = e.listener.begin();
+		 it != e.listener.end(); it++) {
+		if (!first)
+			o << ",\n";
+		first = false;
+		_print_ident(o, ident + 1) << it->first << " => ";
+		_print_listener(o, it->second, ident + 1);
 	}
 	o << std::endl;
 	_print_ident(o, ident) << "}" << std::endl;

@@ -1,9 +1,8 @@
 [server.example]
 server_name = "local.maix.me"
-host = "local.maix.me"
-port = [8080, 8081, 8080]
 errors = { 404 = "404.html" }
 root = "/var/empty"
+listener = "_localhost"
 
 
 [server.example.routes."/"]
@@ -23,3 +22,7 @@ from_env = false
 [cgi.env_php_cgi]
 binary = "PHP_CGI_PATH"
 from_env = true
+
+[listener._localhost]
+host = "local.maix.me"
+port = [80]

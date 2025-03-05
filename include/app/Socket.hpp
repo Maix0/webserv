@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 13:36:52 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/05 15:51:53 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/05 17:01:45 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,6 +47,11 @@ struct Port {
 			this->inner = rhs.inner;
 		return (*this);
 	};
+
+	bool				 operator==(Port& rhs) { return (this->inner == rhs.inner); };
+	bool				 operator==(const Port& rhs) const { return (this->inner == rhs.inner); };
+	bool				 operator!=(Port& rhs) { return (this->inner != rhs.inner); };
+	bool				 operator!=(const Port& rhs) const { return (this->inner != rhs.inner); };
 
 	friend std::ostream& operator<<(std::ostream& o, const Port& rhs) { return (o << rhs.inner); }
 };

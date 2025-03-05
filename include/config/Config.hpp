@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/28 14:33:11 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/05 14:51:54 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/05 16:58:23 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,7 @@
 #include <vector>
 
 #include "app/Option.hpp"
+#include "app/Socket.hpp"
 #include "toml/TomlValue.hpp"
 
 struct Cgi {
@@ -81,9 +82,8 @@ struct Server {
 	/// @required
 	std::string						   root;
 	/// @required
-	std::vector<unsigned short>		   ports;
-	/// @required
-	std::string						   host;
+	/// reference to a key into the listener table
+	std::string						   listener;
 
 	std::map<std::string, Route>	   routes;
 
@@ -95,17 +95,29 @@ struct Server {
 	static Server					   fromTomlValue(const TomlValue& toml);
 };
 
-struct Config {
-	std::map<std::string, Cgi>	  cgi;
-	std::map<std::string, Server> server;
+struct Listener {
+	/// @required
+	std::string		  host;
 
-	static Config				  fromTomlValue(const TomlValue& toml);
+	/// @required
+	std::vector<Port> port;
+
+	static Listener	  fromTomlValue(const TomlValue& toml);
+};
+
+struct Config {
+	std::map<std::string, Cgi>		cgi;
+	std::map<std::string, Server>	server;
+	std::map<std::string, Listener> listener;
+
+	static Config					fromTomlValue(const TomlValue& toml);
 };
 
 std::ostream& operator<<(std::ostream&, const Config&);
 std::ostream& operator<<(std::ostream&, const Server&);
 std::ostream& operator<<(std::ostream&, const Route&);
 std::ostream& operator<<(std::ostream&, const Cgi&);
+std::ostream& operator<<(std::ostream&, const Listener&);
 
 #define ERROR(NAME)                                 \
 	class NAME##Error : public std::exception {     \

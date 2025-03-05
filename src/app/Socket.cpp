@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 13:39:20 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/05 16:23:12 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/05 17:03:44 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,8 +32,8 @@ Socket::Socket(const std::string& host, Port port) : port(port) {
 	this->host_str = host;
 
 	struct addrinfo* res;
-
 	struct addrinfo	 hints;
+
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family	   = AF_INET;	   // Allow IPv4
 	hints.ai_socktype  = SOCK_STREAM;  // TCP
@@ -47,16 +47,17 @@ Socket::Socket(const std::string& host, Port port) : port(port) {
 		int serr = errno;
 		LOG(err, "failed to lookup host for " << this->host_str << ":" << gai_strerror(serr));
 		throw std::runtime_error("addrinfo failed");
-	} else {
-		LOG(debug, "addrinfo for " << this->host_str);
-	}
-	if (res == NULL) {
+	} else
+		LOG(trace, "addrinfo for " << this->host_str);
+
+	if (res == NULL)
 		LOG(err, "failed to lookup host for " << this->host_str);
-	}
-	struct sockaddr_in* test = (struct sockaddr_in*)res;
-	test->sin_port			 = htonl(port.inner);
-	this->host_ip			 = ntohl(test->sin_addr.s_addr);
-	LOG(debug, "host: '" << this->host_str << "' = " << this->host_ip);
+
+	struct sockaddr_in* ip_sockaddr = (struct sockaddr_in*)res;
+	ip_sockaddr->sin_port			= htonl(port.inner);
+	this->host_ip					= ntohl(ip_sockaddr->sin_addr.s_addr);
+
+	LOG(trace, "host: '" << this->host_str << "' = " << this->host_ip);
 
 	int sockfd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
 	if (sockfd == -1)
@@ -79,7 +80,7 @@ Socket::Socket(const std::string& host, Port port) : port(port) {
 		LOG(err, "failed to lisen on socket " << this->fd << "(" << host << ":" << port
 											  << "): " << strerror(serr));
 	else
-		LOG(debug, "lisening on socket " << this->fd << " (" << host << ":" << port << ")");
+		LOG(trace, "lisening on socket " << this->fd << " (" << host << ":" << port << ")");
 };
 
 Socket::~Socket() {
