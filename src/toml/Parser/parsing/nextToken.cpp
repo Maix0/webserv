@@ -1,20 +1,21 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Context_nextToken.cpp                              :+:      :+:    :+:   */
+/*   nextToken.cpp                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/26 14:53:53 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/02/26 18:41:45 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/06 13:11:25 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <sstream>
-#include "toml/TomlParser.hpp"
-#include "toml/TomlValue.hpp"
+#include "toml/Parser.hpp"
+#include "toml/Value.hpp"
 
-void TomlParser::Context::nextToken(bool dotisspecial) {
+namespace toml {
+void Parser::Context::nextToken(bool dotisspecial) {
 	std::size_t			  lineno = this->tok.line;
 	std::string::iterator p		 = (this->buffer.begin() + this->tok.pos);
 
@@ -76,3 +77,4 @@ void TomlParser::Context::nextToken(bool dotisspecial) {
 	this->setEof(lineno);
 	return;
 }
+}  // namespace toml

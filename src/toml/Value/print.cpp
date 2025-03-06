@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/25 13:25:52 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/02/28 13:39:14 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/06 13:36:00 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,9 @@
 #include <iostream>
 #include <sstream>
 
-#include "toml/TomlValue.hpp"
+#include "toml/Value.hpp"
+
+namespace toml {
 
 #define STRING_ESCAPE_CASE(CHAR, ESCAPED) \
 	case CHAR:                            \
@@ -26,7 +28,9 @@ static bool _print_is_utf8(char chr) {
 	return (chr & 0x80);
 }
 
-void _print_handle_utf8(std::stringstream& buf, TomlString::const_iterator& it, TomlString::const_iterator end) {
+void _print_handle_utf8(std::stringstream&		buf,
+						String::const_iterator& it,
+						String::const_iterator	end) {
 	if (it == end)
 		return;	 // Handle empty case
 
@@ -67,17 +71,19 @@ void _print_handle_utf8(std::stringstream& buf, TomlString::const_iterator& it, 
 	}
 
 	if (codepoint <= 0xFFFF)
-		buf << "\\u" << std::uppercase << std::hex << std::setw(4) << std::setfill('0') << codepoint;
+		buf << "\\u" << std::uppercase << std::hex << std::setw(4) << std::setfill('0')
+			<< codepoint;
 	else
-		buf << "\\U" << std::uppercase << std::hex << std::setw(8) << std::setfill('0') << codepoint;
+		buf << "\\U" << std::uppercase << std::hex << std::setw(8) << std::setfill('0')
+			<< codepoint;
 
 	buf << std::dec;
 	return;
 }
-static std::ostream& _print_string_toml(std::ostream& lhs, const TomlString& rhs) {
+static std::ostream& _print_string_toml(std::ostream& lhs, const String& rhs) {
 	std::stringstream buf;
 	buf << '"';
-	for (TomlString::const_iterator it = rhs.begin(); it != rhs.end(); it++) {
+	for (String::const_iterator it = rhs.begin(); it != rhs.end(); it++) {
 		switch (*it) {
 			STRING_ESCAPE_CASE('\b', "\\b");
 			STRING_ESCAPE_CASE('\t', "\\t");
@@ -103,17 +109,17 @@ static std::ostream& _print_string_toml(std::ostream& lhs, const TomlString& rhs
 	return lhs;
 }
 
-std::ostream& operator<<(std::ostream& lhs, const TomlValue& rhs) {
+std::ostream& operator<<(std::ostream& lhs, const Value& rhs) {
 	switch (rhs.getType()) {
-		case TomlValue::BOOL: {
+		case Value::BOOL: {
 			lhs << (rhs.getBool() ? "true" : "false");
 			break;
 		};
-		case TomlValue::LIST: {
-			const TomlList& l = rhs.getList();
+		case Value::LIST: {
+			const List& l = rhs.getList();
 
 			lhs << "[";
-			TomlList::const_iterator it = l.begin();
+			List::const_iterator it = l.begin();
 			if (it != l.end())
 				lhs << *(it++);
 			for (; it != l.end(); it++)
@@ -121,11 +127,11 @@ std::ostream& operator<<(std::ostream& lhs, const TomlValue& rhs) {
 			lhs << "]";
 			break;
 		};
-		case TomlValue::TABLE: {
-			const TomlTable& l = rhs.getTable();
+		case Value::TABLE: {
+			const Table& l = rhs.getTable();
 
 			lhs << "{";
-			TomlTable::const_iterator it = l.begin();
+			Table::const_iterator it = l.begin();
 			if (it != l.end()) {
 				_print_string_toml(lhs, it->first);
 				lhs << " : " << it->second;
@@ -139,19 +145,19 @@ std::ostream& operator<<(std::ostream& lhs, const TomlValue& rhs) {
 			lhs << "}";
 			break;
 		};
-		case TomlValue::INT: {
+		case Value::INT: {
 			lhs << rhs.getInt();
 			break;
 		};
-		case TomlValue::FLOAT: {
+		case Value::FLOAT: {
 			lhs << rhs.getFloat();
 			break;
 		};
-		case TomlValue::NULL_: {
+		case Value::NULL_: {
 			lhs << rhs.getNull();
 			break;
 		};
-		case TomlValue::STRING: {
+		case Value::STRING: {
 			_print_string_toml(lhs, rhs.getString());
 			break;
 		};
@@ -159,7 +165,9 @@ std::ostream& operator<<(std::ostream& lhs, const TomlValue& rhs) {
 	return lhs;
 }
 
-std::ostream& operator<<(std::ostream& lhs, const TomlNull& rhs) {
+std::ostream& operator<<(std::ostream& lhs, const Null& rhs) {
 	(void)rhs;
 	return lhs << "null";
 }
+
+};	// namespace toml

@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Context_TapPath.cpp                                :+:      :+:    :+:   */
+/*   tablePath.cpp                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/26 14:53:53 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/02/27 15:25:11 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/06 13:38:25 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,18 +14,19 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
-#include "toml/TomlParser.hpp"
-#include "toml/TomlValue.hpp"
+#include "toml/Parser.hpp"
+#include "toml/Value.hpp"
 
 #define STRINGIFY(x) #x
 #define TOSTRING(x)	 STRINGIFY(x)
 #define FLINE		 __FILE__ ":" TOSTRING(__LINE__)
 
-void TomlParser::Context::walkTabPath(void) {
-	TomlValue* curtab = &this->root;
+namespace toml {
+void Parser::Context::walkTabPath(void) {
+	Value* curtab = &this->root;
 
 	for (std::vector<Token>::iterator it = this->tabPath.begin(); it != this->tabPath.end(); it++) {
-		TomlValue*	next = NULL;
+		Value*		next = NULL;
 		std::string key	 = this->normalizeKey(*it);
 		try {
 			next = &curtab->getTable().at(key);
@@ -34,11 +35,11 @@ void TomlParser::Context::walkTabPath(void) {
 		};
 
 		switch (next ? next->getType() : -1) {
-			case TomlValue::TABLE: {
+			case Value::TABLE: {
 				curtab = next;
 				break;
 			}
-			case TomlValue::LIST: {
+			case Value::LIST: {
 				if (next->getList().empty()) {
 					std::stringstream ss;
 					ss << "empty list on global key ??: line " << FLINE;
@@ -54,7 +55,7 @@ void TomlParser::Context::walkTabPath(void) {
 			};
 			case -1: {
 				// value not yet created
-				curtab = &(curtab->getTable()[key] = TomlValue::newTable());
+				curtab = &(curtab->getTable()[key] = Value::newTable());
 
 				break;
 			}
@@ -68,7 +69,7 @@ void TomlParser::Context::walkTabPath(void) {
 	this->current_table = curtab;
 }
 
-void TomlParser::Context::fillTabPath(void) {
+void Parser::Context::fillTabPath(void) {
 	int lineno = this->tok.line;
 
 	this->tabPath.clear();
@@ -101,3 +102,4 @@ void TomlParser::Context::fillTabPath(void) {
 		throw SyntaxError(ss.str());
 	}
 }
+}  // namespace toml

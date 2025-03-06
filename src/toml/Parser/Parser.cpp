@@ -6,12 +6,12 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/26 09:46:16 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/02/28 14:01:25 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/06 13:36:12 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "toml/TomlParser.hpp"
-#include "toml/TomlValue.hpp"
+#include "toml/Parser.hpp"
+#include "toml/Value.hpp"
 
 #include <fstream>
 #include <istream>
@@ -23,16 +23,18 @@
 #define TOSTRING(x)	 STRINGIFY(x)
 #define FLINE		 __FILE__ ":" TOSTRING(__LINE__)
 
-TomlParser::TomlParser() {}
-TomlParser::~TomlParser() {}
+namespace toml {
 
-TomlValue TomlParser::parseStream(std::istream& s) {
+Parser::Parser() {}
+Parser::~Parser() {}
+
+Value Parser::parseStream(std::istream& s) {
 	(void)(s);
 	std::istreambuf_iterator<char> eos;
 	std::string					   full(std::istreambuf_iterator<char>(s), eos);
-	TomlParser::Context			   ctx(full);
+	Parser::Context				   ctx(full);
 
-	for (TomlParser::Token tok = ctx.tok; !tok.eof; tok = ctx.tok) {
+	for (Parser::Token tok = ctx.tok; !tok.eof; tok = ctx.tok) {
 		switch (tok.ty) {
 			case (NEWLINE): {
 				ctx.nextToken(true);
@@ -65,12 +67,13 @@ TomlValue TomlParser::parseStream(std::istream& s) {
 	return (ctx.root);
 }
 
-TomlValue TomlParser::parseString(const std::string& s) {
+Value Parser::parseString(const std::string& s) {
 	std::stringstream ss(s);
-	return (TomlParser::parseStream(ss));
+	return (Parser::parseStream(ss));
 }
 
-TomlValue TomlParser::parseFile(const std::string& filename) {
+Value Parser::parseFile(const std::string& filename) {
 	std::ifstream fs(filename.c_str());
-	return (TomlParser::parseStream(fs));
+	return (Parser::parseStream(fs));
 }
+}  // namespace toml

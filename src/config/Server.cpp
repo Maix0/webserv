@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/28 15:40:07 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/05 16:47:33 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/06 13:40:24 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,18 +20,15 @@
 #include "app/Socket.hpp"
 #include "config/Config.hpp"
 #include "config/_ConfigHelper.hpp"
-#include "toml/TomlValue.hpp"
+#include "toml/Value.hpp"
 
-static std::string _toml_get_string(const TomlValue& val) {
-	return (val.getString());
-}
-
-Server Server::fromTomlValue(const TomlValue& toml) {
-	const TomlTable&	  table = toml.getTable();
+namespace config {
+Server Server::fromTomlValue(const toml::Value& toml) {
+	const toml::Table&	  table = toml.getTable();
 	Server				  out;
 	std::set<std::string> seen;
 
-	for (TomlTable::const_iterator it = table.begin(); it != table.end(); it++) {
+	for (toml::Table::const_iterator it = table.begin(); it != table.end(); it++) {
 		try {
 			seen.insert(it->first);
 			if (it->first == "routes") {
@@ -61,3 +58,4 @@ Server Server::fromTomlValue(const TomlValue& toml) {
 
 	return out;
 }
+}  // namespace config

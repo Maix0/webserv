@@ -1,19 +1,21 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   ForbiddenError.cpp                                 :+:      :+:    :+:   */
+/*   SyntaxError.cpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/26 14:37:39 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/02/26 16:09:13 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/06 13:12:56 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "toml/TomlParser.hpp"
+#include "toml/Parser.hpp"
 
-TomlParser::ForbiddenError::ForbiddenError(std::string m) : msg(m) {};
-TomlParser::ForbiddenError::~ForbiddenError() throw() {};
-const char* TomlParser::ForbiddenError::what() const throw() {
+namespace toml {
+Parser::SyntaxError::SyntaxError(std::string m) : msg(m) {};
+Parser::SyntaxError::~SyntaxError() throw() {};
+const char* Parser::SyntaxError::what() const throw() {
 	return (this->msg.c_str());
-};
+}
+};	// namespace toml

@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   TomlParser.hpp                                     :+:      :+:    :+:   */
+/*   Parser.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/26 09:39:19 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/02/28 14:27:32 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/06 13:26:30 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,9 @@
 
 #include <cstddef>
 #include <istream>
-#include "toml/TomlValue.hpp"
+#include "toml/Value.hpp"
+
+namespace toml {
 
 #define _ERROR(NAME)                              \
 	class NAME : public std::exception {          \
@@ -22,15 +24,15 @@
 		virtual const char* what() const throw(); \
 	};
 
-class TomlParser {
+class Parser {
 private:
-	TomlParser(void);
-	~TomlParser(void);
+	Parser(void);
+	~Parser(void);
 
 public:
-	static TomlValue parseString(const std::string& s);
-	static TomlValue parseFile(const std::string& filename);
-	static TomlValue parseStream(std::istream& stream);
+	static Value parseString(const std::string& s);
+	static Value parseFile(const std::string& filename);
+	static Value parseStream(std::istream& stream);
 
 private:
 	enum TokType {
@@ -58,8 +60,8 @@ private:
 
 	class Context {
 	public:
-		TomlValue		   root;
-		TomlValue*		   current_table;
+		Value		   root;
+		Value*		   current_table;
 		Token			   tok;
 
 		std::string		   buffer;
@@ -72,7 +74,7 @@ private:
 		~Context(void);
 
 		void nextToken(bool is_dot_special);
-		void parseKeyValue(TomlValue& current_table);
+		void parseKeyValue(Value& current_table);
 		void eatToken(TokType tok, bool dot_is_special, std::string flineno);
 		void parseSelect(void);
 		void setToken(TokType tok, std::size_t lineno, std::string::iterator p, std::size_t len);
@@ -83,11 +85,11 @@ private:
 		std::string normalizeBasicString(std::string::const_iterator src,
 										 std::string::const_iterator end,
 										 std::size_t				 lineno);
-		TomlValue&	createTomlValueInTable(TomlValue& tab, Token& key, TomlValue (*newVal)(void));
+		Value&	createTomlValueInTable(Value& tab, Token& key, Value (*newVal)(void));
 
-		void		parseArray(TomlValue& val);
-		TomlValue	parseString(const std::string& str, std::size_t lineno);
-		void		parseInlineTable(TomlValue& val, std::size_t lineno);
+		void		parseArray(Value& val);
+		Value	parseString(const std::string& str, std::size_t lineno);
+		void		parseInlineTable(Value& val, std::size_t lineno);
 		void		skipNewlines(bool is_dot_special);
 		void		fillTabPath(void);
 		void		walkTabPath(void);
@@ -126,3 +128,4 @@ public:
 		virtual const char* what() const throw();
 	};
 };
+};	// namespace toml

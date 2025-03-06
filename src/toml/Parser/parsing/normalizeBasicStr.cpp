@@ -1,29 +1,31 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Context_normalizeBasicStr.cpp                      :+:      :+:    :+:   */
+/*   normalizeBasicStr.cpp                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/26 14:53:53 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/02/27 15:26:42 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/06 13:11:31 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <cstddef>
 #include <sstream>
 #include <string>
-#include "toml/TomlParser.hpp"
-#include "toml/TomlValue.hpp"
+#include "toml/Parser.hpp"
+#include "toml/Value.hpp"
 
+namespace toml {
 /*
  * Convert src to raw unescaped utf-8 string.
  * Returns NULL if error with errmsg in errbuf.
  */
-std::string TomlParser::Context::normalizeBasicString(std::string::const_iterator src,
-													  std::string::const_iterator end, std::size_t lineno) {
-	std::string					dst;
-	char						chr;
+std::string Parser::Context::normalizeBasicString(std::string::const_iterator src,
+													  std::string::const_iterator end,
+													  std::size_t				  lineno) {
+	std::string dst;
+	char		chr;
 
 	/* scan forward on src */
 	for (;;) {
@@ -79,3 +81,4 @@ std::string TomlParser::Context::normalizeBasicString(std::string::const_iterato
 	}
 	return dst;
 }
+}  // namespace toml

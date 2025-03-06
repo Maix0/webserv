@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 13:36:52 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/05 22:03:44 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/06 13:58:31 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,16 +15,9 @@
 #include <ostream>
 #include <string>
 
+namespace app {
 struct Ip {
-	unsigned int		 inner;
-
-	friend std::ostream& operator<<(std::ostream& o, const Ip& rhs) {
-		unsigned char* ptr = (unsigned char*)&rhs.inner;
-		o << (unsigned int)ptr[0] << "." << (unsigned int)ptr[1] << "." << (unsigned int)ptr[2]
-		  << "." << (unsigned int)ptr[3];
-
-		return (o);
-	}
+	unsigned int inner;
 
 	Ip() : inner(0) {};
 	Ip(unsigned int raw) : inner(raw) {};
@@ -35,11 +28,27 @@ struct Ip {
 			this->inner = rhs.inner;
 		return (*this);
 	};
+
+	bool				 operator==(const Ip& rhs) const { return (this->inner == rhs.inner); };
+	bool				 operator>(const Ip& rhs) const { return (this->inner > rhs.inner); };
+
+	bool				 operator<(const Ip& rhs) const { return (rhs > *this); };
+	bool				 operator<=(const Ip& rhs) const { return !(*this > rhs); };
+	bool				 operator>=(const Ip& rhs) const { return !(*this < rhs); };
+	bool				 operator!=(const Ip& rhs) const { return !(*this == rhs); };
+
+	friend std::ostream& operator<<(std::ostream& o, const Ip& rhs) {
+		unsigned char* ptr = (unsigned char*)&rhs.inner;
+		o << (unsigned int)ptr[0] << "." << (unsigned int)ptr[1] << "." << (unsigned int)ptr[2]
+		  << "." << (unsigned int)ptr[3];
+
+		return (o);
+	}
 };
 
 struct Port {
 	unsigned short inner;
-	Port(unsigned short i) : inner(i) {};
+	Port(unsigned short raw) : inner(raw) {};
 	~Port() {};
 	Port(const Port& rhs) : inner(rhs.inner) {};
 	Port& operator=(const Port& rhs) {
@@ -48,10 +57,13 @@ struct Port {
 		return (*this);
 	};
 
-	bool				 operator==(Port& rhs) { return (this->inner == rhs.inner); };
 	bool				 operator==(const Port& rhs) const { return (this->inner == rhs.inner); };
-	bool				 operator!=(Port& rhs) { return (this->inner != rhs.inner); };
-	bool				 operator!=(const Port& rhs) const { return (this->inner != rhs.inner); };
+	bool				 operator>(const Port& rhs) const { return (this->inner > rhs.inner); };
+
+	bool				 operator<(const Port& rhs) const { return (rhs > *this); };
+	bool				 operator<=(const Port& rhs) const { return !(*this > rhs); };
+	bool				 operator>=(const Port& rhs) const { return !(*this < rhs); };
+	bool				 operator!=(const Port& rhs) const { return !(*this == rhs); };
 
 	friend std::ostream& operator<<(std::ostream& o, const Port& rhs) { return (o << rhs.inner); }
 };
@@ -64,6 +76,8 @@ private:
 	std::string host_str;
 
 public:
+	static const int BACKLOG = 5;
+
 	Socket();
 	Socket(const std::string& host, Port port);
 	~Socket();
@@ -73,3 +87,4 @@ public:
 	Ip				   getHost() { return (this->host_ip); };
 	const std::string& getHostStr() const { return (this->host_str); };
 };
+}  // namespace app

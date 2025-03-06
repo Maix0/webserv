@@ -1,24 +1,25 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Context_parseTable.cpp                             :+:      :+:    :+:   */
+/*   parseTable.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/26 14:53:53 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/02/27 15:27:49 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/06 13:38:00 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <sstream>
-#include "toml/TomlParser.hpp"
-#include "toml/TomlValue.hpp"
+#include "toml/Parser.hpp"
+#include "toml/Value.hpp"
 
 #define STRINGIFY(x) #x
 #define TOSTRING(x)	 STRINGIFY(x)
 #define FLINE		 __FILE__ ":" TOSTRING(__LINE__)
 
-void TomlParser::Context::parseInlineTable(TomlValue& tab, std::size_t lineno) {
+namespace toml {
+void Parser::Context::parseInlineTable(Value& tab, std::size_t lineno) {
 	this->eatToken(LBRACE, true, FLINE);
 
 	for (;;) {
@@ -55,3 +56,4 @@ void TomlParser::Context::parseInlineTable(TomlValue& tab, std::size_t lineno) {
 	this->eatToken(RBRACE, true, FLINE);
 	tab.setReadonly(true);
 }
+}  // namespace toml

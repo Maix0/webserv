@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Context_parseSelect.cpp                            :+:      :+:    :+:   */
+/*   parseSelect.cpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/26 14:53:53 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/02/27 15:27:24 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/06 13:37:42 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,14 +14,15 @@
 #include <iostream>
 #include <sstream>
 #include <string>
-#include "toml/TomlParser.hpp"
-#include "toml/TomlValue.hpp"
+#include "toml/Parser.hpp"
+#include "toml/Value.hpp"
 
 #define STRINGIFY(x) #x
 #define TOSTRING(x)	 STRINGIFY(x)
 #define FLINE		 __FILE__ ":" TOSTRING(__LINE__)
 
-void TomlParser::Context::parseSelect(void) {
+namespace toml {
+void Parser::Context::parseSelect(void) {
 	assert(this->tok.ty == LBRACKET);
 
 	// true if [[
@@ -48,7 +49,7 @@ void TomlParser::Context::parseSelect(void) {
 
 	if (!llb) {
 		/* [x.y.z] -> create z = {} in x.y */
-		this->createTomlValueInTable(*this->current_table, z, TomlValue::newTable);
+		this->createTomlValueInTable(*this->current_table, z, Value::newTable);
 		this->current_table = &this->current_table->getTable().at(this->normalizeKey(z));
 	} else {
 		/* [[x.y.z]] -> create z = [] in x.y */
@@ -57,7 +58,7 @@ void TomlParser::Context::parseSelect(void) {
 		   physical.color = "orange"
 		   physical.shape = "round"
 		*/
-		TomlValue* subarr = NULL;
+		Value* subarr = NULL;
 		{
 			std::string zstr = this->normalizeKey(z);
 			try {
@@ -66,9 +67,9 @@ void TomlParser::Context::parseSelect(void) {
 			}
 		}
 		if (!subarr)
-			subarr = &this->createTomlValueInTable(*this->current_table, z, TomlValue::newList);
+			subarr = &this->createTomlValueInTable(*this->current_table, z, Value::newList);
 		assert(subarr != NULL);
-		subarr->getList().push_back(TomlValue::newTable());
+		subarr->getList().push_back(Value::newTable());
 		this->current_table = &subarr->getList().back();
 	}
 
@@ -95,3 +96,4 @@ void TomlParser::Context::parseSelect(void) {
 		throw ForbiddenError(ss.str());
 	}
 }
+}  // namespace toml

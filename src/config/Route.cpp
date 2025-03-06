@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/28 15:40:07 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/05 22:06:54 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/06 13:40:19 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,20 +19,17 @@
 #include "app/Logger.hpp"
 #include "config/Config.hpp"
 #include "config/_ConfigHelper.hpp"
-#include "toml/TomlValue.hpp"
+#include "toml/Value.hpp"
 
-static std::string _toml_get_string(const TomlValue& val) {
-	return (val.getString());
-}
-
-Route Route::fromTomlValue(const TomlValue& toml) {
-	const TomlTable& table = toml.getTable();
-	Route			 out;
+namespace config {
+Route Route::fromTomlValue(const toml::Value& toml) {
+	const toml::Table& table = toml.getTable();
+	Route			   out;
 
 	out.listing	 = true;
 	out.max_size = 16000000;
 
-	for (TomlTable::const_iterator it = table.begin(); it != table.end(); it++) {
+	for (toml::Table::const_iterator it = table.begin(); it != table.end(); it++) {
 		try {
 			if (it->first == "listing")
 				out.listing = it->second.getBool();
@@ -44,9 +41,9 @@ Route Route::fromTomlValue(const TomlValue& toml) {
 				if (it->second.isNull())
 					out.allowed = Option<std::vector<std::string> >::None();
 				else {
-					const TomlList& l = it->second.getList();
-					out.allowed		  = Option<std::vector<std::string> >::Some();
-					for (TomlList::const_iterator lit = l.begin(); lit != l.end(); lit++) {
+					const toml::List& l = it->second.getList();
+					out.allowed			= Option<std::vector<std::string> >::Some();
+					for (toml::List::const_iterator lit = l.begin(); lit != l.end(); lit++) {
 						const std::string&				method = lit->getString();
 						const std::vector<std::string>& lists  = out.allowed.get();
 
@@ -86,3 +83,4 @@ Route Route::fromTomlValue(const TomlValue& toml) {
 	}
 	return out;
 }
+}  // namespace config

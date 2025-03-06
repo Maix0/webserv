@@ -1,31 +1,21 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Context.cpp                                        :+:      :+:    :+:   */
+/*   InternalError.cpp                                  :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/03/02 22:14:09 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/06 13:57:55 by maiboyer         ###   ########.fr       */
+/*   Created: 2025/02/26 14:37:39 by maiboyer          #+#    #+#             */
+/*   Updated: 2025/03/06 13:12:51 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "app/Context.hpp"
-#include "app/Logger.hpp"
+#include "toml/Parser.hpp"
 
-namespace app {
-
-Context Context::INSTANCE = Context();
-
-Context::Context() {
-	LOG(trace, "creating context singleton");
+namespace toml {
+Parser::InternalError::InternalError(std::string m) : msg(m) {};
+Parser::InternalError::~InternalError() throw() {};
+const char* Parser::InternalError::what() const throw() {
+	return (this->msg.c_str());
 }
-
-Context::~Context() {
-	LOG(trace, "destroying context singleton");
-}
-
-Context& Context::getInstance() {
-	return (Context::INSTANCE);
-}
-};	// namespace app
+};	// namespace toml

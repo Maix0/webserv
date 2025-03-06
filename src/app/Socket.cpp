@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 13:39:20 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/05 22:14:13 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/06 13:58:14 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,8 +23,7 @@
 
 #include "app/Logger.hpp"
 
-#define BACKLOG 5
-
+namespace app {
 Socket::Socket() : fd(-1), port(0) {}
 
 Socket::Socket(const std::string& host, Port port) : port(port) {
@@ -90,3 +89,4 @@ Socket::~Socket() {
 	if (this->fd != -1)
 		close(this->fd);
 }
+}  // namespace app

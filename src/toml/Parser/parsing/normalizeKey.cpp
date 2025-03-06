@@ -1,21 +1,22 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Context_normalizeKey.cpp                           :+:      :+:    :+:   */
+/*   normalizeKey.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/26 14:53:53 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/02/27 15:31:18 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/06 13:11:45 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <cstddef>
 #include <sstream>
-#include "toml/TomlParser.hpp"
-#include "toml/TomlValue.hpp"
+#include "toml/Parser.hpp"
+#include "toml/Value.hpp"
 
-std::string TomlParser::Context::normalizeKey(Token& stok) {
+namespace toml {
+std::string Parser::Context::normalizeKey(Token& stok) {
 	std::string::const_iterator s_start	   = this->buffer.begin() + stok.pos;
 	std::string::const_iterator s_end	   = this->buffer.begin() + stok.pos + stok.raw.size();
 	char						char_start = *s_start;
@@ -58,3 +59,4 @@ std::string TomlParser::Context::normalizeKey(Token& stok) {
 		return std::string(s_start, s_end);
 	}
 }
+}  // namespace toml

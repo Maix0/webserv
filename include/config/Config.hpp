@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/28 14:33:11 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/05 16:58:23 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/06 13:57:42 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,8 +20,8 @@
 
 #include "app/Option.hpp"
 #include "app/Socket.hpp"
-#include "toml/TomlValue.hpp"
-
+#include "toml/Value.hpp"
+namespace config {
 struct Cgi {
 	/// @default `false`
 	bool		from_env;
@@ -31,7 +31,7 @@ struct Cgi {
 	/// else: the path to the cgi binary
 	std::string binary;
 
-	static Cgi	fromTomlValue(const TomlValue& toml);
+	static Cgi	fromTomlValue(const ::toml::Value& toml);
 };
 
 struct Route {
@@ -75,7 +75,7 @@ struct Route {
 	/// Option.Some() => redirect to said url
 	Option<std::string>				   redirect;
 
-	static Route					   fromTomlValue(const TomlValue& toml);
+	static Route					   fromTomlValue(const ::toml::Value& toml);
 };
 
 struct Server {
@@ -92,17 +92,17 @@ struct Server {
 
 	Option<std::string>				   servername;
 
-	static Server					   fromTomlValue(const TomlValue& toml);
+	static Server					   fromTomlValue(const ::toml::Value& toml);
 };
 
 struct Listener {
 	/// @required
-	std::string		  host;
+	std::string			   host;
 
 	/// @required
-	std::vector<Port> port;
+	std::vector<app::Port> port;
 
-	static Listener	  fromTomlValue(const TomlValue& toml);
+	static Listener		   fromTomlValue(const ::toml::Value& toml);
 };
 
 struct Config {
@@ -110,7 +110,7 @@ struct Config {
 	std::map<std::string, Server>	server;
 	std::map<std::string, Listener> listener;
 
-	static Config					fromTomlValue(const TomlValue& toml);
+	static Config					fromTomlValue(const ::toml::Value& toml);
 };
 
 std::ostream& operator<<(std::ostream&, const Config&);
@@ -137,5 +137,6 @@ ERROR(CgiParse);
 ERROR(ConfigParse);
 ERROR(RouteParse);
 ERROR(ServerParse);
+}  // namespace config
 
 #undef ERROR

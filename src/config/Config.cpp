@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/28 15:40:07 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/05 22:11:31 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/06 13:40:08 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,12 +16,13 @@
 
 #include "config/Config.hpp"
 #include "config/_ConfigHelper.hpp"
-#include "toml/TomlValue.hpp"
+#include "toml/Value.hpp"
 
-Config Config::fromTomlValue(const TomlValue& toml) {
-	const TomlTable& table = toml.getTable();
-	Config			 out;
-	for (TomlTable::const_iterator it = table.begin(); it != table.end(); it++) {
+namespace config {
+Config Config::fromTomlValue(const toml::Value& toml) {
+	const toml::Table& table = toml.getTable();
+	Config			   out;
+	for (toml::Table::const_iterator it = table.begin(); it != table.end(); it++) {
 		try {
 			if (it->first == "cgi")
 				out.cgi = _handle_map(it->second, Cgi::fromTomlValue);
@@ -59,3 +60,4 @@ Config Config::fromTomlValue(const TomlValue& toml) {
 	}
 	return out;
 }
+}  // namespace config

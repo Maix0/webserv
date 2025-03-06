@@ -6,17 +6,18 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/26 14:53:53 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/02/28 14:30:46 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/06 13:11:40 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <cstddef>
 #include <sstream>
 #include <stdexcept>
-#include "toml/TomlParser.hpp"
+#include "toml/Parser.hpp"
 
-std::string TomlParser::Context::normalizeDecimalString(const std::string& str,
-														  std::size_t		 lineno) {
+namespace toml {
+std::string Parser::Context::normalizeDecimalString(const std::string& str,
+														std::size_t		   lineno) {
 	(void)str;
 	std::size_t		  index = 0;
 	std::stringstream ss;
@@ -42,3 +43,4 @@ std::string TomlParser::Context::normalizeDecimalString(const std::string& str,
 
 	return (ss.str());
 }
+}  // namespace toml

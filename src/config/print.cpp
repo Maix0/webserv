@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/28 17:01:09 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/05 16:58:25 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/06 13:58:48 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,19 +15,20 @@
 #include <ostream>
 #include "config/Config.hpp"
 
-std::ostream& _print_ident(std::ostream& o, std::size_t ident) {
+namespace config {
+static std::ostream& _print_ident(std::ostream& o, std::size_t ident) {
 	while (ident--)
 		o << "\t";
 	return (o);
 }
 
-void _print_cgi(std::ostream& o, const Cgi& cgi, std::size_t ident) {
+static void _print_cgi(std::ostream& o, const Cgi& cgi, std::size_t ident) {
 	o << "{" << std::endl;
 	_print_ident(o, ident + 1) << "binary   => " << cgi.binary << std::endl;
 	_print_ident(o, ident + 1) << "from_env => " << (cgi.from_env ? "true" : "false") << std::endl;
 	_print_ident(o, ident) << "}";
 }
-void _print_route(std::ostream& o, const Route& route, std::size_t ident) {
+static void _print_route(std::ostream& o, const Route& route, std::size_t ident) {
 	bool first = true;
 	o << "{" << std::endl;
 	ident++;
@@ -62,7 +63,7 @@ void _print_route(std::ostream& o, const Route& route, std::size_t ident) {
 	_print_ident(o, ident) << "}" << std::endl;
 	_print_ident(o, ident - 1) << "}";
 }
-void _print_server(std::ostream& o, const Server& server, std::size_t ident) {
+static void _print_server(std::ostream& o, const Server& server, std::size_t ident) {
 	bool first = true;
 	o << "{" << std::endl;
 	ident++;
@@ -90,13 +91,13 @@ void _print_server(std::ostream& o, const Server& server, std::size_t ident) {
 	_print_ident(o, ident - 1) << "}";
 }
 
-void _print_listener(std::ostream& o, const Listener& server, std::size_t ident) {
+static void _print_listener(std::ostream& o, const Listener& server, std::size_t ident) {
 	_print_ident(o, ident++) << "{" << std::endl;
 	_print_ident(o, ident) << "host   => " << server.host << "," << std::endl;
 
 	bool first = true;
 	_print_ident(o, ident) << "port   => [ ";
-	for (std::vector<Port>::const_iterator it = server.port.begin(); it != server.port.end();
+	for (std::vector<app::Port>::const_iterator it = server.port.begin(); it != server.port.end();
 		 it++) {
 		if (!first)
 			first = false, o << ", ";
@@ -166,3 +167,4 @@ std::ostream& operator<<(std::ostream& o, const Cgi& e) {
 	_print_cgi(o, e, 0);
 	return (o);
 }
+}  // namespace config

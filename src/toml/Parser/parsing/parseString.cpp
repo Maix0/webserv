@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/26 14:53:53 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/02/28 14:31:01 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/06 13:37:56 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,43 +16,45 @@
 #include <iostream>
 #include <sstream>
 #include <string>
-#include "toml/TomlParser.hpp"
-#include "toml/TomlValue.hpp"
+#include "toml/Parser.hpp"
+#include "toml/Value.hpp"
 
-TomlValue TomlParser::Context::parseString(const std::string& str, std::size_t lineno) {
+namespace toml {
+Value Parser::Context::parseString(const std::string& str, std::size_t lineno) {
 	if (str == "true")
-		return TomlValue(true);
+		return Value(true);
 	else if (str == "false")
-		return TomlValue(false);
+		return Value(false);
 	else if (str == "null")
-		return TomlValue();
+		return Value();
 	else if (str == "nan")
-		return TomlValue(TomlFloat(NAN));
+		return Value(Float(NAN));
 	else if (str == "inf" || str == "+inf")
-		return TomlValue(TomlFloat(INFINITY));
+		return Value(Float(INFINITY));
 	else if (str == "-inf")
-		return TomlValue(TomlFloat(INFINITY));
+		return Value(Float(INFINITY));
 	else if (str.size() >= 2 && (str[0] == '"' || str[0] == '\'') &&
 			 str[str.length() - 1] == str[0]) {
-		return TomlValue(this->normalizeBasicString(str.begin() + 1, str.end() - 1, lineno));
+		return Value(this->normalizeBasicString(str.begin() + 1, str.end() - 1, lineno));
 	}
 	std::string cstr = this->normalizeDecimalString(str, lineno);
-	char*		end			  = NULL;
+	char*		end	 = NULL;
 	double		strtod_ret;
 	long		strtol_ret;
 
 	errno	   = 0;
 	strtol_ret = std::strtol(cstr.c_str(), &end, 10);
 	if (errno == 0 && (end != NULL && *end == 0)) {
-		return (TomlValue(strtol_ret));
+		return (Value(strtol_ret));
 	}
 	errno	   = 0;
 	strtod_ret = std::strtod(cstr.c_str(), &end);
 	if (errno == 0 && (end != NULL && *end == 0)) {
-		return (TomlValue(strtod_ret));
+		return (Value(strtod_ret));
 	}
 
 	std::stringstream ss;
 	ss << "syntax error: invalid literal: line " << lineno;
 	throw SyntaxError(ss.str());
 }
+}  // namespace toml

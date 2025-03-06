@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/28 15:40:07 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/02/28 21:55:13 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/06 13:40:03 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,15 +16,15 @@
 
 #include "config/Config.hpp"
 #include "config/_ConfigHelper.hpp"
-#include "toml/TomlValue.hpp"
-
-Cgi Cgi::fromTomlValue(const TomlValue& toml) {
-	const TomlTable&	  table = toml.getTable();
+#include "toml/Value.hpp"
+namespace config {
+Cgi Cgi::fromTomlValue(const toml::Value& toml) {
+	const toml::Table&	  table = toml.getTable();
 	Cgi					  out;
 	std::set<std::string> seen;
 	out.from_env = false;
 
-	for (TomlTable::const_iterator it = table.begin(); it != table.end(); it++) {
+	for (toml::Table::const_iterator it = table.begin(); it != table.end(); it++) {
 		try {
 			seen.insert(it->first);
 			if (it->first == "binary")
@@ -41,3 +41,4 @@ Cgi Cgi::fromTomlValue(const TomlValue& toml) {
 		throw CgiParseError("missing key \"binary\" in cgi");
 	return out;
 }
+}  // namespace config

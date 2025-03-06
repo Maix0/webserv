@@ -1,20 +1,21 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Context_scanString.cpp                             :+:      :+:    :+:   */
+/*   scanString.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/26 14:53:53 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/02/26 15:53:05 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/06 13:12:14 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <sstream>
-#include "toml/TomlParser.hpp"
-#include "toml/TomlValue.hpp"
+#include "toml/Parser.hpp"
+#include "toml/Value.hpp"
 
-void TomlParser::Context::scanString(std::string::iterator p,
+namespace toml {
+void Parser::Context::scanString(std::string::iterator p,
 									 std::size_t		   lineno,
 									 bool				   dot_is_special) {
 	std::string::iterator orig = p;
@@ -107,3 +108,4 @@ void TomlParser::Context::scanString(std::string::iterator p,
 	this->setToken(STRING, lineno, orig, std::distance(orig, p));
 	return;
 }
+}  // namespace toml

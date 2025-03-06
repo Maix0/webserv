@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/02 22:07:07 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/05 21:13:03 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/06 13:57:16 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@
 #include "app/Socket.hpp"
 #include "config/Config.hpp"
 
+namespace app {
 typedef std::map<std::string, std::vector<Socket> > SocketList;
 
 class Context {
@@ -29,11 +30,12 @@ private:
 	static Context								INSTANCE;
 
 	std::map<std::string, std::vector<Socket> > sockets;
-	Config										config;
+	config::Config								config;
 
 public:
 	static Context& getInstance();
 
-	Config&			getConfig() { return this->config; };
+	config::Config& getConfig() { return this->config; };
 	SocketList&		getSockets() { return this->sockets; };
 };
+}  // namespace app
