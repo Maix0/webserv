@@ -20,63 +20,63 @@
 #define FLINE		 __FILE__ ":" TOSTRING(__LINE__)
 
 namespace toml {
-void Parser::Context::skipNewlines(bool is_dot_special) {
-	while (this->tok.ty == Parser::NEWLINE) {
-		this->nextToken(is_dot_special);
-		if (this->tok.eof)
-			break;
-	}
-}
-
-void Parser::Context::parseArray(Value& val) {
-	this->eatToken(LBRACKET, false, FLINE);
-
-	for (;;) {
-		this->skipNewlines(false);
-
-		/* until ] */
-		if (this->tok.ty == RBRACKET)
-			break;
-
-		switch (this->tok.ty) {
-			case STRING: {
-				val.getList().push_back(this->parseString(this->tok.raw, this->tok.line));
-
-				this->eatToken(STRING, false, FLINE);
+	void Parser::Context::skipNewlines(bool is_dot_special) {
+		while (this->tok.ty == Parser::NEWLINE) {
+			this->nextToken(is_dot_special);
+			if (this->tok.eof)
 				break;
-			}
-
-			case LBRACKET: { /* [ [array], [array] ... ] */
-				/* set the array kind if this will be the first entry */
-				val.getList().push_back(Value::newList());
-				this->parseArray(val.getList().back());
-				break;
-			}
-
-			case LBRACE: { /* [ {table}, {table} ... ] */
-				/* set the array kind if this will be the first entry */
-				val.getList().push_back(Value::newTable());
-				this->parseInlineTable(val.getList().back(), this->tok.line);
-				break;
-			}
-
-			default: {
-				std::stringstream ss;
-				ss << "syntax error: line " << this->tok.line;
-				throw SyntaxError(ss.str());
-			}
 		}
-
-		this->skipNewlines(false);
-
-		/* on comma, continue to scan for next element */
-		if (this->tok.ty == COMMA) {
-			this->eatToken(COMMA, false, FLINE);
-			continue;
-		}
-		break;
 	}
 
-	eatToken(RBRACKET, true, FLINE);
-}
+	void Parser::Context::parseArray(Value& val) {
+		this->eatToken(LBRACKET, false, FLINE);
+
+		for (;;) {
+			this->skipNewlines(false);
+
+			/* until ] */
+			if (this->tok.ty == RBRACKET)
+				break;
+
+			switch (this->tok.ty) {
+				case STRING: {
+					val.getList().push_back(this->parseString(this->tok.raw, this->tok.line));
+
+					this->eatToken(STRING, false, FLINE);
+					break;
+				}
+
+				case LBRACKET: { /* [ [array], [array] ... ] */
+					/* set the array kind if this will be the first entry */
+					val.getList().push_back(Value::newList());
+					this->parseArray(val.getList().back());
+					break;
+				}
+
+				case LBRACE: { /* [ {table}, {table} ... ] */
+					/* set the array kind if this will be the first entry */
+					val.getList().push_back(Value::newTable());
+					this->parseInlineTable(val.getList().back(), this->tok.line);
+					break;
+				}
+
+				default: {
+					std::stringstream ss;
+					ss << "syntax error: line " << this->tok.line;
+					throw SyntaxError(ss.str());
+				}
+			}
+
+			this->skipNewlines(false);
+
+			/* on comma, continue to scan for next element */
+			if (this->tok.ty == COMMA) {
+				this->eatToken(COMMA, false, FLINE);
+				continue;
+			}
+			break;
+		}
+
+		eatToken(RBRACKET, true, FLINE);
+	}
 }  // namespace toml

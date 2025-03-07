@@ -16,17 +16,17 @@
 #include "toml/Value.hpp"
 
 namespace toml {
-void Parser::Context::setToken(TokType				 ty,
+	void Parser::Context::setToken(TokType				 ty,
 								   std::size_t			 lineno,
 								   std::string::iterator p,
 								   std::size_t			 len) {
-	Token t;
+		Token t;
 
-	t.ty	  = ty;
-	t.line	  = lineno;
-	t.raw	  = std::string(p, p + len);
-	t.eof	  = 0;
-	t.pos	  = std::distance(this->buffer.begin(), p);
-	this->tok = t;
-}
+		t.ty	  = ty;
+		t.line	  = lineno;
+		t.raw	  = std::string(p, p + len);
+		t.eof	  = 0;
+		t.pos	  = std::distance(this->buffer.begin(), p);
+		this->tok = t;
+	}
 }  // namespace toml

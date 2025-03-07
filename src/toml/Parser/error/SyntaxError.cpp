@@ -13,9 +13,9 @@
 #include "toml/Parser.hpp"
 
 namespace toml {
-Parser::SyntaxError::SyntaxError(std::string m) : msg(m) {};
-Parser::SyntaxError::~SyntaxError() throw() {};
-const char* Parser::SyntaxError::what() const throw() {
-	return (this->msg.c_str());
-}
+	Parser::SyntaxError::SyntaxError(std::string m) : msg(m) {};
+	Parser::SyntaxError::~SyntaxError() throw() {};
+	const char* Parser::SyntaxError::what() const throw() {
+		return (this->msg.c_str());
+	}
 };	// namespace toml

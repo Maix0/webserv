@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 13:39:20 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/06 13:58:14 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/07 23:19:46 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,74 +19,70 @@
 #include <unistd.h>
 #include <cerrno>
 #include <cstring>
+#include <sstream>
 #include <stdexcept>
 
 #include "app/Logger.hpp"
 
 namespace app {
-Socket::Socket() : fd(-1), port(0) {}
+	Socket::Socket() : fd(-1), port(0) {}
 
-Socket::Socket(const std::string& host, Port port) : port(port) {
-	this->fd	   = -1;
-	this->host_str = host;
+	Socket::Socket(const Ip& host, Port port) {
+		this->fd				= -1;
+		this->host				= host;
+		this->port				= port;
 
-	struct addrinfo* res;
-	struct addrinfo	 hints;
+		struct sockaddr_in addr = {};
 
-	memset(&hints, 0, sizeof(hints));
-	hints.ai_family	   = AF_INET;	   // Allow IPv4
-	hints.ai_socktype  = SOCK_STREAM;  // TCP
-	hints.ai_flags	   = AI_PASSIVE;   // For wildcard IP address
-	hints.ai_protocol  = 0;			   // Any protocaol
-	hints.ai_canonname = NULL;
-	hints.ai_addr	   = NULL;
-	hints.ai_next	   = NULL;
+		addr.sin_port			= port.inner;
+		addr.sin_addr.s_addr	= host.inner;
+		addr.sin_family			= AF_INET;
 
-	if (getaddrinfo(this->host_str.c_str(), NULL, &hints, &res) != 0) {
+		int sockfd				= socket(AF_INET, SOCK_STREAM, 0);
+		if (sockfd == -1)
+			throw std::runtime_error("unable to create socket");
+
+		this->fd = sockfd;
+		LOG(debug, "new socket " << this->fd << " for " << host << ":" << port);
+
+		int r	 = (bind(this->fd, (struct sockaddr*)&addr, sizeof(addr)));
 		int serr = errno;
-		LOG(err, "failed to lookup host for " << this->host_str << ":" << gai_strerror(serr));
-		throw std::runtime_error("addrinfo failed");
-	} else
-		LOG(trace, "addrinfo for " << this->host_str);
-
-	if (res == NULL) {
-		LOG(err, "failed to lookup host for " << this->host_str);
-		throw std::runtime_error("addrinfo failed");
-	}
-
-	struct sockaddr_in* ip_sockaddr = (struct sockaddr_in*)res;
-	ip_sockaddr->sin_port			= htonl(port.inner);
-	this->host_ip					= ntohl(ip_sockaddr->sin_addr.s_addr);
-
-	LOG(trace, "host: '" << this->host_str << "' = " << this->host_ip);
-
-	int sockfd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
-	if (sockfd == -1)
-		throw std::runtime_error("unable to create socket");
-
-	this->fd = sockfd;
-	LOG(debug, "new socket " << this->fd << " for " << host << ":" << port);
-
-	int r	 = (bind(this->fd, res->ai_addr, res->ai_addrlen));
-	int serr = errno;
-	freeaddrinfo(res);
-	if (r != 0) {
-		LOG(err, "failed to bind socket " << this->fd << "(" << host << ":" << port
-										  << "): " << strerror(serr));
-		throw std::runtime_error("unable to bind socket");
-	} else
-		LOG(debug, "successfully bound socket " << this->fd << " onto " << host << ":" << port);
-
-	if (listen(this->fd, BACKLOG) != 0) {
-		LOG(err, "failed to lisen on socket " << this->fd << "(" << host << ":" << port
+		if (r != 0) {
+			LOG(err, "failed to bind socket " << this->fd << "(" << host << ":" << port
 											  << "): " << strerror(serr));
-		throw std::runtime_error("unable to listen on socket");
-	} else
-		LOG(trace, "lisening on socket " << this->fd << " (" << host << ":" << port << ")");
-};
+			throw std::runtime_error("unable to bind socket");
+		} else {
+			if (this->port.inner == 0) {
+				struct sockaddr_in s	 = {};
+				unsigned int	   ssize = sizeof(s);
+				if (getsockname(this->fd, (struct sockaddr*)&s, &ssize) == 0) {
+					LOG(trace, "getsockname: " << s.sin_port);
+					this->bound_port = Port(ntohs(s.sin_port));
+				} else {
+					LOG(err, "failed to get sockname on socket " << this->fd);
+					throw std::runtime_error("getsockname error");
+				}
 
-Socket::~Socket() {
-	if (this->fd != -1)
-		close(this->fd);
-}
+			} else
+				this->bound_port = this->port;
+			LOG(debug, "successfully bound socket "
+						   << this->fd << " onto " << this->host << ":" << this->bound_port
+						   << (this->port != this->bound_port ? " (OS-allocated port)" : ""));
+		}
+
+		if (listen(this->fd, BACKLOG) != 0) {
+			LOG(err, "failed to lisen on socket " << this->fd << "(" << this->host << ":"
+												  << this->bound_port << "): " << strerror(serr));
+			throw std::runtime_error("unable to listen on socket");
+		} else {
+			LOG(trace, "lisening on socket "
+						   << this->fd << " (" << this->host << ":" << this->bound_port
+						   << (this->port != this->bound_port ? " OS-allocated port" : "") << ")");
+		}
+	};
+
+	Socket::~Socket() {
+		if (this->fd != -1)
+			close(this->fd);
+	}
 }  // namespace app

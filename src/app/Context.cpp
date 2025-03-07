@@ -15,17 +15,17 @@
 
 namespace app {
 
-Context Context::INSTANCE = Context();
+	Context Context::INSTANCE = Context();
 
-Context::Context() {
-	LOG(trace, "creating context singleton");
-}
+	Context::Context() {
+		LOG(trace, "creating context singleton");
+	}
 
-Context::~Context() {
-	LOG(trace, "destroying context singleton");
-}
+	Context::~Context() {
+		LOG(trace, "destroying context singleton");
+	}
 
-Context& Context::getInstance() {
-	return (Context::INSTANCE);
-}
+	Context& Context::getInstance() {
+		return (Context::INSTANCE);
+	}
 };	// namespace app

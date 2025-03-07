@@ -76,27 +76,27 @@
 
 /// You shouldn't use this namespace :)
 namespace log {
-enum LogLevel {
-	NONE  = none,
-	FATAL = fatal,
-	ERR	  = err,
-	WARN  = warn,
-	INFO  = info,
-	DEBUG = debug,
-	TRACE = trace,
-};
+	enum LogLevel {
+		NONE  = none,
+		FATAL = fatal,
+		ERR	  = err,
+		WARN  = warn,
+		INFO  = info,
+		DEBUG = debug,
+		TRACE = trace,
+	};
 
-extern LogLevel	   logLevel;
+	extern LogLevel	   logLevel;
 
-static inline bool _setEnvLogLevel(char** envp) {
-	try {
-		while (*envp) {
-			std::string			   env = *envp;
-			std::string::size_type eq  = env.find_first_of('=');
-			std::string			   key = env.substr(0, eq);
-			if (key == "LOG_LEVEL") {
-				static std::pair<std::string, LogLevel> levels[] = {
-					// clang-format off
+	static inline bool _setEnvLogLevel(char** envp) {
+		try {
+			while (*envp) {
+				std::string			   env = *envp;
+				std::string::size_type eq  = env.find_first_of('=');
+				std::string			   key = env.substr(0, eq);
+				if (key == "LOG_LEVEL") {
+					static std::pair<std::string, LogLevel> levels[] = {
+						// clang-format off
 					std::make_pair("none", NONE),
 					std::make_pair("fatal", FATAL),
 					std::make_pair("err", ERR),
@@ -110,46 +110,46 @@ static inline bool _setEnvLogLevel(char** envp) {
 					std::make_pair("warning", WARN),
 					// maybe should this be set to trace ?
 					std::make_pair("", NONE),
-					// clang-format on
-				};
+						// clang-format on
+					};
 
-				std::string val = env.substr(eq + 1);
+					std::string val = env.substr(eq + 1);
 
-				// poor man's string.toLowercase()...
-				for (std::string::iterator it = val.begin(); it != val.end(); it++)
-					*it = std::tolower(*it);
+					// poor man's string.toLowercase()...
+					for (std::string::iterator it = val.begin(); it != val.end(); it++)
+						*it = std::tolower(*it);
 
-				for (std::size_t i = 0; i < sizeof(levels) / sizeof(levels[0]); i++) {
-					if (levels[i].first == val) {
-						logLevel = levels[i].second;
-						return true;
+					for (std::size_t i = 0; i < sizeof(levels) / sizeof(levels[0]); i++) {
+						if (levels[i].first == val) {
+							logLevel = levels[i].second;
+							return true;
+						}
 					}
 				}
+				envp++;
 			}
-			envp++;
+		} catch (const ::std::exception& e) {
+			std::cerr << "EARLY FATAL: " << e.what() << std::endl;
+			std::exit(1);
 		}
-	} catch (const ::std::exception& e) {
-		std::cerr << "EARLY FATAL: " << e.what() << std::endl;
-		std::exit(1);
+		return false;
 	}
-	return false;
-}
 
-static inline bool _shouldLog(LogLevel level) {
-	return (level <= logLevel);
-}
+	static inline bool _shouldLog(LogLevel level) {
+		return (level <= logLevel);
+	}
 
-static inline LogLevel _compileTimeLogLevel(void) {
-	if (log::_setEnvLogLevel(environ))
-		return logLevel;
-	if (LOG_LEVEL < none || LOG_LEVEL > trace)
-		return (TRACE);
-	return (LogLevel)LOG_LEVEL;
-}
+	static inline LogLevel _compileTimeLogLevel(void) {
+		if (log::_setEnvLogLevel(environ))
+			return logLevel;
+		if (LOG_LEVEL < none || LOG_LEVEL > trace)
+			return (TRACE);
+		return (LogLevel)LOG_LEVEL;
+	}
 
-static inline void setLogLevel(LogLevel level) {
-	logLevel = level;
-}
+	static inline void setLogLevel(LogLevel level) {
+		logLevel = level;
+	}
 
 }  // namespace log
 

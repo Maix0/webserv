@@ -20,37 +20,37 @@
 #define FLINE		 __FILE__ ":" TOSTRING(__LINE__)
 
 namespace toml {
-Parser::Context::Context(std::string buffer)
-	: root(Table()), current_table(&root), tok(Token()), buffer(buffer) {
-	this->tok.line = 0;
-	this->tok.eof  = false;
-	this->tok.ty   = NEWLINE;
-};
+	Parser::Context::Context(std::string buffer)
+		: root(Table()), current_table(&root), tok(Token()), buffer(buffer) {
+		this->tok.line = 0;
+		this->tok.eof  = false;
+		this->tok.ty   = NEWLINE;
+	};
 
-Parser::Context::~Context() {};
-Parser::Context::Context(const Parser::Context& rhs)
-	: root(rhs.root), current_table(&root), tok(Token()), buffer(rhs.buffer) {
-	this->tok.line = 0;
-	this->tok.eof  = false;
-	this->tok.ty   = NEWLINE;
-};
+	Parser::Context::~Context() {};
+	Parser::Context::Context(const Parser::Context& rhs)
+		: root(rhs.root), current_table(&root), tok(Token()), buffer(rhs.buffer) {
+		this->tok.line = 0;
+		this->tok.eof  = false;
+		this->tok.ty   = NEWLINE;
+	};
 
-Parser::Context& Parser::Context::operator=(const Parser::Context& rhs) {
-	if (this != &rhs) {
-		this->buffer		= rhs.buffer;
+	Parser::Context& Parser::Context::operator=(const Parser::Context& rhs) {
+		if (this != &rhs) {
+			this->buffer		= rhs.buffer;
 
-		this->root			= rhs.root;
-		this->current_table = &this->root;
+			this->root			= rhs.root;
+			this->current_table = &this->root;
 
-		this->tok.eof		= false;
-		this->tok.line		= 0;
-		this->tok.ty		= NEWLINE;
+			this->tok.eof		= false;
+			this->tok.line		= 0;
+			this->tok.ty		= NEWLINE;
+		}
+		return (*this);
 	}
-	return (*this);
-}
 
-void Parser::Context::setEof(std::size_t lineno) {
-	this->setToken(NEWLINE, lineno, this->buffer.end(), 0);
-	this->tok.eof = 1;
-}
+	void Parser::Context::setEof(std::size_t lineno) {
+		this->setToken(NEWLINE, lineno, this->buffer.end(), 0);
+		this->tok.eof = 1;
+	}
 }  // namespace toml

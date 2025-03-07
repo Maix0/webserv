@@ -18,25 +18,25 @@
 #include <string>
 #include "toml/Value.hpp"
 namespace config {
-template <typename T>
-std::map<std::string, T> _handle_map(const toml::Value& val, T (*func)(const toml::Value&)) {
-	if (!val.isTable())
-		throw std::runtime_error("Value isn't a table");
+	template <typename T>
+	std::map<std::string, T> _handle_map(const toml::Value& val, T (*func)(const toml::Value&)) {
+		if (!val.isTable())
+			throw std::runtime_error("Value isn't a table");
 
-	const toml::Table&		 table = val.getTable();
-	std::map<std::string, T> out;
+		const toml::Table&		 table = val.getTable();
+		std::map<std::string, T> out;
 
-	for (toml::Table::const_iterator it = table.begin(); it != table.end(); it++) {
-		try {
-			out[it->first] = (func)(it->second);
-		} catch (const std::exception& e) {
-			throw std::runtime_error(std::string("\"") + it->first + "\" " + e.what());
+		for (toml::Table::const_iterator it = table.begin(); it != table.end(); it++) {
+			try {
+				out[it->first] = (func)(it->second);
+			} catch (const std::exception& e) {
+				throw std::runtime_error(std::string("\"") + it->first + "\" " + e.what());
+			}
 		}
+		return out;
 	}
-	return out;
-}
 
-static inline std::string _toml_get_string(const toml::Value& val) {
-	return (val.getString());
-}
+	static inline std::string _toml_get_string(const toml::Value& val) {
+		return (val.getString());
+	}
 }  // namespace config

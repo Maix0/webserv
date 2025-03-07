@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/28 14:33:11 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/06 13:57:42 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/07 23:04:48 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,102 +22,97 @@
 #include "app/Socket.hpp"
 #include "toml/Value.hpp"
 namespace config {
-struct Cgi {
-	/// @default `false`
-	bool		from_env;
+	struct Cgi {
+		/// @default `false`
+		bool		from_env;
 
-	/// @required
-	/// if (from_env) then binary is used as an ENV_VAR that contains the path to the cgi binary
-	/// else: the path to the cgi binary
-	std::string binary;
+		/// @required
+		/// if (from_env) then binary is used as an ENV_VAR that contains the path to the cgi binary
+		/// else: the path to the cgi binary
+		std::string binary;
 
-	static Cgi	fromTomlValue(const ::toml::Value& toml);
-};
+		static Cgi	fromTomlValue(const ::toml::Value& toml);
+	};
 
-struct Route {
-	/// @default 'Option.None()'
-	/// Option.None() => everything is allowed
-	/// Option.Some() => only the matched method are allowed
-	Option<std::vector<std::string> >  allowed;
+	struct Route {
+		/// @default 'Option.None()'
+		/// Option.None() => everything is allowed
+		/// Option.Some() => only the matched method are allowed
+		Option<std::vector<std::string> >  allowed;
 
-	/// @default 'Option.None()'
-	/// Option.None() => No index set
-	/// Option.Some() => try to find the index file
-	Option<std::string>				   index;
+		/// @default 'Option.None()'
+		/// Option.None() => No index set
+		/// Option.Some() => try to find the index file
+		Option<std::string>				   index;
 
-	/// @default 'Option.None()'
-	/// Option.None() => do not every try to do cgi
-	/// Option.Some() => try to match extension and lookup CGI handler from the global table
-	std::map<std::string, std::string> cgi;
+		/// @default 'Option.None()'
+		/// Option.None() => do not every try to do cgi
+		/// Option.Some() => try to match extension and lookup CGI handler from the global table
+		std::map<std::string, std::string> cgi;
 
-	/// @default `true`
-	/// true => show the directory listing if no index is found when hitting a directory url
-	/// false => show the 403 listing if no index is found when hitting a directory url;
-	/// if index == Option.Some() then 404
-	bool							   listing;
+		/// @default `true`
+		/// true => show the directory listing if no index is found when hitting a directory url
+		/// false => show the 403 listing if no index is found when hitting a directory url;
+		/// if index == Option.Some() then 404
+		bool							   listing;
 
-	/// @default `16_000_000` (16MB)
-	std::size_t						   max_size;
+		/// @default `16_000_000` (16MB)
+		std::size_t						   max_size;
 
-	/// @default 'Option.None()'
-	/// Option.None() => Post are just recieved, and either passed to cgi or ignored
-	/// Option.Some() => Post are written to that directory (if content.size() < max_size). May also
-	/// be passed to cgi
-	Option<std::string>				   post_dir;
+		/// @default 'Option.None()'
+		/// Option.None() => Post are just recieved, and either passed to cgi or ignored
+		/// Option.Some() => Post are written to that directory (if content.size() < max_size). May
+		/// also be passed to cgi
+		Option<std::string>				   post_dir;
 
-	/// @default `Option.None()`
-	/// Option.None() => inherit the root of the server
-	/// Option.Some() => set the root when searching for files
-	Option<std::string>				   root;
+		/// @default `Option.None()`
+		/// Option.None() => inherit the root of the server
+		/// Option.Some() => set the root when searching for files
+		Option<std::string>				   root;
 
-	/// @default `Option.None()`
-	/// Option.None() => no redirect
-	/// Option.Some() => redirect to said url
-	Option<std::string>				   redirect;
+		/// @default `Option.None()`
+		/// Option.None() => no redirect
+		/// Option.Some() => redirect to said url
+		Option<std::string>				   redirect;
 
-	static Route					   fromTomlValue(const ::toml::Value& toml);
-};
+		static Route					   fromTomlValue(const ::toml::Value& toml);
+	};
 
-struct Server {
-	/// @required
-	std::string						   root;
-	/// @required
-	/// reference to a key into the listener table
-	std::string						   listener;
+	struct Server {
+		/// @required
+		std::string						   root;
+		/// @required
+		std::string						   bind_str;
+		/// @implementation detail
+		/// this field is only populated AFTER the config is parsed. it is populated while
+		/// validating stuff
+		app::Ip							   bind;
+		/// @required
+		app::Port						   port;
 
-	std::map<std::string, Route>	   routes;
+		std::map<std::string, Route>	   routes;
 
-	/// Map error code to files (relative to `root`)
-	std::map<std::string, std::string> errors;
+		/// Map error code to files (relative to `root`)
+		std::map<std::string, std::string> errors;
 
-	Option<std::string>				   servername;
+		Option<std::string>				   hostname;
 
-	static Server					   fromTomlValue(const ::toml::Value& toml);
-};
+		static Server					   fromTomlValue(const ::toml::Value& toml);
+	};
 
-struct Listener {
-	/// @required
-	std::string			   host;
+	struct Config {
+		std::map<std::string, Cgi>	  cgi;
+		std::map<std::string, Server> server;
 
-	/// @required
-	std::vector<app::Port> port;
+		static Config				  fromTomlValue(const ::toml::Value& toml);
+	};
 
-	static Listener		   fromTomlValue(const ::toml::Value& toml);
-};
+	std::ostream& operator<<(std::ostream&, const Config&);
+	std::ostream& operator<<(std::ostream&, const Server&);
+	std::ostream& operator<<(std::ostream&, const Route&);
+	std::ostream& operator<<(std::ostream&, const Cgi&);
 
-struct Config {
-	std::map<std::string, Cgi>		cgi;
-	std::map<std::string, Server>	server;
-	std::map<std::string, Listener> listener;
-
-	static Config					fromTomlValue(const ::toml::Value& toml);
-};
-
-std::ostream& operator<<(std::ostream&, const Config&);
-std::ostream& operator<<(std::ostream&, const Server&);
-std::ostream& operator<<(std::ostream&, const Route&);
-std::ostream& operator<<(std::ostream&, const Cgi&);
-std::ostream& operator<<(std::ostream&, const Listener&);
+	void		  checkConfig(Config&);
 
 #define ERROR(NAME)                                 \
 	class NAME##Error : public std::exception {     \
@@ -133,10 +128,10 @@ std::ostream& operator<<(std::ostream&, const Listener&);
 		virtual ~NAME##Error() throw();             \
 	};
 
-ERROR(CgiParse);
-ERROR(ConfigParse);
-ERROR(RouteParse);
-ERROR(ServerParse);
+	ERROR(CgiParse);
+	ERROR(ConfigParse);
+	ERROR(RouteParse);
+	ERROR(ServerParse);
 }  // namespace config
 
 #undef ERROR

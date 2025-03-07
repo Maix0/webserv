@@ -6,12 +6,13 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/23 00:07:08 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/06 13:59:06 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/07 22:56:36 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <exception>
 #include <iostream>
+#include <sstream>
 #include "app/Logger.hpp"
 
 #include "app/Context.hpp"
@@ -31,17 +32,19 @@ int wrapped_main(char* argv0, int argc, char* argv[], char* envp[]) {
 	}
 	app::Context&	ctx	   = app::Context::getInstance();
 
-	toml::Value		val	   = toml::Parser::parseFile(argv[1]);
+	toml::Value		val	   = toml::Parser::parseFile(argv[0]);
 
 	config::Config& config = (ctx.getConfig() = config::Config::fromTomlValue(val));
 
-	for (std::map<std::string, config::Listener>::iterator it = config.listener.begin();
-		 it != config.listener.end(); it++) {
+	config::checkConfig(config);
+
+	for (std::map<std::string, config::Server>::iterator it = config.server.begin();
+		 it != config.server.end(); it++) {
 		ctx.getSockets().insert(std::make_pair(it->first, std::vector<app::Socket>()));
 		std::vector<app::Socket>& socklist = ctx.getSockets().at(it->first);
 		LOG(debug, "opening socket for " << it->first);
 		try {
-			app::Socket sock = app::Socket(it->second.host, it->second.port.at(0));
+			app::Socket sock = app::Socket(it->second.bind, it->second.port);
 			socklist.push_back(sock);
 		} catch (const std::exception& e) {
 			LOG(err, "error for listener " << it->first << " : " << e.what());

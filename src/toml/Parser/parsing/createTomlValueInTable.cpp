@@ -17,15 +17,15 @@
 #include "toml/Value.hpp"
 
 namespace toml {
-Value& Parser::Context::createTomlValueInTable(Value& tab, Token& key, Value (*new_val)(void)) {
-	std::string key_normalized = this->normalizeKey(key);
+	Value& Parser::Context::createTomlValueInTable(Value& tab, Token& key, Value (*new_val)(void)) {
+		std::string key_normalized = this->normalizeKey(key);
 
-	if (tab.getTable().count(key_normalized) != 0) {
-		std::stringstream ss;
-		ss << "duplicate key: line " << tok.line;
-		throw ForbiddenError(ss.str());
+		if (tab.getTable().count(key_normalized) != 0) {
+			std::stringstream ss;
+			ss << "duplicate key: line " << tok.line;
+			throw ForbiddenError(ss.str());
+		}
+		tab.getTable().insert(std::make_pair(key_normalized, (new_val)()));
+		return (tab.getTable().at(key_normalized));
 	}
-	tab.getTable().insert(std::make_pair(key_normalized, (new_val)()));
-	return (tab.getTable().at(key_normalized));
-}
 }  // namespace toml

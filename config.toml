@@ -1,8 +1,20 @@
+[cgi]
+php_cgi = { binary = "php_cgi", from_env = false }
+env_php_cgi = { binary = "PHP_CGI", from_env = true }
+
 [server.example]
-server_name = "local.maix.me"
+host = "local.maix.me"
+bind = "0.0.0.0"
+port = 1
 errors = { 404 = "404.html" }
 root = "/var/empty"
-listener = "_localhost"
+
+[server.example2]
+host = "local.maix.me"
+bind = "local.maix.me"
+port = 1
+errors = { 404 = "404.html" }
+root = "/var/empty"
 
 
 [server.example.routes."/"]
@@ -12,17 +24,4 @@ index = "index.html"
 listing = false
 max_size = 16_000_000
 post_directory = "./data/uploads"
-cgi = { php = "php_cgi" }
-
-
-[cgi.php_cgi]
-binary = "php_cgi"
-from_env = false
-
-[cgi.env_php_cgi]
-binary = "PHP_CGI_PATH"
-from_env = true
-
-[listener._localhost]
-host = "local.maix.me"
-port = [80]
+#cgi = { php = "php_cgi1" }

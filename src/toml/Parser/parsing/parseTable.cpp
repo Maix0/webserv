@@ -19,41 +19,41 @@
 #define FLINE		 __FILE__ ":" TOSTRING(__LINE__)
 
 namespace toml {
-void Parser::Context::parseInlineTable(Value& tab, std::size_t lineno) {
-	this->eatToken(LBRACE, true, FLINE);
+	void Parser::Context::parseInlineTable(Value& tab, std::size_t lineno) {
+		this->eatToken(LBRACE, true, FLINE);
 
-	for (;;) {
-		if (this->tok.ty == NEWLINE) {
-			std::stringstream ss;
-			ss << "newline not allowed in inline table: line " << lineno;
-			throw SyntaxError(ss.str());
-		}
+		for (;;) {
+			if (this->tok.ty == NEWLINE) {
+				std::stringstream ss;
+				ss << "newline not allowed in inline table: line " << lineno;
+				throw SyntaxError(ss.str());
+			}
 
-		/* until } */
-		if (this->tok.ty == RBRACE)
+			/* until } */
+			if (this->tok.ty == RBRACE)
+				break;
+
+			if (this->tok.ty != STRING) {
+				std::stringstream ss;
+				ss << "expected a string: line " << lineno;
+				throw SyntaxError(ss.str());
+			}
+			this->parseKeyValue(tab);
+
+			if (this->tok.ty == NEWLINE) {
+				std::stringstream ss;
+				ss << "newline not allowed in inline table: line " << lineno;
+				throw SyntaxError(ss.str());
+			}
+			/* on comma, continue to scan for next keyval */
+			if (this->tok.ty == COMMA) {
+				this->eatToken(COMMA, false, FLINE);
+				continue;
+			}
 			break;
+		}
 
-		if (this->tok.ty != STRING) {
-			std::stringstream ss;
-			ss << "expected a string: line " << lineno;
-			throw SyntaxError(ss.str());
-		}
-		this->parseKeyValue(tab);
-
-		if (this->tok.ty == NEWLINE) {
-			std::stringstream ss;
-			ss << "newline not allowed in inline table: line " << lineno;
-			throw SyntaxError(ss.str());
-		}
-		/* on comma, continue to scan for next keyval */
-		if (this->tok.ty == COMMA) {
-			this->eatToken(COMMA, false, FLINE);
-			continue;
-		}
-		break;
+		this->eatToken(RBRACE, true, FLINE);
+		tab.setReadonly(true);
 	}
-
-	this->eatToken(RBRACE, true, FLINE);
-	tab.setReadonly(true);
-}
 }  // namespace toml

@@ -17,68 +17,68 @@
 #include "toml/Value.hpp"
 
 namespace toml {
-/*
- * Convert src to raw unescaped utf-8 string.
- * Returns NULL if error with errmsg in errbuf.
- */
-std::string Parser::Context::normalizeBasicString(std::string::const_iterator src,
+	/*
+	 * Convert src to raw unescaped utf-8 string.
+	 * Returns NULL if error with errmsg in errbuf.
+	 */
+	std::string Parser::Context::normalizeBasicString(std::string::const_iterator src,
 													  std::string::const_iterator end,
 													  std::size_t				  lineno) {
-	std::string dst;
-	char		chr;
+		std::string dst;
+		char		chr;
 
-	/* scan forward on src */
-	for (;;) {
-		/* finished? */
-		if (src == end)
-			break;
+		/* scan forward on src */
+		for (;;) {
+			/* finished? */
+			if (src == end)
+				break;
 
-		chr = *src++;
-		if (chr != '\\') {
-			// a plain copy suffice
+			chr = *src++;
+			if (chr != '\\') {
+				// a plain copy suffice
+				dst.push_back(chr);
+				continue;
+			}
+
+			/* get the escaped char */
+			chr = *src++;
+			switch (chr) {
+				case 'u':
+				case 'U': {
+					std::stringstream ss;
+					ss << "unsupported sytax: unicode esacpe: line " << lineno;
+					throw SyntaxError(ss.str());
+					break;
+				}
+				case 'b':
+					chr = '\b';
+					break;
+				case 't':
+					chr = '\t';
+					break;
+				case 'n':
+					chr = '\n';
+					break;
+				case 'f':
+					chr = '\f';
+					break;
+				case 'r':
+					chr = '\r';
+					break;
+				case '"':
+					chr = '"';
+					break;
+				case '\\':
+					chr = '\\';
+					break;
+				default: {
+					std::stringstream ss;
+					ss << "invalid escape char: line " << lineno;
+					throw SyntaxError(ss.str());
+				}
+			}
 			dst.push_back(chr);
-			continue;
 		}
-
-		/* get the escaped char */
-		chr = *src++;
-		switch (chr) {
-			case 'u':
-			case 'U': {
-				std::stringstream ss;
-				ss << "unsupported sytax: unicode esacpe: line " << lineno;
-				throw SyntaxError(ss.str());
-				break;
-			}
-			case 'b':
-				chr = '\b';
-				break;
-			case 't':
-				chr = '\t';
-				break;
-			case 'n':
-				chr = '\n';
-				break;
-			case 'f':
-				chr = '\f';
-				break;
-			case 'r':
-				chr = '\r';
-				break;
-			case '"':
-				chr = '"';
-				break;
-			case '\\':
-				chr = '\\';
-				break;
-			default: {
-				std::stringstream ss;
-				ss << "invalid escape char: line " << lineno;
-				throw SyntaxError(ss.str());
-			}
-		}
-		dst.push_back(chr);
+		return dst;
 	}
-	return dst;
-}
 }  // namespace toml
