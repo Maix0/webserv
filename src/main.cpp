@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/23 00:07:08 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/07 22:56:36 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/08 17:53:48 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,18 +37,7 @@ int wrapped_main(char* argv0, int argc, char* argv[], char* envp[]) {
 	config::Config& config = (ctx.getConfig() = config::Config::fromTomlValue(val));
 
 	config::checkConfig(config);
-
-	for (std::map<std::string, config::Server>::iterator it = config.server.begin();
-		 it != config.server.end(); it++) {
-		ctx.getSockets().insert(std::make_pair(it->first, std::vector<app::Socket>()));
-		std::vector<app::Socket>& socklist = ctx.getSockets().at(it->first);
-		LOG(debug, "opening socket for " << it->first);
-		try {
-			app::Socket sock = app::Socket(it->second.bind, it->second.port);
-			socklist.push_back(sock);
-		} catch (const std::exception& e) {
-			LOG(err, "error for listener " << it->first << " : " << e.what());
-		}
-	}
+	ctx.openAllSockets();
+	
 	return 0;
 }

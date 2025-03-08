@@ -6,12 +6,13 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 13:39:20 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/07 23:19:46 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/08 17:56:00 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "app/Socket.hpp"
 
+#include <fcntl.h>
 #include <netdb.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
@@ -45,6 +46,10 @@ namespace app {
 		this->fd = sockfd;
 		LOG(debug, "new socket " << this->fd << " for " << host << ":" << port);
 
+		if (fcntl(sockfd, FD_CLOEXEC) != 0) {
+			LOG(err, "Failed to set CLOEXEC onto fd " << this->fd);
+			throw std::runtime_error("unable to set CLOEXEC");
+		}
 		int r	 = (bind(this->fd, (struct sockaddr*)&addr, sizeof(addr)));
 		int serr = errno;
 		if (r != 0) {
@@ -82,6 +87,7 @@ namespace app {
 	};
 
 	Socket::~Socket() {
+		LOG(trace, "dropping socket " << this->fd);
 		if (this->fd != -1)
 			close(this->fd);
 	}

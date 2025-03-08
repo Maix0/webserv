@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 13:36:52 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/07 23:01:54 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/08 18:23:10 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 
 #include <ostream>
 #include <string>
+#include "app/AsFd.hpp"
 
 namespace app {
 	struct Ip {
@@ -71,7 +72,7 @@ namespace app {
 		}
 	};
 
-	class Socket {
+	class Socket : public app::AsFd {
 	private:
 		int	 fd;
 		Port port;
@@ -83,10 +84,12 @@ namespace app {
 
 		Socket();
 		Socket(const Ip& host, Port port);
-		~Socket();
+		virtual ~Socket();
 
-		int	 getFd() { return (this->fd); };
-		Port getPort() { return (this->port); };
-		Ip	 getHost() { return (this->host); };
+		virtual int asFd() { return (this->fd); };
+
+		int			getFd() { return (this->fd); };
+		Port		getPort() { return (this->port); };
+		Ip			getHost() { return (this->host); };
 	};
 }  // namespace app
