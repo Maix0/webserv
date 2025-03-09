@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/23 00:07:08 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/08 17:53:48 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/09 18:17:14 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,8 +36,8 @@ int wrapped_main(char* argv0, int argc, char* argv[], char* envp[]) {
 
 	config::Config& config = (ctx.getConfig() = config::Config::fromTomlValue(val));
 
-	config::checkConfig(config);
+	config::checkConfig(config, envp);
 	ctx.openAllSockets();
-	
+
 	return 0;
 }

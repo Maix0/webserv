@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/28 14:33:11 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/07 23:04:48 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/09 18:17:31 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -112,7 +112,7 @@ namespace config {
 	std::ostream& operator<<(std::ostream&, const Route&);
 	std::ostream& operator<<(std::ostream&, const Cgi&);
 
-	void		  checkConfig(Config&);
+	void		  checkConfig(Config&, char **envp);
 
 #define ERROR(NAME)                                 \
 	class NAME##Error : public std::exception {     \
