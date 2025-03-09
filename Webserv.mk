@@ -6,7 +6,7 @@
 #    By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/11/03 13:20:01 by maiboyer          #+#    #+#              #
-#    Updated: 2025/03/02 21:49:50 by maiboyer         ###   ########.fr        #
+#    Updated: 2025/03/09 18:52:33 by maiboyer         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -38,7 +38,7 @@ COL_RESET		=	\033[0m
 COL_WHITE		=	\033[37m
 
 
-.PHONY = all bonus clean re subject filelist .clangd
+.PHONY = all bonus clean re subject filelist .clangd archive
 all: $(NAME)
 
 #$(NAME): $(TARGET)
@@ -61,6 +61,10 @@ fclean: clean
 	@rm -f $(NAME)
 
 re: fclean all
+
+archive: $(OBJ)
+	@echo -e '$(COL_GRAY) Bundle\t $(COL_GREEN)$(BUILD_DIR)/webserv.a$(COL_RESET)'
+	@ar rcs $(BUILD_DIR)/webserv.a $(OBJ)
 
 filelist:
 	@rm -f Filelist.mk

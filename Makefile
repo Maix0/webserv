@@ -6,7 +6,7 @@
 #    By: rparodi <rparodi@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/11/12 11:05:05 by rparodi           #+#    #+#              #
-#    Updated: 2025/03/05 21:49:17 by maiboyer         ###   ########.fr        #
+#    Updated: 2025/03/09 18:51:33 by maiboyer         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -156,6 +156,10 @@ tokei:
 filelist:
 	@$(MAKE) --no-print-directory -f ./Webserv.mk filelist
 
+
+archive:
+	@$(MAKE) --no-print-directory -f ./Webserv.mk archive 
+
 .clangd:
 	@rm -f .clangd
 	@echo >> .clangd
@@ -179,4 +183,4 @@ subject: .subject.txt
 	@curl $(SUBJECT_URL) | pdftotext -layout -nopgbrk -q - .subject.txt
 
 #	phony
-.PHONY: all bonus clean fclean re header footer filelist .clangd .clang-format subject
+.PHONY: all bonus clean fclean re header footer filelist .clangd .clang-format subject archive
