@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/08 18:01:53 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/12 14:50:17 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/12 19:45:19 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,8 +15,10 @@
 #include <sys/epoll.h>
 #include <cstddef>
 #include <map>
+#include <utility>
 #include <vector>
 #include "app/Callback.hpp"
+#include "app/Option.hpp"
 #include "app/Shared.hpp"
 #include "app/Socket.hpp"
 
@@ -26,28 +28,39 @@ namespace app {
 	};
 
 	class Epoll {
+		struct EpollCallback {
+			Option<Shared<Callback> > read;
+			Option<Shared<Callback> > write;
+			Option<Shared<Callback> > hangup;
+		};
+
 	private:
+		typedef std::map<int, EpollCallback> CallbackStorage;
 		// no copy for you !
 		Epoll(const Epoll&);
-		Epoll&							 operator=(const Epoll&);
+		Epoll&			operator=(const Epoll&);
 
-		int								 fd;
-		std::map<int, Shared<Callback> > callbacks;
+		int				fd;
+		CallbackStorage callbacks;
 
 	public:
 		static const int MAX_EVENTS	   = 5000;
-		static const int EPOLL_TIMEOUT = 1000;
+		static const int EPOLL_TIMEOUT = -1;
 		Epoll();
 		~Epoll();
 
-		/// @return true in success, false on error
-		bool addCallback(int fd, int eventType, Shared<Callback> callback);
-		/// @return true in success, false on error
-		bool removeCallback(int fd);
+		enum EpollType {
+			READ   = EPOLLIN,
+			WRITE  = EPOLLOUT,
+			HANGUP = EPOLLHUP | EPOLLRDHUP,
+		};
 
-		const std::map<int, Shared<Callback> >& getCallbacks() const { return (this->callbacks); }
+		/// @return true in success, false on error
+		bool						   addCallback(int fd, EpollType ty, Shared<Callback> callback);
+		/// @return true in success, false on error
+		bool						   removeCallback(int fd, EpollType ty);
 
-		std::vector<std::pair<EpollEvent, Shared<Callback> > > fetchCallbacks();
+		std::vector<Shared<Callback> > fetchCallbacks();
 	};
 
 };	// namespace app

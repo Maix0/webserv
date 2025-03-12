@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/08 16:52:34 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/10 17:36:42 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/12 18:16:34 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,7 +67,12 @@ namespace app {
 		}
 		Shared& operator=(const Shared& rhs) {
 			if (this != &rhs) {
-				this->~Shared();
+				{
+					this->ptr->ref--;
+					Shared cpy = *this;
+					// hello yes run the destructor pls
+					(void)(cpy);
+				}
 				this->ptr = rhs.ptr;
 				this->ptr->ref++;
 			}

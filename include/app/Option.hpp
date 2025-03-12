@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/28 14:52:32 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/06 13:57:24 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/12 19:37:01 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,21 +32,25 @@ public:
 
 	Option& operator=(const Option& rhs) {
 		if (this != &rhs) {
-			this->~Option();
+			this->remove();
 			if (rhs.value != NULL)
 				this->value = new T(*rhs.value);
 		}
 		return (*this);
 	}
 
-	~Option() {
-		if (this->value)
-			delete this->value;
-	}
+	~Option() { this->remove(); }
 
 	void insert(const T& val) {
-		this->~Option();
+		if (this->value != NULL)
+			delete this->value;
 		this->value = new T(val);
+	}
+
+	void remove() {
+		if (this->value != NULL)
+			delete this->value;
+		this->value = NULL;
 	}
 
 	bool	 hasValue() const { return (this->value != NULL); }

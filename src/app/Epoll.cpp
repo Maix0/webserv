@@ -6,13 +6,14 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/08 18:07:56 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/12 15:36:58 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/12 20:00:06 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "app/Epoll.hpp"
 #include "app/Callback.hpp"
 #include "app/Logger.hpp"
+#include "app/Shared.hpp"
 #include "app/Socket.hpp"
 
 #include <fcntl.h>
@@ -22,6 +23,7 @@
 #include <cerrno>
 #include <cstddef>
 #include <cstring>
+#include <ios>
 #include <stdexcept>
 
 namespace app {
@@ -38,40 +40,72 @@ namespace app {
 		if (this->fd != -1)
 			close(this->fd);
 	}
-	bool Epoll::addCallback(int fd, int eventType, Shared<Callback> callback) {
-		struct epoll_event ev;
-		ev.data.fd = fd;
-		ev.events  = eventType;
-		if (epoll_ctl(this->fd, EPOLL_CTL_ADD, fd, &ev) == -1) {
+	bool Epoll::addCallback(int fd, EpollType eventType, Shared<Callback> callback) {
+		bool new_ = false;
+		if (this->callbacks.count(fd) == 0) {
+			this->callbacks[fd] = EpollCallback();
+			new_				= true;
+		}
+		EpollCallback& e = this->callbacks.find(fd)->second;
+		if (eventType & READ)
+			e.read.insert(callback);
+		if (eventType & WRITE)
+			e.write.insert(callback);
+		if (eventType & HANGUP)
+			e.hangup.insert(callback);
+
+		struct epoll_event ev  = {};
+		ev.data.fd			   = fd;
+		ev.events			  |= e.write.hasValue() ? EPOLLOUT : 0;
+		ev.events			  |= e.read.hasValue() ? EPOLLIN : 0;
+		ev.events			  |= e.hangup.hasValue() ? (EPOLLHUP | EPOLLRDHUP) : 0;
+
+		int op				   = new_ ? EPOLL_CTL_ADD : EPOLL_CTL_MOD;
+
+		if (epoll_ctl(this->fd, op, fd, &ev) == -1) {
 			int serrno = errno;
 			(void)(serrno);	 // log macro
-			LOG(err, "epoll_add: failed to add callback for fd" << fd << ":" << strerror(serrno));
+			LOG(err, "epoll_ctl: " << fd << ":" << strerror(serrno));
 			return false;
 		}
-		this->callbacks.insert(std::make_pair(fd, callback));
 		return true;
 	}
 
-	bool Epoll::removeCallback(int fd) {
-		std::map<int, Shared<Callback> >::iterator e = this->callbacks.find(fd);
-		if (e == this->callbacks.end())
+	bool Epoll::removeCallback(int fd, EpollType eventType) {
+		if (this->callbacks.count(fd) == 0)
 			return false;
-		this->callbacks.erase(e);
-		struct epoll_event ev;
-		ev.data.fd = fd;
-		ev.events  = EPOLLIN | EPOLLOUT;
-		if (epoll_ctl(this->fd, EPOLL_CTL_DEL, fd, &ev) == -1) {
+		EpollCallback& e = this->callbacks.find(fd)->second;
+		if (eventType & READ)
+			e.read.remove();
+		if (eventType & WRITE)
+			e.write.remove();
+		if (eventType & HANGUP)
+			e.hangup.remove();
+
+		struct epoll_event ev  = {};
+		ev.data.fd			   = fd;
+		ev.events			  |= e.write.hasValue() ? EPOLLOUT : 0;
+		ev.events			  |= e.read.hasValue() ? EPOLLIN : 0;
+		ev.events			  |= e.hangup.hasValue() ? (EPOLLHUP | EPOLLRDHUP) : 0;
+
+		int op				   = (ev.events == 0) ? EPOLL_CTL_DEL : EPOLL_CTL_MOD;
+
+		if (epoll_ctl(this->fd, op, fd, &ev) == -1) {
 			int serrno = errno;
 			(void)(serrno);	 // log macro
-			LOG(err, "epoll_add: failed to remove fd " << fd << ":" << strerror(serrno));
+			LOG(err, "epoll_ctl: " << fd << ":" << strerror(serrno));
 			return false;
 		}
+
+		if (op == EPOLL_CTL_DEL)
+			this->callbacks.erase(this->callbacks.find(fd));
+
 		return true;
 	}
 
-	std::vector<std::pair<EpollEvent, Shared<Callback> > > Epoll::fetchCallbacks() {
-		std::vector<std::pair<EpollEvent, Shared<Callback> > > out;
-		struct epoll_event									   events[MAX_EVENTS] = {};
+	std::vector<Shared<Callback> > Epoll::fetchCallbacks() {
+		std::vector<Shared<Callback> > out;
+		struct epoll_event			   events[MAX_EVENTS] = {};
 		int event_count = epoll_wait(this->fd, events, MAX_EVENTS, EPOLL_TIMEOUT);
 		if (event_count == -1) {
 			if (errno == EINTR)
@@ -83,12 +117,21 @@ namespace app {
 		}
 		out.reserve(event_count + 1);
 		for (int i = 0; i < event_count; i++) {
-			EpollEvent eevent;
-			eevent.read									  = events[i].events & EPOLLIN;
-			eevent.write								  = events[i].events & EPOLLOUT;
-			std::map<int, Shared<Callback> >::iterator it = this->callbacks.find(events[i].data.fd);
-			if (it != this->callbacks.end())
-				out.push_back(std::make_pair(eevent, it->second));
+			CallbackStorage::iterator it = this->callbacks.find(events[i].data.fd);
+			if (it != this->callbacks.end()) {
+				if (events[i].events & EPOLLIN && it->second.read.hasValue()) {
+					out.push_back(it->second.read.get());
+					this->removeCallback(it->first, READ);
+				}
+				if (events[i].events & EPOLLOUT && it->second.write.hasValue()) {
+					out.push_back(it->second.write.get());
+					this->removeCallback(it->first, WRITE);
+				}
+				if (events[i].events & (EPOLLHUP | EPOLLRDHUP) && it->second.hangup.hasValue()) {
+					out.push_back(it->second.hangup.get());
+					this->removeCallback(it->first, HANGUP);
+				}
+			}
 		}
 		return out;
 	}

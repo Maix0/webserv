@@ -2,6 +2,7 @@ SRC_FILES =                                                                   \
 app/Context                                                                   \
 app/Epoll                                                                     \
 app/Socket                                                                    \
+app/callback/Connection                                                       \
 app/callback/Shutdown                                                         \
 app/callback/Socket                                                           \
 config/Cgi                                                                    \

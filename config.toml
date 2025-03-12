@@ -1,4 +1,4 @@
-shutdown = true
+shutdown = 8888
 
 [cgi]
 #php_cgi = { binary = "php_cgi", from_env = false }

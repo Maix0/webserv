@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/23 00:07:08 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/12 15:38:43 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/12 18:35:13 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,7 +57,7 @@ int				  wrapped_main(char* argv0, int argc, char* argv[], char* envp[]) {
 			   sit != iit->second.end(); sit++) {
 			  app::Shared<app::Socket>		   sock	   = *sit;
 			  app::Shared<app::SocketCallback> sock_cb = new app::SocketCallback(sock);
-			  epoll.addCallback(sock->asFd(), EPOLLIN, sock_cb.cast<app::Callback>());
+			  epoll.addCallback(sock->asFd(), app::Epoll::READ, sock_cb.cast<app::Callback>());
 		  }
 	  }
 
@@ -67,20 +67,17 @@ int				  wrapped_main(char* argv0, int argc, char* argv[], char* envp[]) {
 		  LOG(info, "Created shutdown socket on port: " << shutdown_socket->getBoundPort());
 		  app::Shared<app::ShutdownCallback> shutdown_cb =
 			  new app::ShutdownCallback(shutdown_socket, app::do_shutdown);
-		  epoll.addCallback(shutdown_socket->asFd(), EPOLLIN, shutdown_cb.cast<app::Callback>());
+		  epoll.addCallback(shutdown_socket->asFd(), app::Epoll::READ,
+										shutdown_cb.cast<app::Callback>());
 	  }
 	  install_ctrlc_handler();
 	  while (!*app::do_shutdown) {
-		  std::vector<std::pair<app::EpollEvent, app::Shared<app::Callback> > > callbacks =
-			  epoll.fetchCallbacks();
-		  for (std::vector<std::pair<app::EpollEvent, app::Shared<app::Callback> > >::iterator it =
-				   callbacks.begin();
+		  std::vector<app::Shared<app::Callback> > callbacks = epoll.fetchCallbacks();
+		  for (std::vector<app::Shared<app::Callback> >::iterator it = callbacks.begin();
 			   it != callbacks.end(); it++) {
-			  app::EpollEvent			 event = it->first;
-			  app::Shared<app::Callback> cb	   = it->second;
-			  cb->call(epoll, event);
+			  app::Shared<app::Callback> cb = *it;
+			  cb->call(epoll, cb);
 		  }
-		  sleep(1);
 	  };
 	  LOG(info, "shutting down now...");
 	  return 0;

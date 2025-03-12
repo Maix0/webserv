@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/02 22:07:07 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/12 15:30:14 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/12 19:17:23 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,16 +15,17 @@
 #include <map>
 #include <set>
 #include <vector>
-#include "app/Epoll.hpp"
+#include "app/Connection.hpp"
 #include "app/Shared.hpp"
 #include "app/Socket.hpp"
 #include "config/Config.hpp"
 
 namespace app {
-	extern Shared<bool>										   do_shutdown;
+	extern Shared<bool>												   do_shutdown;
 
 	typedef std::map<app::Ip, std::vector<app::Shared<app::Socket> > > SocketList;
 	typedef std::map<app::Port, std::set<app::Ip> >					   PortMap;
+	typedef std::vector<app::Shared<Connection> >					   ConnectionList;
 
 	class Context {
 	private:
@@ -32,13 +33,13 @@ namespace app {
 		~Context();
 		// No Copy operator/assignement operator since this is a Singleton...
 
-		static Context										  INSTANCE;
+		static Context INSTANCE;
 
-		std::map<app::Port, std::set<app::Ip> >				  port_map;
+		ConnectionList conns;
+		PortMap		   port_map;
+		SocketList	   sockets;
 
-		std::map<app::Ip, std::vector<app::Shared<Socket> > > sockets;
-		config::Config										  config;
-		app::Epoll											  epoll;
+		config::Config config;
 
 	public:
 		static Context& getInstance();
@@ -46,6 +47,7 @@ namespace app {
 		config::Config& getConfig() { return this->config; };
 		SocketList&		getSockets() { return this->sockets; };
 		PortMap&		getPortMap() { return this->port_map; };
+		ConnectionList& getConnections() { return this->conns; };
 
 		void			openAllSockets();
 	};

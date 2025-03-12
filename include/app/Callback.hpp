@@ -6,12 +6,13 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/12 13:59:36 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/12 14:46:05 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/12 18:18:07 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
+#include "app/Shared.hpp"
 namespace app {
 	struct EpollEvent;
 	class Epoll;
@@ -20,6 +21,6 @@ namespace app {
 	class Callback {
 	public:
 		virtual ~Callback() {};
-		virtual void call(Epoll& epoll, EpollEvent event) = 0;
+		virtual void call(Epoll& epoll, app::Shared<Callback> self) = 0;
 	};
 }  // namespace app
