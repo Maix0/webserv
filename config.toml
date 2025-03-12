@@ -1,3 +1,5 @@
+shutdown = true
+
 [cgi]
 #php_cgi = { binary = "php_cgi", from_env = false }
 #env_php_cgi = { binary = "PHP_CGI", from_env = true }

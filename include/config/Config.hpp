@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/28 14:33:11 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/09 18:17:31 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/12 15:18:33 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -103,6 +103,12 @@ namespace config {
 	struct Config {
 		std::map<std::string, Cgi>	  cgi;
 		std::map<std::string, Server> server;
+		// @optional
+		// true -> port=0 => random by the OS;
+		// false -> No shutdown port;
+		// null -> No shutdown port;
+		// 0-65565 -> shutdown port;
+		Option<app::Port>			  shutdown_port;
 
 		static Config				  fromTomlValue(const ::toml::Value& toml);
 	};
@@ -112,7 +118,7 @@ namespace config {
 	std::ostream& operator<<(std::ostream&, const Route&);
 	std::ostream& operator<<(std::ostream&, const Cgi&);
 
-	void		  checkConfig(Config&, char **envp);
+	void		  checkConfig(Config&, char** envp);
 
 #define ERROR(NAME)                                 \
 	class NAME##Error : public std::exception {     \

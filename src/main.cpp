@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/23 00:07:08 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/12 15:01:24 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/12 15:38:43 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,56 +26,79 @@
 #include "toml/Parser.hpp"
 #include "toml/Value.hpp"
 
-int wrapped_main(char* argv0, int argc, char* argv[], char* envp[]) {
-	(void)(argc);
-	(void)(argv);
-	(void)(envp);
+app::Shared<bool> app::do_shutdown = new bool(false);
 
-	if (argc != 1) {
-		std::cout << "usage: " << (argv0 ? argv0 : "webserv") << " <config_file>" << std::endl;
-		return 1;
-	}
+static void		  install_ctrlc_handler(void);
 
-	app::Context&	ctx	   = app::Context::getInstance();
+int				  wrapped_main(char* argv0, int argc, char* argv[], char* envp[]) {
+	  (void)(argc);
+	  (void)(argv);
+	  (void)(envp);
 
-	toml::Value		val	   = toml::Parser::parseFile(argv[0]);
+	  if (argc != 1) {
+		  std::cout << "usage: " << (argv0 ? argv0 : "webserv") << " <config_file>" << std::endl;
+		  return 1;
+	  }
 
-	config::Config& config = (ctx.getConfig() = config::Config::fromTomlValue(val));
+	  app::Context&	  ctx	 = app::Context::getInstance();
 
-	config::checkConfig(config, envp);
-	ctx.openAllSockets();
+	  toml::Value	  val	 = toml::Parser::parseFile(argv[0]);
 
-	app::SocketList s = ctx.getSockets();
-	app::Epoll		epoll;
+	  config::Config& config = (ctx.getConfig() = config::Config::fromTomlValue(val));
 
-	for (app::SocketList::iterator iit = s.begin(); iit != s.end(); iit++) {
-		for (std::vector<app::Shared<app::Socket> >::iterator sit = iit->second.begin();
-			 sit != iit->second.end(); sit++) {
-			app::Shared<app::Socket>		 sock	 = *sit;
-			app::Shared<app::SocketCallback> sock_cb = new app::SocketCallback(sock);
-			epoll.addCallback(sock->asFd(), EPOLLIN, sock_cb.cast<app::Callback>());
-		}
-	}
-	app::Shared<bool> shutdown = new bool(false);
+	  config::checkConfig(config, envp);
+	  ctx.openAllSockets();
 
-	{
-		app::Shared<app::Socket> shutdown_socket = new app::Socket(app::Ip(0), app::Port(0));
-		app::Shared<app::ShutdownCallback> shutdown_cb =
-			new app::ShutdownCallback(shutdown_socket, shutdown);
-		epoll.addCallback(shutdown_socket->asFd(), EPOLLIN, shutdown_cb.cast<app::Callback>());
-	}
-	while (!*shutdown) {
-		std::vector<std::pair<app::EpollEvent, app::Shared<app::Callback> > > callbacks =
-			epoll.fetchCallbacks();
-		for (std::vector<std::pair<app::EpollEvent, app::Shared<app::Callback> > >::iterator it =
-				 callbacks.begin();
-			 it != callbacks.end(); it++) {
-			app::EpollEvent			   event = it->first;
-			app::Shared<app::Callback> cb	 = it->second;
-			cb->call(epoll, event);
-		}
-		sleep(1);
-	};
+	  app::SocketList s = ctx.getSockets();
+	  app::Epoll	  epoll;
 
-	return 0;
+	  for (app::SocketList::iterator iit = s.begin(); iit != s.end(); iit++) {
+		  for (std::vector<app::Shared<app::Socket> >::iterator sit = iit->second.begin();
+			   sit != iit->second.end(); sit++) {
+			  app::Shared<app::Socket>		   sock	   = *sit;
+			  app::Shared<app::SocketCallback> sock_cb = new app::SocketCallback(sock);
+			  epoll.addCallback(sock->asFd(), EPOLLIN, sock_cb.cast<app::Callback>());
+		  }
+	  }
+
+	  if (config.shutdown_port.hasValue()) {
+		  app::Shared<app::Socket> shutdown_socket =
+			  new app::Socket(app::Ip(0), config.shutdown_port.get());
+		  LOG(info, "Created shutdown socket on port: " << shutdown_socket->getBoundPort());
+		  app::Shared<app::ShutdownCallback> shutdown_cb =
+			  new app::ShutdownCallback(shutdown_socket, app::do_shutdown);
+		  epoll.addCallback(shutdown_socket->asFd(), EPOLLIN, shutdown_cb.cast<app::Callback>());
+	  }
+	  install_ctrlc_handler();
+	  while (!*app::do_shutdown) {
+		  std::vector<std::pair<app::EpollEvent, app::Shared<app::Callback> > > callbacks =
+			  epoll.fetchCallbacks();
+		  for (std::vector<std::pair<app::EpollEvent, app::Shared<app::Callback> > >::iterator it =
+				   callbacks.begin();
+			   it != callbacks.end(); it++) {
+			  app::EpollEvent			 event = it->first;
+			  app::Shared<app::Callback> cb	   = it->second;
+			  cb->call(epoll, event);
+		  }
+		  sleep(1);
+	  };
+	  LOG(info, "shutting down now...");
+	  return 0;
 }
+
+#ifndef BONUS
+static void install_ctrlc_handler(void) {};
+#else
+#	include <csignal>
+
+static void _ctrlc_handler(int sig) {
+	(void)(sig);
+	LOG(warn, "Ctrl+C: Shutting down");
+	*app::do_shutdown = true;
+}
+
+static void install_ctrlc_handler(void) {
+	signal(SIGINT, _ctrlc_handler);
+};
+
+#endif

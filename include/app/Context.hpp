@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/02 22:07:07 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/12 14:00:24 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/12 15:30:14 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,8 @@
 #include "config/Config.hpp"
 
 namespace app {
+	extern Shared<bool>										   do_shutdown;
+
 	typedef std::map<app::Ip, std::vector<app::Shared<app::Socket> > > SocketList;
 	typedef std::map<app::Port, std::set<app::Ip> >					   PortMap;
 

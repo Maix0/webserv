@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/08 18:07:56 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/12 15:07:23 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/12 15:36:58 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -74,6 +74,8 @@ namespace app {
 		struct epoll_event									   events[MAX_EVENTS] = {};
 		int event_count = epoll_wait(this->fd, events, MAX_EVENTS, EPOLL_TIMEOUT);
 		if (event_count == -1) {
+			if (errno == EINTR)
+				return out;
 			int serrno = errno;
 			(void)(serrno);	 // log macro
 			LOG(fatal, "failed to epoll_wait: " << strerror(serrno));

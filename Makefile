@@ -6,7 +6,7 @@
 #    By: rparodi <rparodi@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/11/12 11:05:05 by rparodi           #+#    #+#              #
-#    Updated: 2025/03/12 15:05:09 by maiboyer         ###   ########.fr        #
+#    Updated: 2025/03/12 15:43:53 by maiboyer         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -96,7 +96,7 @@ debug:
 	@$(MAKE) --no-print-directory footer
 
 bonus: 
-	$(eval CXXFLAGS_ADDITIONAL += -Werror)
+	$(eval CXXFLAGS_ADDITIONAL += -Werror -DBONUS=1)
 	@$(MAKE) --no-print-directory header 'MSG_BONUS=\n\x1b[D$(GOLD)         compiling with bonus          $(WEND)\n'
 	@$(MAKE) --no-print-directory -f ./Webserv.mk $(PMAKE) NAME=$(NAME)_bonus
 	@$(MAKE) --no-print-directory footer

@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/07 21:50:04 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/12 15:07:53 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/12 15:42:51 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -166,9 +166,6 @@ namespace config {
 			// now we have the ips, put them in a map port->[ips] so we can check that there
 			// isn't any overlap
 
-			// if port == 0, then we don't care because OS will give us a port !
-			if (sit->second.port == 0)
-				continue;
 			/// insert a set if none exists for the port
 			if (port_map.count(sit->second.port) == 0)
 				port_map[sit->second.port] = std::set<app::Ip>();

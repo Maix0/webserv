@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 13:36:52 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/12 14:59:44 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/12 15:27:26 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -93,6 +93,7 @@ namespace app {
 
 		int			getFd() { return (this->fd); };
 		Port		getPort() { return (this->port); };
+		Port		getBoundPort() { return (this->bound_port); };
 		Ip			getHost() { return (this->host); };
 	};
 
