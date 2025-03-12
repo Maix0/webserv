@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/12 18:43:37 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/12 19:57:10 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/12 20:04:14 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,9 +42,9 @@ namespace app {
 		void	setClosed() { this->closed = true; }
 	};
 
-	void _private_ConnCallbackR(Epoll& epoll, Shared<Callback> self, Shared<Connection> inner);
-	void _private_ConnCallbackW(Epoll& epoll, Shared<Callback> self, Shared<Connection> inner);
-	void _private_ConnCallbackH(Epoll& epoll, Shared<Callback> self, Shared<Connection> inner);
+	void _ConnCallbackR(Epoll& epoll, Shared<Callback> self, Shared<Connection> inner);
+	void _ConnCallbackW(Epoll& epoll, Shared<Callback> self, Shared<Connection> inner);
+	void _ConnCallbackH(Epoll& epoll, Shared<Callback> self, Shared<Connection> inner);
 
 	template <Epoll::EpollType TY>
 	class ConnectionCallback : public Callback {
@@ -57,11 +57,11 @@ namespace app {
 
 		void call(Epoll& epoll, Shared<Callback> self) {
 			if (TY == Epoll::READ)
-				return _private_ConnCallbackR(epoll, self, this->inner);
+				return _ConnCallbackR(epoll, self, this->inner);
 			else if (TY == Epoll::WRITE)
-				return _private_ConnCallbackW(epoll, self, this->inner);
+				return _ConnCallbackW(epoll, self, this->inner);
 			else if (TY == Epoll::HANGUP)
-				return _private_ConnCallbackH(epoll, self, this->inner);
+				return _ConnCallbackH(epoll, self, this->inner);
 			else
 				throw std::runtime_error("Unknown ConnectionCallback Type");
 		}

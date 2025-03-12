@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/12 18:56:10 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/12 20:01:19 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/12 20:04:12 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,7 @@
 #define MAX_WRITE_BYTES (1 * 1024)
 
 namespace app {
-	void _private_ConnCallbackR(Epoll& epoll, Shared<Callback> self, Shared<Connection> inner) {
+	void _ConnCallbackR(Epoll& epoll, Shared<Callback> self, Shared<Connection> inner) {
 		if (inner->isClosed())
 			return;
 		epoll.addCallback(inner->asFd(), Epoll::READ, self);
@@ -42,7 +42,7 @@ namespace app {
 		}
 	}
 
-	void _private_ConnCallbackW(Epoll& epoll, Shared<Callback> self, Shared<Connection> inner) {
+	void _ConnCallbackW(Epoll& epoll, Shared<Callback> self, Shared<Connection> inner) {
 		if (inner->isClosed())
 			return;
 		Connection::Buffer& buf = inner->getBuffer();
@@ -56,7 +56,7 @@ namespace app {
 			epoll.addCallback(inner->asFd(), Epoll::WRITE, self);
 	}
 
-	void _private_ConnCallbackH(Epoll& epoll, Shared<Callback> self, Shared<Connection> inner) {
+	void _ConnCallbackH(Epoll& epoll, Shared<Callback> self, Shared<Connection> inner) {
 		(void)(self);
 		inner->setClosed();
 		Context&		ctx	 = Context::getInstance();
