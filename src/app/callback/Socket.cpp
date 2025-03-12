@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/12 14:28:15 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/12 19:49:35 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/12 20:58:04 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,6 @@
 #include <sys/socket.h>
 namespace app {
 	void SocketCallback::call(Epoll& epoll, Shared<Callback> self) {
-		(void)(epoll);
 		LOG(debug, "Called for socket: " << this->socketfd->asFd());
 		// add us back to the callback queue
 		epoll.addCallback(this->socketfd->asFd(), Epoll::READ, self);
