@@ -1,20 +1,20 @@
 [cgi]
-php_cgi = { binary = "php_cgi", from_env = false }
-env_php_cgi = { binary = "PHP_CGI", from_env = true }
+#php_cgi = { binary = "php_cgi", from_env = false }
+#env_php_cgi = { binary = "PHP_CGI", from_env = true }
 
 [server.example]
 host = "local.maix.me"
 bind = "0.0.0.0"
-port = 1
+port = 4444
 errors = { 404 = "404.html" }
 root = "/var/empty"
 
-[server.example2]
-host = "local.maix.me"
-bind = "local.maix.me"
-port = 2
-errors = { 404 = "404.html" }
-root = "/var/empty"
+#[server.example2]
+#host = "local.maix.me"
+#bind = "local.maix.me"
+#port = 2
+#errors = { 404 = "404.html" }
+#root = "/var/empty"
 
 
 [server.example.routes."/"]

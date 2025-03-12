@@ -6,15 +6,18 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 13:36:52 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/08 18:23:10 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/12 14:59:44 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
+#include <sys/socket.h>
 #include <ostream>
 #include <string>
 #include "app/AsFd.hpp"
+#include "app/Callback.hpp"
+#include "app/Shared.hpp"
 
 namespace app {
 	struct Ip {
@@ -92,4 +95,41 @@ namespace app {
 		Port		getPort() { return (this->port); };
 		Ip			getHost() { return (this->host); };
 	};
-}  // namespace app
+
+	class SocketCallback : public app::Callback {
+	private:
+		Shared<Socket> socketfd;
+
+	public:
+		virtual ~SocketCallback() {};
+		SocketCallback(Shared<Socket> s) : socketfd(s) {};
+		SocketCallback(const SocketCallback& rhs) : socketfd(rhs.socketfd) {};
+		SocketCallback& operator=(const SocketCallback& rhs) {
+			if (this != &rhs)
+				this->socketfd = rhs.socketfd;
+			return (*this);
+		};
+		void call(Epoll& epoll, EpollEvent event);
+	};
+
+	class ShutdownCallback : public app::Callback {
+	private:
+		Shared<Socket> socketfd;
+		Shared<bool>   shutdown;
+
+	public:
+		virtual ~ShutdownCallback() {};
+		ShutdownCallback(Shared<Socket> s, Shared<bool> shutdown)
+			: socketfd(s), shutdown(shutdown) {};
+		ShutdownCallback(const ShutdownCallback& rhs)
+			: socketfd(rhs.socketfd), shutdown(rhs.shutdown) {};
+		ShutdownCallback& operator=(const ShutdownCallback& rhs) {
+			if (this != &rhs) {
+				this->socketfd = rhs.socketfd;
+				this->shutdown = rhs.shutdown;
+			}
+			return (*this);
+		};
+		void call(Epoll& epoll, EpollEvent event);
+	};
+};	// namespace app

@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/07 21:50:04 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/09 18:43:00 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/12 15:07:53 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,6 +80,8 @@ namespace config {
 			 ++cit) {
 			const std::string& name = cit->first;
 			Cgi&			   cgi	= cit->second;
+
+			(void)(name);  // used by log macro
 
 			if (cgi.from_env) {
 				char** envp2 = envp;

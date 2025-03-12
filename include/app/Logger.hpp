@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/02 18:29:43 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/06 13:07:07 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/12 15:03:48 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -160,6 +160,7 @@ namespace log {
 #define HEADER_debug "[" COL_MAGENTA BOLD "DEBUG" RESET "]"
 #define HEADER_trace "[" COLB_WHITE BOLD "TRACE" RESET "]"
 
+#ifndef LOG_DISABLE
 // clang-format off
 #define FILTER_fatal(code) if (::log::_shouldLog(::log::FATAL)) {code}
 #define FILTER_err(code)   if (::log::_shouldLog(::log::ERR))   {code}
@@ -168,6 +169,16 @@ namespace log {
 #define FILTER_debug(code) if (::log::_shouldLog(::log::DEBUG)) {code}
 #define FILTER_trace(code) if (::log::_shouldLog(::log::TRACE)) {code}
 // clang-format on
+#else
+// clang-format off
+#define FILTER_fatal(code)
+#define FILTER_err(code)
+#define FILTER_warn(code)
+#define FILTER_info(code)
+#define FILTER_debug(code)
+#define FILTER_trace(code)
+// clang-format on
+#endif
 
 #undef fatal
 #undef err

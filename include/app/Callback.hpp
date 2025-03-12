@@ -1,21 +1,25 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   AsFd.hpp                                           :+:      :+:    :+:   */
+/*   Callback.hpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/03/08 18:03:41 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/12 14:00:36 by maiboyer         ###   ########.fr       */
+/*   Created: 2025/03/12 13:59:36 by maiboyer          #+#    #+#             */
+/*   Updated: 2025/03/12 14:46:05 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-namespace app {
+#pragma once
 
-	// Something that can be cast to an Fd
-	class AsFd {
+namespace app {
+	struct EpollEvent;
+	class Epoll;
+
+	// A callback function that handles an epoll event
+	class Callback {
 	public:
-		virtual ~AsFd() {};
-		virtual int asFd() = 0;
+		virtual ~Callback() {};
+		virtual void call(Epoll& epoll, EpollEvent event) = 0;
 	};
 }  // namespace app

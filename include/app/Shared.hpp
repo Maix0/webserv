@@ -6,14 +6,17 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/08 16:52:34 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/08 18:24:18 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/10 17:36:42 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
+#include <strings.h>
+#include <cassert>
 #include <cstddef>
 #include <stdexcept>
+
 namespace app {
 
 	template <typename T>
@@ -25,7 +28,14 @@ namespace app {
 		};
 		SharedData* ptr;
 
+		Shared(SharedData* ptr) : ptr(ptr) {
+			if (this->ptr == NULL)
+				throw std::runtime_error("shared.ptr == NULL");
+		};
+
 	public:
+		// Opaque type. Represent Shared::SharedData
+		struct RawShared;
 		Shared() {
 			this->ptr	   = new SharedData();
 			this->ptr->ref = 1;
@@ -41,6 +51,8 @@ namespace app {
 		}
 
 		~Shared() {
+			if (this->ptr == NULL)
+				throw std::runtime_error("shared.ptr == NULL");
 			if (--this->ptr->ref == 0) {
 				delete this->ptr->value;
 				delete this->ptr;
@@ -49,20 +61,54 @@ namespace app {
 
 		Shared(const Shared& rhs) {
 			this->ptr = rhs.ptr;
+			if (this->ptr == NULL)
+				throw std::runtime_error("shared.ptr == NULL");
 			this->ptr->ref++;
 		}
 		Shared& operator=(const Shared& rhs) {
 			if (this != &rhs) {
+				this->~Shared();
 				this->ptr = rhs.ptr;
 				this->ptr->ref++;
 			}
 			return (*this);
 		}
 
-		T&		 operator*() { return (*this->ptr->value); }
-		const T& operator*() const { return (*this->ptr->value); }
-		T*		 operator->() { return (this->ptr->value); }
-		const T* operator->() const { return (this->ptr->value); }
+		T&			  operator*() { return (*this->ptr->value); }
+		const T&	  operator*() const { return (*this->ptr->value); }
+		T*			  operator->() { return (this->ptr->value); }
+		const T*	  operator->() const { return (this->ptr->value); }
+
+		// GetRaw
+		RawShared*	  getRaw() { return ((RawShared*)this->ptr); }
+
+		// GetRaw
+		static Shared fromRaw(RawShared* raw) {
+			if (raw == NULL)
+				throw std::runtime_error("Tried to init a shared ptr from raw NULL");
+			SharedData* raw_cast = (SharedData*)(raw);
+
+			return Shared(raw_cast);
+		}
+
+		template <typename U>
+		Shared<U> cast() {
+			U* ptr = (this->ptr->value);
+			assert((void*)ptr == (void*)this->ptr->value);
+			this->ptr->ref++;
+			RawShared* raw = this->getRaw();
+			return Shared<U>::fromRaw((typename Shared<U>::RawShared*)raw);
+		}
+
+		template <typename U>
+		Shared<U> try_cast() {
+			T& val		= *this->ptr->value;
+			U& val_cast = dynamic_cast<U&>(val);
+			assert(&val == &val_cast);
+			this->ptr->ref++;
+			RawShared* raw = this->getRaw();
+			return Shared<U>::fromRaw((typename Shared<U>::RawShared*)raw);
+		}
 	};
 
 }  // namespace app

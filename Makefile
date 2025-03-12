@@ -6,7 +6,7 @@
 #    By: rparodi <rparodi@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/11/12 11:05:05 by rparodi           #+#    #+#              #
-#    Updated: 2025/03/09 18:51:33 by maiboyer         ###   ########.fr        #
+#    Updated: 2025/03/12 15:05:09 by maiboyer         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -39,7 +39,8 @@ UNDERLINE = \033[4m
 WSTART = \033[D[$(RED)$(BOLD)$(UNDERLINE)WARNING$(END)]:$(CYAN) 
 WEND = \n$(END)
 
-CXXFLAGS_ADDITIONAL=
+LOG_DISABLE=
+CXXFLAGS_ADDITIONAL= $(LOG_DISABLE)
 PMAKE =
 ifndef PMAKE_DISABLE
 ifeq ($(shell uname), Linux)

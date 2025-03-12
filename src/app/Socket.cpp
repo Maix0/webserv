@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 13:39:20 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/08 17:56:00 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/12 15:06:49 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,8 +35,8 @@ namespace app {
 
 		struct sockaddr_in addr = {};
 
-		addr.sin_port			= port.inner;
-		addr.sin_addr.s_addr	= host.inner;
+		addr.sin_port			= htons(port.inner);
+		addr.sin_addr.s_addr	= htonl(host.inner);
 		addr.sin_family			= AF_INET;
 
 		int sockfd				= socket(AF_INET, SOCK_STREAM, 0);
@@ -52,6 +52,7 @@ namespace app {
 		}
 		int r	 = (bind(this->fd, (struct sockaddr*)&addr, sizeof(addr)));
 		int serr = errno;
+		(void)(serr);  // used by the log macro
 		if (r != 0) {
 			LOG(err, "failed to bind socket " << this->fd << "(" << host << ":" << port
 											  << "): " << strerror(serr));
