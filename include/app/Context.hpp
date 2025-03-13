@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/02 22:07:07 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/12 19:17:23 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/13 16:38:48 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,22 +33,24 @@ namespace app {
 		~Context();
 		// No Copy operator/assignement operator since this is a Singleton...
 
-		static Context INSTANCE;
+		static Context			INSTANCE;
 
-		ConnectionList conns;
-		PortMap		   port_map;
-		SocketList	   sockets;
+		ConnectionList			conns;
+		PortMap					port_map;
+		SocketList				sockets;
 
-		config::Config config;
+		config::Config			config;
+		Option<Shared<Socket> > shutdown;
 
 	public:
-		static Context& getInstance();
+		static Context&			 getInstance();
 
-		config::Config& getConfig() { return this->config; };
-		SocketList&		getSockets() { return this->sockets; };
-		PortMap&		getPortMap() { return this->port_map; };
-		ConnectionList& getConnections() { return this->conns; };
+		config::Config&			 getConfig() { return this->config; };
+		SocketList&				 getSockets() { return this->sockets; };
+		PortMap&				 getPortMap() { return this->port_map; };
+		ConnectionList&			 getConnections() { return this->conns; };
+		Option<Shared<Socket> >& getShutdown() { return this->shutdown; };
 
-		void			openAllSockets();
+		void					 openAllSockets();
 	};
 }  // namespace app

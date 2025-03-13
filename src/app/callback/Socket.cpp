@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/12 14:28:15 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/12 20:58:04 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/13 16:24:44 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,7 @@ namespace app {
 	void SocketCallback::call(Epoll& epoll, Shared<Callback> self) {
 		LOG(debug, "Called for socket: " << this->socketfd->asFd());
 		// add us back to the callback queue
-		epoll.addCallback(this->socketfd->asFd(), Epoll::READ, self);
+		epoll.addCallback(this->socketfd->asFd(), READ, self);
 
 		struct sockaddr_storage addr;
 		socklen_t				addr_size = 0;
@@ -34,20 +34,22 @@ namespace app {
 			LOG(err, "Failed to accept connection for socket " << this->socketfd->asFd());
 			return;
 		}
-		fcntl(res, FD_CLOEXEC);
-		fcntl(res, F_SETFL, O_NONBLOCK);
+		{
+			int flags = fcntl(res, F_GETFL);
+			fcntl(res, F_SETFL, flags | O_NONBLOCK);
+			fcntl(res, FD_CLOEXEC);
+		}
 
 		Context&		   ctx	= Context::getInstance();
 		Shared<Connection> conn = new Connection(res);
 		ctx.getConnections().push_back(conn);
 		{
-			Shared<ConnectionCallback<Epoll::READ> > cb = new ConnectionCallback<Epoll::READ>(conn);
-			epoll.addCallback(res, Epoll::READ, cb.cast<Callback>());
+			Shared<ConnectionCallback<READ> > cb = new ConnectionCallback<READ>(conn);
+			epoll.addCallback(res, READ, cb.cast<Callback>());
 		}
 		{
-			Shared<ConnectionCallback<Epoll::HANGUP> > cb =
-				new ConnectionCallback<Epoll::HANGUP>(conn);
-			epoll.addCallback(res, Epoll::HANGUP, cb.cast<Callback>());
+			Shared<ConnectionCallback<HANGUP> > cb = new ConnectionCallback<HANGUP>(conn);
+			epoll.addCallback(res, HANGUP, cb.cast<Callback>());
 		}
 	};
 };	// namespace app

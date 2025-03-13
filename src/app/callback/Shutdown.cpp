@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/12 15:00:07 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/12 18:18:38 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/13 16:24:27 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,5 +24,6 @@ namespace app {
 		(void)(self);
 		LOG(info, "Shutdown has been requested");
 		*this->shutdown = true;
+		self->setFinished();
 	};
 };	// namespace app

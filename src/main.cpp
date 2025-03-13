@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/23 00:07:08 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/12 18:35:13 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/13 16:54:03 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@
 
 #include "app/Callback.hpp"
 #include "app/Context.hpp"
+#include "app/Directory.hpp"
 #include "app/Epoll.hpp"
 #include "app/Logger.hpp"
 #include "app/Shared.hpp"
@@ -57,18 +58,18 @@ int				  wrapped_main(char* argv0, int argc, char* argv[], char* envp[]) {
 			   sit != iit->second.end(); sit++) {
 			  app::Shared<app::Socket>		   sock	   = *sit;
 			  app::Shared<app::SocketCallback> sock_cb = new app::SocketCallback(sock);
-			  epoll.addCallback(sock->asFd(), app::Epoll::READ, sock_cb.cast<app::Callback>());
+			  epoll.addCallback(sock->asFd(), READ, sock_cb.cast<app::Callback>());
 		  }
 	  }
 
 	  if (config.shutdown_port.hasValue()) {
 		  app::Shared<app::Socket> shutdown_socket =
 			  new app::Socket(app::Ip(0), config.shutdown_port.get());
+		  ctx.getShutdown() = shutdown_socket;
 		  LOG(info, "Created shutdown socket on port: " << shutdown_socket->getBoundPort());
 		  app::Shared<app::ShutdownCallback> shutdown_cb =
 			  new app::ShutdownCallback(shutdown_socket, app::do_shutdown);
-		  epoll.addCallback(shutdown_socket->asFd(), app::Epoll::READ,
-										shutdown_cb.cast<app::Callback>());
+		  epoll.addCallback(shutdown_socket->asFd(), READ, shutdown_cb.cast<app::Callback>());
 	  }
 	  install_ctrlc_handler();
 	  while (!*app::do_shutdown) {
@@ -82,7 +83,7 @@ int				  wrapped_main(char* argv0, int argc, char* argv[], char* envp[]) {
 	  LOG(info, "shutting down now...");
 	  return 0;
 }
-
+#define BONUS
 #ifndef BONUS
 static void install_ctrlc_handler(void) {};
 #else

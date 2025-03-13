@@ -6,18 +6,19 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/12 18:43:37 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/12 20:04:14 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/13 17:13:55 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
 #include <unistd.h>
-#include <deque>
+#include "app/AsFd.hpp"
 #include "app/Epoll.hpp"
+#include "app/File.hpp"
 #include "app/Logger.hpp"
 #include "app/Shared.hpp"
-#include "app/Socket.hpp"
+
 namespace app {
 	class Connection : public AsFd {
 	public:
@@ -46,24 +47,27 @@ namespace app {
 	void _ConnCallbackW(Epoll& epoll, Shared<Callback> self, Shared<Connection> inner);
 	void _ConnCallbackH(Epoll& epoll, Shared<Callback> self, Shared<Connection> inner);
 
-	template <Epoll::EpollType TY>
+	template <EpollType TY>
 	class ConnectionCallback : public Callback {
 	private:
-		Shared<Connection> inner;
+		Shared<Connection>		  inner;
 
 	public:
+
 		virtual ~ConnectionCallback() {};
 		ConnectionCallback(Shared<Connection> inner) : inner(inner) {};
+		int		  getFd() { return this->inner->asFd(); };
+		EpollType getTy() { return TY; };
 
-		void call(Epoll& epoll, Shared<Callback> self) {
-			if (TY == Epoll::READ)
-				return _ConnCallbackR(epoll, self, this->inner);
-			else if (TY == Epoll::WRITE)
-				return _ConnCallbackW(epoll, self, this->inner);
-			else if (TY == Epoll::HANGUP)
-				return _ConnCallbackH(epoll, self, this->inner);
-			else
-				throw std::runtime_error("Unknown ConnectionCallback Type");
+		void	  call(Epoll& epoll, Shared<Callback> self) {
+			 if (TY == READ)
+				 return _ConnCallbackR(epoll, self, this->inner);
+			 else if (TY == WRITE)
+				 return _ConnCallbackW(epoll, self, this->inner);
+			 else if (TY == HANGUP)
+				 return _ConnCallbackH(epoll, self, this->inner);
+			 else
+				 throw std::runtime_error("Unknown ConnectionCallback Type");
 		}
 	};
 

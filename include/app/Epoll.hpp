@@ -6,35 +6,28 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/08 18:01:53 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/12 19:45:19 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/13 16:16:00 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
 #include <sys/epoll.h>
-#include <cstddef>
 #include <map>
-#include <utility>
 #include <vector>
 #include "app/Callback.hpp"
 #include "app/Option.hpp"
 #include "app/Shared.hpp"
-#include "app/Socket.hpp"
 
 namespace app {
-	struct EpollEvent {
-		bool read, write;
-	};
-
 	class Epoll {
+	private:
 		struct EpollCallback {
 			Option<Shared<Callback> > read;
 			Option<Shared<Callback> > write;
 			Option<Shared<Callback> > hangup;
 		};
 
-	private:
 		typedef std::map<int, EpollCallback> CallbackStorage;
 		// no copy for you !
 		Epoll(const Epoll&);
@@ -48,12 +41,6 @@ namespace app {
 		static const int EPOLL_TIMEOUT = -1;
 		Epoll();
 		~Epoll();
-
-		enum EpollType {
-			READ   = EPOLLIN,
-			WRITE  = EPOLLOUT,
-			HANGUP = EPOLLHUP | EPOLLRDHUP,
-		};
 
 		/// @return true in success, false on error
 		bool						   addCallback(int fd, EpollType ty, Shared<Callback> callback);

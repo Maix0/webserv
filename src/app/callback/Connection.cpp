@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/12 18:56:10 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/12 20:51:30 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/13 17:13:45 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,9 @@
 #include "app/Callback.hpp"
 #include "app/Connection.hpp"
 #include "app/Context.hpp"
+#include "app/File.hpp"
 #include "app/Logger.hpp"
+#include "app/Socket.hpp"
 
 // 4 kiB
 #define MAX_READ_BYTES	(4 * 1024)
@@ -24,9 +26,11 @@
 
 namespace app {
 	void _ConnCallbackR(Epoll& epoll, Shared<Callback> self, Shared<Connection> inner) {
-		if (inner->isClosed())
+		if (inner->isClosed()) {
+			self->setFinished();
 			return;
-		epoll.addCallback(inner->asFd(), Epoll::READ, self);
+		}
+		epoll.addCallback(inner->asFd(), READ, self);
 		char	buffer[MAX_READ_BYTES + 1] = {};
 		ssize_t res;
 		if ((res = read(inner->asFd(), &buffer, MAX_READ_BYTES)) < 0) {
@@ -36,28 +40,32 @@ namespace app {
 		if (res != 0) {
 			inner->getBuffer().insert(inner->getBuffer().end(), &buffer[0], &buffer[res]);
 
-			Shared<ConnectionCallback<Epoll::WRITE> > cb =
-				new ConnectionCallback<Epoll::WRITE>(inner);
-			epoll.addCallback(inner->asFd(), Epoll::WRITE, cb.cast<Callback>());
+			Shared<ConnectionCallback<WRITE> > cb = new ConnectionCallback<WRITE>(inner);
+			epoll.addCallback(cb->getFd(), cb->getTy(), cb.cast<Callback>());
 		}
 	}
 
 	void _ConnCallbackW(Epoll& epoll, Shared<Callback> self, Shared<Connection> inner) {
-		if (inner->isClosed())
+		if (inner->isClosed()) {
+			self->setFinished();
 			return;
-		Connection::Buffer& buf = inner->getBuffer();
-		ssize_t				res = 0;
+		}
+		Connection::Buffer&				   buf	 = inner->getBuffer();
+		ssize_t							   res	 = 0;
 		if ((res = write(inner->asFd(), &buf[0], buf.size())) < 0) {
 			LOG(warn, "Error when reading...");
 			return;
 		}
 		buf.erase(buf.begin(), buf.begin() + res);
 		if (!buf.empty())
-			epoll.addCallback(inner->asFd(), Epoll::WRITE, self);
+			epoll.addCallback(inner->asFd(), WRITE, self);
+		else
+			self->setFinished();
 	}
 
 	void _ConnCallbackH(Epoll& epoll, Shared<Callback> self, Shared<Connection> inner) {
 		(void)(self);
+		self->setFinished();
 		inner->setClosed();
 		Context&		ctx	 = Context::getInstance();
 		ConnectionList& conn = ctx.getConnections();
@@ -74,8 +82,8 @@ namespace app {
 				break;
 			}
 		}
-		epoll.removeCallback(inner->asFd(), Epoll::WRITE);
-		epoll.removeCallback(inner->asFd(), Epoll::READ);
-		epoll.removeCallback(inner->asFd(), Epoll::HANGUP);
+		epoll.removeCallback(inner->asFd(), WRITE);
+		epoll.removeCallback(inner->asFd(), READ);
+		epoll.removeCallback(inner->asFd(), HANGUP);
 	}
 }  // namespace app

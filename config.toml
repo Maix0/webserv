@@ -5,18 +5,18 @@ shutdown = 8888
 #env_php_cgi = { binary = "PHP_CGI", from_env = true }
 
 [server.example]
-host = "local.maix.me"
+host = "www.example.com"
 bind = "0.0.0.0"
 port = 4444
 errors = { 404 = "404.html" }
 root = "/var/empty"
 
-#[server.example2]
-#host = "local.maix.me"
-#bind = "local.maix.me"
-#port = 2
-#errors = { 404 = "404.html" }
-#root = "/var/empty"
+[server.example2]
+host = "local.maix.me"
+bind = "0.0.0.0"
+port = 4444
+errors = { 404 = "404.html" }
+root = "/var/empty"
 
 
 [server.example.routes."/"]
@@ -24,6 +24,14 @@ allowed = ["GET", "POST", "OPTION", "HEAD"]
 root = "./data/contents"
 index = "index.html"
 listing = false
+max_size = 16_000_000
+post_directory = "./data/uploads"
+
+
+[server.example.routes."/xX_des_grosses_boules_de_glace_Xx"]
+allowed = ["GET", "POST", "OPTION", "HEAD"]
+root = "./data/contents"
+redirect = "https://google.com"
 max_size = 16_000_000
 post_directory = "./data/uploads"
 #cgi = { php = "php_cgi1" }

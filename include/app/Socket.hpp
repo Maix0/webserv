@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 13:36:52 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/12 18:18:24 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/13 16:37:53 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -110,7 +110,9 @@ namespace app {
 				this->socketfd = rhs.socketfd;
 			return (*this);
 		};
-		void call(Epoll& epoll, Shared<Callback> self);
+		void	  call(Epoll& epoll, Shared<Callback> self);
+		int		  getFd() { return this->socketfd->asFd(); };
+		EpollType getTy() { return READ; };
 	};
 
 	class ShutdownCallback : public app::Callback {
@@ -131,6 +133,9 @@ namespace app {
 			}
 			return (*this);
 		};
-		void call(Epoll& epoll, Shared<Callback> self);
+		void	  call(Epoll& epoll, Shared<Callback> self);
+
+		int		  getFd() { return this->socketfd->asFd(); };
+		EpollType getTy() { return READ; };
 	};
 };	// namespace app
