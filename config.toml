@@ -10,14 +10,18 @@ bind = "0.0.0.0"
 port = 4444
 errors = { 404 = "404.html" }
 root = "/var/empty"
+routes."/something" = {}
+routes."/something2" = {}
+routes."/a/b/" = {}
+routes."/a/b/c/d/e/f" = {}
+routes."/a/b/C/d/e/f" = {}
 
-[server.example2]
-host = "local.maix.me"
-bind = "0.0.0.0"
-port = 4444
-errors = { 404 = "404.html" }
-root = "/var/empty"
-
+#[server.example2]
+#host = "local.maix.me"
+#bind = "0.0.0.0"
+#port = 4444
+#errors = { 404 = "404.html" }
+#root = "/var/empty"
 
 [server.example.routes."/"]
 allowed = ["GET", "POST", "OPTION", "HEAD"]

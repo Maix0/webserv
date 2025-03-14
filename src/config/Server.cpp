@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/28 15:40:07 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/07 22:37:18 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/14 16:41:40 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,7 +32,7 @@ namespace config {
 			try {
 				seen.insert(it->first);
 				if (it->first == "routes") {
-					out.routes = _handle_map(it->second, Route::fromTomlValue);
+					out.routes = _handle_map_and_set_name(it->second, Route::fromTomlValue);
 				} else if (it->first == "bind") {
 					out.bind_str = it->second.getString();
 				} else if (it->first == "port") {

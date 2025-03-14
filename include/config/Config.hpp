@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/28 14:33:11 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/13 13:31:26 by bgoulard         ###   ########.fr       */
+/*   Updated: 2025/03/14 16:41:15 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -75,6 +75,9 @@ namespace config {
 		/// Option.Some() => redirect to said url
 		Option<std::string>				   redirect;
 
+		/// will be set to the name of the route (aka path)
+		std::string						   name;
+
 		static Route					   fromTomlValue(const ::toml::Value& toml);
 	};
 
@@ -97,6 +100,9 @@ namespace config {
 
 		Option<std::string>				   hostname;
 
+		/// will be set to the name of the server
+		std::string						   name;
+
 		static Server					   fromTomlValue(const ::toml::Value& toml);
 	};
 
@@ -112,10 +118,9 @@ namespace config {
 
 		static Config				  fromTomlValue(const ::toml::Value& toml);
 	};
-	typedef std::map<std::string, config::Route>::const_iterator RouteIterator;
+	typedef std::map<std::string, config::Route>::const_iterator  RouteIterator;
 	typedef std::map<std::string, config::Server>::const_iterator ServerIterator;
-	typedef std::map<std::string, config::Cgi>::const_iterator CgiIterator;
-
+	typedef std::map<std::string, config::Cgi>::const_iterator	  CgiIterator;
 
 	std::ostream& operator<<(std::ostream&, const Config&);
 	std::ostream& operator<<(std::ostream&, const Server&);

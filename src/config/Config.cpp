@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/28 15:40:07 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/12 15:17:11 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/14 16:40:36 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,7 +28,7 @@ namespace config {
 				if (it->first == "cgi")
 					out.cgi = _handle_map(it->second, Cgi::fromTomlValue);
 				else if (it->first == "server")
-					out.server = _handle_map(it->second, Server::fromTomlValue);
+					out.server = _handle_map_and_set_name(it->second, Server::fromTomlValue);
 				else if (it->first == "shutdown") {
 					if (it->second.isBool()) {
 						if (it->second.getBool())
