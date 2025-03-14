@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/07 21:50:04 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/12 15:42:51 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/14 10:44:26 by bgoulard         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,12 +28,17 @@
 #include "config/_ConfigHelper.hpp"
 #include "toml/Value.hpp"
 
+using std::string;
+using std::map;
+using std::vector;
+using std::set;
+
 namespace config {
-	static std::vector<std::string> _get_binary_paths(
-		const std::string&							 binary,
-		const Option<std::vector<std::string> /**/>& PATH) {
-		std::vector<std::string> out;
-		if (binary.find_first_of('/') != std::string::npos) {
+	static vector<string> _get_binary_paths(
+		const string&							 binary,
+		const Option<vector<string> /**/>& PATH) {
+		vector<string> out;
+		if (binary.find_first_of('/') != string::npos) {
 			out.push_back(binary);
 			return out;
 		}
@@ -41,22 +46,22 @@ namespace config {
 			LOG(fatal, "PATH isn't set but required");
 			throw std::runtime_error("PATH not set");
 		}
-		const std::vector<std::string>& p = PATH.get();
-		for (std::vector<std::string>::const_iterator it = p.begin(); it != p.end(); ++it) {
+		const vector<string>& p = PATH.get();
+		for (vector<string>::const_iterator it = p.begin(); it != p.end(); ++it) {
 			out.push_back(*it + "/" + binary);
 		}
 		return out;
 	}
 
 	static void _checkInvalidCgi(Config& config, char** envp) {
-		Option<std::vector<std::string> /**/> path;
+		Option<vector<string> /**/> path;
 		{
 			char** envp_path = envp;
 			char*  path_cstr = NULL;
 			while (*envp_path) {
-				std::string			   env = *envp_path;
-				std::string::size_type eq  = env.find_first_of('=');
-				std::string			   key = env.substr(0, eq);
+				string			   env = *envp_path;
+				string::size_type eq  = env.find_first_of('=');
+				string			   key = env.substr(0, eq);
 				if (key == "PATH") {
 					path_cstr = *envp_path;
 					break;
@@ -64,10 +69,10 @@ namespace config {
 				envp_path++;
 			}
 			if (path_cstr != NULL) {
-				std::string				 raw = path_cstr;
-				std::string::size_type	 eq	 = raw.find_first_of('=');
+				string				 raw = path_cstr;
+				string::size_type	 eq	 = raw.find_first_of('=');
 				std::stringstream		 ss(raw.substr(eq + 1));
-				std::vector<std::string> out;
+				vector<string> out;
 				while (std::getline(ss, raw, ':'))
 					out.push_back(raw);
 				path = out;
@@ -76,9 +81,9 @@ namespace config {
 		// LOG(trace, "using path=" << path << "");
 
 		bool error = false;
-		for (std::map<std::string, Cgi>::iterator cit = config.cgi.begin(); cit != config.cgi.end();
+		for (map<string, Cgi>::iterator cit = config.cgi.begin(); cit != config.cgi.end();
 			 ++cit) {
-			const std::string& name = cit->first;
+			const string& name = cit->first;
 			Cgi&			   cgi	= cit->second;
 
 			(void)(name);  // used by log macro
@@ -87,9 +92,9 @@ namespace config {
 				char** envp2 = envp;
 				bool   found = false;
 				while (*envp2) {
-					std::string			   env = *envp2;
-					std::string::size_type eq  = env.find_first_of('=');
-					std::string			   key = env.substr(0, eq);
+					string			   env = *envp2;
+					string::size_type eq  = env.find_first_of('=');
+					string			   key = env.substr(0, eq);
 					if (key == cgi.binary) {
 						cgi.binary	 = env.substr(eq + 1);
 						cgi.from_env = false;
@@ -104,9 +109,9 @@ namespace config {
 				error |= !found;
 			}
 			if (!cgi.from_env) {
-				std::vector<std::string> possible_paths = _get_binary_paths(cgi.binary, path);
-				Option<std::string>		 found;
-				for (std::vector<std::string>::const_iterator it = possible_paths.begin();
+				vector<string> possible_paths = _get_binary_paths(cgi.binary, path);
+				Option<string>		 found;
+				for (vector<string>::const_iterator it = possible_paths.begin();
 					 it != possible_paths.end(); ++it) {
 					if (!access(it->c_str(), X_OK)) {
 						found = *it;
@@ -130,7 +135,7 @@ namespace config {
 	static void _checkInvalidIpPorts(Config& config) {
 		app::PortMap port_map;
 
-		for (std::map<std::string, config::Server>::iterator sit = config.server.begin();
+		for (map<string, config::Server>::iterator sit = config.server.begin();
 			 sit != config.server.end(); sit++) {
 			struct addrinfo hints, *res, *p;
 
@@ -168,12 +173,12 @@ namespace config {
 
 			/// insert a set if none exists for the port
 			if (port_map.count(sit->second.port) == 0)
-				port_map[sit->second.port] = std::set<app::Ip>();
+				port_map[sit->second.port] = set<app::Ip>();
 
 			port_map[sit->second.port].insert(sit->second.bind);
 		}
 
-		for (std::map<app::Port, std::set<app::Ip> /**/>::iterator it = port_map.begin();
+		for (map<app::Port, set<app::Ip> /**/>::iterator it = port_map.begin();
 			 it != port_map.end(); it++) {
 			if (it->second.size() > 1) {
 				LOG(err, "Too many different ips tries to bind onto the port " << it->first);
@@ -185,12 +190,9 @@ namespace config {
 	}
 
 	static void _checkUnknownCgi(const Config& config) {
-		for (std::map<std::string, config::Server>::const_iterator sit = config.server.begin();
-			 sit != config.server.end(); sit++) {
-			for (std::map<std::string, config::Route>::const_iterator rit =
-					 sit->second.routes.begin();
-				 rit != sit->second.routes.end(); rit++) {
-				for (std::map<std::string, std::string>::const_iterator cit =
+		for (ServerIterator sit = config.server.begin(); sit != config.server.end(); sit++) {
+			for (RouteIterator rit = sit->second.routes.begin(); rit != sit->second.routes.end(); rit++) {
+				for (map<string, string>::const_iterator cit =
 						 rit->second.cgi.begin();
 					 cit != rit->second.cgi.end(); cit++) {
 					if (config.cgi.count(cit->second) == 0) {

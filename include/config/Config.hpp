@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/28 14:33:11 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/12 15:18:33 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/13 13:31:26 by bgoulard         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -112,6 +112,10 @@ namespace config {
 
 		static Config				  fromTomlValue(const ::toml::Value& toml);
 	};
+	typedef std::map<std::string, config::Route>::const_iterator RouteIterator;
+	typedef std::map<std::string, config::Server>::const_iterator ServerIterator;
+	typedef std::map<std::string, config::Cgi>::const_iterator CgiIterator;
+
 
 	std::ostream& operator<<(std::ostream&, const Config&);
 	std::ostream& operator<<(std::ostream&, const Server&);

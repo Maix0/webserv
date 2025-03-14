@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/28 15:40:07 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/06 13:40:03 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/14 10:43:52 by bgoulard         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,11 +17,15 @@
 #include "config/Config.hpp"
 #include "config/_ConfigHelper.hpp"
 #include "toml/Value.hpp"
+
+using std::string;
+using std::set;
+
 namespace config {
 	Cgi Cgi::fromTomlValue(const toml::Value& toml) {
 		const toml::Table&	  table = toml.getTable();
 		Cgi					  out;
-		std::set<std::string> seen;
+		set<string> seen;
 		out.from_env = false;
 
 		for (toml::Table::const_iterator it = table.begin(); it != table.end(); it++) {
@@ -34,7 +38,7 @@ namespace config {
 				else
 					throw std::runtime_error("unknown key");
 			} catch (const std::exception& e) {
-				throw CgiParseError(std::string("\"") + it->first + "\" " + e.what());
+				throw CgiParseError(string("\"") + it->first + "\" " + e.what());
 			}
 		}
 		if (seen.count("binary") == 0)

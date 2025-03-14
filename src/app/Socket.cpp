@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 13:39:20 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/13 12:25:12 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/14 10:38:26 by bgoulard         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,8 @@
 
 #include "app/Logger.hpp"
 
+using std::runtime_error;
+
 namespace app {
 	Socket::Socket() : fd(-1), port(0) {}
 
@@ -41,14 +43,17 @@ namespace app {
 
 		int sockfd				= socket(AF_INET, SOCK_STREAM, 0);
 		if (sockfd == -1)
-			throw std::runtime_error("unable to create socket");
+			throw runtime_error("unable to create socket");
 
 		this->fd = sockfd;
 		LOG(debug, "new socket " << this->fd << " for " << host << ":" << port);
 		{
 			int flags = fcntl(this->fd, F_GETFL);
 			fcntl(this->fd, F_SETFL, flags | O_NONBLOCK);
-			fcntl(this->fd, FD_CLOEXEC);
+		}
+		if (fcntl(sockfd, FD_CLOEXEC) != 0) {
+			LOG(err, "Failed to set CLOEXEC onto fd " << this->fd);
+			throw runtime_error("unable to set CLOEXEC");
 		}
 		int r	 = (bind(this->fd, (struct sockaddr*)&addr, sizeof(addr)));
 		int serr = errno;
@@ -56,7 +61,7 @@ namespace app {
 		if (r != 0) {
 			LOG(err, "failed to bind socket " << this->fd << "(" << host << ":" << port
 											  << "): " << strerror(serr));
-			throw std::runtime_error("unable to bind socket");
+			throw runtime_error("unable to bind socket");
 		} else {
 			if (this->port.inner == 0) {
 				struct sockaddr_in s	 = {};
@@ -66,7 +71,7 @@ namespace app {
 					this->bound_port = Port(ntohs(s.sin_port));
 				} else {
 					LOG(err, "failed to get sockname on socket " << this->fd);
-					throw std::runtime_error("getsockname error");
+					throw runtime_error("getsockname error");
 				}
 
 			} else
@@ -79,7 +84,7 @@ namespace app {
 		if (listen(this->fd, BACKLOG) != 0) {
 			LOG(err, "failed to lisen on socket " << this->fd << "(" << this->host << ":"
 												  << this->bound_port << "): " << strerror(serr));
-			throw std::runtime_error("unable to listen on socket");
+			throw runtime_error("unable to listen on socket");
 		} else {
 			LOG(trace, "lisening on socket "
 						   << this->fd << " (" << this->host << ":" << this->bound_port

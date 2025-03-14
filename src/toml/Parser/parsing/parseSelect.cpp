@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/26 14:53:53 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/06 13:37:42 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/14 10:46:31 by bgoulard         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,12 +21,15 @@
 #define TOSTRING(x)	 STRINGIFY(x)
 #define FLINE		 __FILE__ ":" TOSTRING(__LINE__)
 
+using std::string;
+using std::stringstream;
+
 namespace toml {
 	void Parser::Context::parseSelect(void) {
 		assert(this->tok.ty == LBRACKET);
 
 		// true if [[
-		std::string::const_iterator tok_ptr = this->buffer.begin() + this->tok.pos;
+		string::const_iterator tok_ptr = this->buffer.begin() + this->tok.pos;
 		// need to detect '[[' on our own because next_token() will skip whitespace,
 		//  and '[ [' would be taken as '[[', which is wrong.
 		bool llb = (tok_ptr + 1 != this->buffer.end() && *(tok_ptr + 1) == '[');
@@ -60,7 +63,7 @@ namespace toml {
 			*/
 			Value* subarr = NULL;
 			{
-				std::string zstr = this->normalizeKey(z);
+				string zstr = this->normalizeKey(z);
 				try {
 					subarr = &this->current_table->getTable().at(zstr);
 				} catch (const std::out_of_range&) {
@@ -74,14 +77,14 @@ namespace toml {
 		}
 
 		if (this->tok.ty != RBRACKET) {
-			std::stringstream ss;
+			stringstream ss;
 			ss << "expects ]: line " << this->tok.line;
 			throw ForbiddenError(ss.str());
 		}
 		if (llb) {
 			tok_ptr = this->buffer.begin() + this->tok.pos;
 			if (!((tok_ptr + 1 != this->buffer.end() && *(tok_ptr + 1) == ']'))) {
-				std::stringstream ss;
+				stringstream ss;
 				ss << "expects ]]: line " << this->tok.line;
 				throw ForbiddenError(ss.str());
 			}
@@ -91,7 +94,7 @@ namespace toml {
 		this->eatToken(RBRACKET, true, FLINE);
 
 		if (this->tok.ty != NEWLINE) {
-			std::stringstream ss;
+			stringstream ss;
 			ss << "extra chars after ] or ]]: line " << this->tok.line;
 			throw ForbiddenError(ss.str());
 		}

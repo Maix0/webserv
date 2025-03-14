@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/28 17:01:09 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/07 22:37:25 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/14 10:44:53 by bgoulard         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,21 +15,26 @@
 #include <ostream>
 #include "config/Config.hpp"
 
+using std::ostream;
+using std::map;
+using std::string;
+using std::vector;
+
 namespace config {
-	static std::ostream& _print_ident(std::ostream& o, std::size_t ident) {
+	static ostream& _print_ident(ostream& o, std::size_t ident) {
 		while (ident--)
 			o << "\t";
 		return (o);
 	}
 
-	static void _print_cgi(std::ostream& o, const Cgi& cgi, std::size_t ident) {
+	static void _print_cgi(ostream& o, const Cgi& cgi, std::size_t ident) {
 		o << "{" << std::endl;
 		_print_ident(o, ident + 1) << "binary   => " << cgi.binary << std::endl;
 		_print_ident(o, ident + 1)
 			<< "from_env => " << (cgi.from_env ? "true" : "false") << std::endl;
 		_print_ident(o, ident) << "}";
 	}
-	static void _print_route(std::ostream& o, const Route& route, std::size_t ident) {
+	static void _print_route(ostream& o, const Route& route, std::size_t ident) {
 		bool first = true;
 		o << "{" << std::endl;
 		ident++;
@@ -43,7 +48,7 @@ namespace config {
 		_print_ident(o, ident) << "redirect => " << route.redirect << "," << std::endl;
 		if (route.allowed.hasValue()) {
 			_print_ident(o, ident) << "allowed  => Some({ ";
-			for (std::vector<std::string>::const_iterator it = route.allowed.get().begin();
+			for (vector<string>::const_iterator it = route.allowed.get().begin();
 				 it != route.allowed.get().end(); it++) {
 				if (!first)
 					first = false, o << ", ";
@@ -54,7 +59,7 @@ namespace config {
 			_print_ident(o, ident) << "allowed   => None," << std::endl;
 		first = true;
 		_print_ident(o, ident) << "cgi      => {" << std::endl;
-		for (std::map<std::string, std::string>::const_iterator it = route.cgi.begin();
+		for (map<string, string>::const_iterator it = route.cgi.begin();
 			 it != route.cgi.end(); it++) {
 			if (!first)
 				first = false, o << ", " << std::endl;
@@ -64,7 +69,7 @@ namespace config {
 		_print_ident(o, ident) << "}" << std::endl;
 		_print_ident(o, ident - 1) << "}";
 	}
-	static void _print_server(std::ostream& o, const Server& server, std::size_t ident) {
+	static void _print_server(ostream& o, const Server& server, std::size_t ident) {
 		bool first = true;
 		o << "{" << std::endl;
 		ident++;
@@ -73,7 +78,7 @@ namespace config {
 		_print_ident(o, ident) << "port   => " << server.port << "," << std::endl;
 		first = true;
 		_print_ident(o, ident) << "errors => {" << std::endl;
-		for (std::map<std::string, std::string>::const_iterator it = server.errors.begin();
+		for (map<string, string>::const_iterator it = server.errors.begin();
 			 it != server.errors.end(); it++) {
 			if (!first)
 				first = false, o << ", " << std::endl;
@@ -82,7 +87,7 @@ namespace config {
 		o << std::endl;
 		_print_ident(o, ident) << "}," << std::endl;
 		_print_ident(o, ident) << "routes => {" << std::endl;
-		for (std::map<std::string, Route>::const_iterator it = server.routes.begin();
+		for (map<string, Route>::const_iterator it = server.routes.begin();
 			 it != server.routes.end(); it++) {
 			if (!first)
 				first = false, o << ", " << std::endl;
@@ -94,12 +99,12 @@ namespace config {
 		_print_ident(o, ident - 1) << "}";
 	}
 
-	std::ostream& operator<<(std::ostream& o, const Config& e) {
+	ostream& operator<<(ostream& o, const Config& e) {
 		std::size_t ident = 1;
 		bool		first = true;
 		o << "{" << std::endl;
 		_print_ident(o, ident) << "cgi    => {" << std::endl;
-		for (std::map<std::string, Cgi>::const_iterator it = e.cgi.begin(); it != e.cgi.end();
+		for (map<string, Cgi>::const_iterator it = e.cgi.begin(); it != e.cgi.end();
 			 it++) {
 			if (!first)
 				o << ",\n";
@@ -112,7 +117,7 @@ namespace config {
 
 		first = true;
 		_print_ident(o, ident) << "server => {" << std::endl;
-		for (std::map<std::string, Server>::const_iterator it = e.server.begin();
+		for (map<string, Server>::const_iterator it = e.server.begin();
 			 it != e.server.end(); it++) {
 			if (!first)
 				o << ",\n";
@@ -127,15 +132,15 @@ namespace config {
 		return o;
 	}
 
-	std::ostream& operator<<(std::ostream& o, const Server& e) {
+	ostream& operator<<(ostream& o, const Server& e) {
 		_print_server(o, e, 0);
 		return (o);
 	}
-	std::ostream& operator<<(std::ostream& o, const Route& e) {
+	ostream& operator<<(ostream& o, const Route& e) {
 		_print_route(o, e, 0);
 		return (o);
 	}
-	std::ostream& operator<<(std::ostream& o, const Cgi& e) {
+	ostream& operator<<(ostream& o, const Cgi& e) {
 		_print_cgi(o, e, 0);
 		return (o);
 	}

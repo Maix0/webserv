@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/12 18:56:10 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/13 17:13:45 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/14 10:35:12 by bgoulard         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -72,10 +72,7 @@ namespace app {
 
 		while (true) {
 			ConnectionList::iterator it = conn.begin();
-			for (it = conn.begin(); it != conn.end(); it++) {
-				if ((*it)->asFd() == inner->asFd())
-					break;
-			}
+			for (it = conn.begin(); it != conn.end() && (*it)->asFd() != inner->asFd(); it++);
 			if (it != conn.end()) {
 				conn.erase(it);
 			} else {
