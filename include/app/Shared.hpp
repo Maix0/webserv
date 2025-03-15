@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/08 16:52:34 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/12 18:16:34 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/15 10:11:19 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,6 +33,8 @@ namespace app {
 				throw std::runtime_error("shared.ptr == NULL");
 		};
 
+		inline void assert_valid() const { assert(this->ptr && this->ptr->ref > 0); };
+
 	public:
 		// Opaque type. Represent Shared::SharedData
 		struct RawShared;
@@ -40,6 +42,7 @@ namespace app {
 			this->ptr	   = new SharedData();
 			this->ptr->ref = 1;
 			new (&this->ptr->value) T();
+			this->assert_valid();
 		}
 
 		Shared(T* val) {
@@ -48,24 +51,30 @@ namespace app {
 			this->ptr		 = new SharedData();
 			this->ptr->ref	 = 1;
 			this->ptr->value = val;
+			this->assert_valid();
 		}
 
 		~Shared() {
+			this->assert_valid();
 			if (this->ptr == NULL)
 				throw std::runtime_error("shared.ptr == NULL");
 			if (--this->ptr->ref == 0) {
 				delete this->ptr->value;
 				delete this->ptr;
+				this->ptr = NULL;
 			}
 		}
 
 		Shared(const Shared& rhs) {
+			rhs.assert_valid();
 			this->ptr = rhs.ptr;
 			if (this->ptr == NULL)
 				throw std::runtime_error("shared.ptr == NULL");
 			this->ptr->ref++;
 		}
 		Shared& operator=(const Shared& rhs) {
+			rhs.assert_valid();
+			this->assert_valid();
 			if (this != &rhs) {
 				{
 					this->ptr->ref--;
@@ -79,13 +88,16 @@ namespace app {
 			return (*this);
 		}
 
-		T&			  operator*() { return (*this->ptr->value); }
-		const T&	  operator*() const { return (*this->ptr->value); }
-		T*			  operator->() { return (this->ptr->value); }
-		const T*	  operator->() const { return (this->ptr->value); }
+		T&		   operator*() { return (this->assert_valid(), *this->ptr->value); }
+		const T&   operator*() const { return (this->assert_valid(), *this->ptr->value); }
+		T*		   operator->() { return (this->assert_valid(), this->ptr->value); }
+		const T*   operator->() const { return (this->assert_valid(), this->ptr->value); }
 
 		// GetRaw
-		RawShared*	  getRaw() { return ((RawShared*)this->ptr); }
+		RawShared* getRaw() {
+			this->assert_valid();
+			return ((RawShared*)this->ptr);
+		}
 
 		// GetRaw
 		static Shared fromRaw(RawShared* raw) {
@@ -98,6 +110,7 @@ namespace app {
 
 		template <typename U>
 		Shared<U> cast() {
+			this->assert_valid();
 			U* ptr = (this->ptr->value);
 			assert((void*)ptr == (void*)this->ptr->value);
 			this->ptr->ref++;
@@ -107,6 +120,7 @@ namespace app {
 
 		template <typename U>
 		Shared<U> try_cast() {
+			this->assert_valid();
 			T& val		= *this->ptr->value;
 			U& val_cast = dynamic_cast<U&>(val);
 			assert(&val == &val_cast);

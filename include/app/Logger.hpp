@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/02 18:29:43 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/13 12:03:23 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/15 09:56:49 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -192,3 +192,22 @@ namespace log {
 		FILTER_##level(std::cerr << HEADER_##level << " " << __FUNCTION__ << " in " << __FILE__ \
 								 << ":" << __LINE__ << " " << code << std::endl;);              \
 	} while (0)
+
+#include <cerrno>
+#include <cstring>
+
+#define _ERR_RET(code)                                       \
+	if ((code) < 0) {                                        \
+		int serr = errno;                                    \
+		(void)serr;                                          \
+		LOG(debug, "early return here: " << strerror(serr)); \
+		return;                                              \
+	}
+
+#define _ERR_RET_THROW(code)                                 \
+	if ((code) < 0) {                                        \
+		int serr = errno;                                    \
+		(void)serr;                                          \
+		LOG(debug, "early return here: " << strerror(serr)); \
+		throw std::runtime_error("check failed");            \
+	}

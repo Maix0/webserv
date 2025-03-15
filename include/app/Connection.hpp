@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/12 18:43:37 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/13 17:13:55 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/15 09:35:40 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@
 #include "app/File.hpp"
 #include "app/Logger.hpp"
 #include "app/Shared.hpp"
+#include "app/Socket.hpp"
 
 namespace app {
 	class Connection : public AsFd {
@@ -28,19 +29,26 @@ namespace app {
 		int	   fd;
 		Buffer rw_buffer;
 		bool   closed;
+		Ip	   remote_ip;
+		Port   remote_port;
 
 	public:
 		virtual ~Connection() {
 			if (this->fd != -1)
 				close(this->fd);
-			LOG(info, "Closing connection " << this->fd);
+			LOG(debug, "closing connection " << fd << " for " << remote_ip << ":" << remote_port);
 		};
-		Connection(int fd) : fd(fd), closed(false) {};
+		Connection(int fd, Ip ip, Port port)
+			: fd(fd), closed(false), remote_ip(ip), remote_port(port) {
+			LOG(debug, "new connection " << fd << " for " << ip << ":" << port);
+		};
 
 		Buffer& getBuffer() { return this->rw_buffer; };
 		int		asFd() { return this->fd; };
 		bool	isClosed() { return this->closed; };
-		void	setClosed() { this->closed = true; }
+		void	setClosed() { this->closed = true; };
+		Ip		getIp() { return this->remote_ip; };
+		Port	getPort() { return this->remote_port; };
 	};
 
 	void _ConnCallbackR(Epoll& epoll, Shared<Callback> self, Shared<Connection> inner);
@@ -50,10 +58,9 @@ namespace app {
 	template <EpollType TY>
 	class ConnectionCallback : public Callback {
 	private:
-		Shared<Connection>		  inner;
+		Shared<Connection> inner;
 
 	public:
-
 		virtual ~ConnectionCallback() {};
 		ConnectionCallback(Shared<Connection> inner) : inner(inner) {};
 		int		  getFd() { return this->inner->asFd(); };

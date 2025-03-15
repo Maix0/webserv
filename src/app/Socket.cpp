@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 13:39:20 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/14 10:38:26 by bgoulard         ###   ########.fr       */
+/*   Updated: 2025/03/15 09:59:17 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,12 +48,10 @@ namespace app {
 		this->fd = sockfd;
 		LOG(debug, "new socket " << this->fd << " for " << host << ":" << port);
 		{
-			int flags = fcntl(this->fd, F_GETFL);
-			fcntl(this->fd, F_SETFL, flags | O_NONBLOCK);
-		}
-		if (fcntl(sockfd, FD_CLOEXEC) != 0) {
-			LOG(err, "Failed to set CLOEXEC onto fd " << this->fd);
-			throw runtime_error("unable to set CLOEXEC");
+			int flags;
+			_ERR_RET_THROW(flags = fcntl(this->fd, F_GETFL));
+			_ERR_RET_THROW(fcntl(this->fd, F_SETFL, flags | O_NONBLOCK));
+			_ERR_RET_THROW(fcntl(this->fd, FD_CLOEXEC));
 		}
 		int r	 = (bind(this->fd, (struct sockaddr*)&addr, sizeof(addr)));
 		int serr = errno;

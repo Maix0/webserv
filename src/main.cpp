@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/23 00:07:08 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/14 17:36:40 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/15 09:39:45 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,19 +53,6 @@ int				  wrapped_main(char* argv0, int argc, char* argv[], char* envp[]) {
 
 	  config::checkConfig(config, envp);
 	  ctx.openAllSockets();
-
-	  (void)app::getRouteFor(config.server.begin()->second, "");
-	  (void)app::getRouteFor(config.server.begin()->second, "/");
-	  (void)app::getRouteFor(config.server.begin()->second, "/maix.me");
-	  (void)app::getRouteFor(config.server.begin()->second, "/a/b/c/d/e/f");
-	  (void)app::getRouteFor(config.server.begin()->second, "/a/b/c/d/e/f/g");
-	  (void)app::getRouteFor(config.server.begin()->second, "/a/b/C/d/e/");
-	  (void)app::getRouteFor(config.server.begin()->second, "/a/b/C/d/e/g");
-	  (void)app::getRouteFor(config.server.begin()->second, "/a/b/C/d/e/f/g");
-	  (void)app::getRouteFor(config.server.begin()->second, "/a/b/C/d/e/f");
-	  (void)app::getRouteFor(config.server.begin()->second, "/a/b/c");
-	  (void)app::getRouteFor(config.server.begin()->second, "/something/a/b/c/d/e/f");
-	  return 0;
 
 	  app::SocketList s = ctx.getSockets();
 	  app::Epoll	  epoll;

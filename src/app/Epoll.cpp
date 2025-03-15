@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/08 18:07:56 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/13 12:25:35 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/15 09:58:12 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,9 +33,11 @@ namespace app {
 		if (this->fd == -1)
 			throw std::runtime_error("epoll_create failed");
 		{
-			int flags = fcntl(this->fd, F_GETFL);
-			fcntl(this->fd, F_SETFL, flags | O_NONBLOCK);
-			fcntl(this->fd, FD_CLOEXEC);
+			int flags;
+			_ERR_RET_THROW((flags = fcntl(this->fd, F_GETFL)));
+
+			_ERR_RET_THROW(fcntl(this->fd, F_SETFL, flags | O_NONBLOCK));
+			_ERR_RET_THROW(fcntl(this->fd, FD_CLOEXEC));
 		}
 	}
 

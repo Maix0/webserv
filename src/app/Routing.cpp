@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/14 16:30:56 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/14 17:35:54 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/15 10:00:12 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,7 +50,7 @@ namespace app {
 
 	const config::Route* getRouteFor(const config::Server& server, const std::string& url) {
 		LOG(trace, "fetching route \" " << url << "\"for server " << server.name);
-		vector<string> parts = to_parts(url);
+		vector<string>		 parts		   = to_parts(url);
 
 		const config::Route* closest_match = NULL;
 		int					 match_count   = 0;
@@ -67,7 +67,7 @@ namespace app {
 			// the route perfectly match the url, then yeah we found it for sure
 			if (parts == route_parts) {
 				closest_match = &it->second;
-				match_count	  = parts.size();
+				// match_count	  = parts.size();
 				break;
 			}
 			for (std::size_t i = 0; i < parts.size(); i++) {
