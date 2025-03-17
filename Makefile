@@ -6,7 +6,7 @@
 #    By: rparodi <rparodi@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/11/12 11:05:05 by rparodi           #+#    #+#              #
-#    Updated: 2025/03/12 15:43:53 by maiboyer         ###   ########.fr        #
+#    Updated: 2025/03/17 14:40:49 by maiboyer         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -14,16 +14,15 @@
 BUILD_DIR		= $(shell realpath ./build)
 SRC_DIR			=	./src
 INCLUDE_DIR		=	./include
+DOWNLOAD_DIR	=	./dl
 
 CXX=c++
 MSG=
 NAME=webserv
 
 SUBJECT_URL						= https://cdn.intra.42.fr/pdf/pdf/150260/en.subject.pdf
-SUBJECT_URL_CGI_TESTER			= https://cdn.intra.42.fr/document/document/27456/cgi_tester
-SUBJECT_URL_TESTER				= https://cdn.intra.42.fr/document/document/27454/tester
-SUBJECT_URL_UBUNTU_CGI_TESTER	= https://cdn.intra.42.fr/document/document/27455/ubuntu_cgi_tester
-SUBJECT_URL_UBUNTU_TESTER		= https://cdn.intra.42.fr/document/document/27457/ubuntu_tester
+SUBJECT_URL_UBUNTU_CGI_TESTER	= https://cdn.intra.42.fr/document/document/31582/ubuntu_cgi_tester
+SUBJECT_URL_UBUNTU_TESTER		= https://cdn.intra.42.fr/document/document/31584/ubuntu_tester
 
 # Colors
 GREEN = \033[32m
@@ -182,6 +181,24 @@ subject: .subject.txt
 
 .subject.txt:
 	@curl $(SUBJECT_URL) | pdftotext -layout -nopgbrk -q - .subject.txt
+
+cleandl:
+	rm -rf $(DOWNLOAD_DIR);
+
+download:  $(DOWNLOAD_DIR)/cgi_tester $(DOWNLOAD_DIR)/tester 
+	chmod +x $^
+
+$(DOWNLOAD_DIR)/cgi_tester: $(DOWNLOAD_DIR)
+	curl $(SUBJECT_URL_UBUNTU_CGI_TESTER) -o $@
+	
+	
+$(DOWNLOAD_DIR)/tester: $(DOWNLOAD_DIR)
+	curl $(SUBJECT_URL_UBUNTU_TESTER) -o $@
+
+$(DOWNLOAD_DIR):
+	mkdir -p $(DOWNLOAD_DIR)
+
+
 
 #	phony
 .PHONY: all bonus clean fclean re header footer filelist .clangd .clang-format subject archive

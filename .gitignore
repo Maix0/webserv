@@ -11,3 +11,4 @@ flake.lock
 vgcore.*
 .idea
 .subject.txt
+/dl/
