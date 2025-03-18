@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/28 17:01:09 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/14 10:44:53 by bgoulard         ###   ########.fr       */
+/*   Updated: 2025/03/18 23:34:15 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -87,8 +87,7 @@ namespace config {
 		o << std::endl;
 		_print_ident(o, ident) << "}," << std::endl;
 		_print_ident(o, ident) << "routes => {" << std::endl;
-		for (map<string, Route>::const_iterator it = server.routes.begin();
-			 it != server.routes.end(); it++) {
+		for (RouteIterator it = server.routes.begin(); it != server.routes.end(); it++) {
 			if (!first)
 				first = false, o << ", " << std::endl;
 			_print_ident(o, ident + 1) << it->first << " => ";
@@ -116,8 +115,7 @@ namespace config {
 
 		first = true;
 		_print_ident(o, ident) << "server => {" << std::endl;
-		for (map<string, Server>::const_iterator it = e.server.begin(); it != e.server.end();
-			 it++) {
+		for (ServerIterator it = e.server.begin(); it != e.server.end(); it++) {
 			if (!first)
 				o << ",\n";
 			first = false;

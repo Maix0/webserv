@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/07 21:50:04 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/14 10:44:26 by bgoulard         ###   ########.fr       */
+/*   Updated: 2025/03/18 23:38:24 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,9 @@
 #include <stdexcept>
 #include <string>
 #include "app/Context.hpp"
+#include "app/IndexMap.hpp"
 #include "app/Logger.hpp"
+#include "app/Routing.hpp"
 #include "config/Config.hpp"
 #include "config/_ConfigHelper.hpp"
 #include "toml/Value.hpp"
@@ -133,7 +135,7 @@ namespace config {
 	static void _checkInvalidIpPorts(Config& config) {
 		app::PortMap port_map;
 
-		for (map<string, config::Server>::iterator sit = config.server.begin();
+		for (IndexMap<string, config::Server>::iterator sit = config.server.begin();
 			 sit != config.server.end(); sit++) {
 			struct addrinfo hints, *res, *p;
 
@@ -203,9 +205,63 @@ namespace config {
 		}
 	}
 
+	static void _buildPortServerMap(Config& config) {
+		app::PortServerMap out;
+		for (IndexMap<std::string, Server>::iterator it = config.server.begin();
+			 it != config.server.end(); it++) {
+			if (out.count(it->second.port) == 0)
+				out[it->second.port] = std::vector<Server*>();
+			out[it->second.port].push_back(&it->second);
+		}
+		bool error = false;
+		for (app::PortServerMap::iterator pit = out.begin(); pit != out.end(); pit++) {
+			std::set<std::string> hostnames;
+			for (vector<Server*>::iterator vit = pit->second.begin(); vit != pit->second.end();
+				 vit++) {
+				Server& serv = **vit;
+				if (!serv.hostname.hasValue())
+					continue;
+				if (hostnames.count(serv.hostname.get()) != 0) {
+					LOG(err, "server " << serv.name
+									   << " has an hostname that is already present for port "
+									   << pit->first << " (" << serv.hostname.get() << ")");
+					error = true;
+					continue;
+				}
+				hostnames.insert(serv.hostname.get());
+			}
+		}
+		if (error)
+			throw std::runtime_error("Duplicate hostname for same port");
+		app::Context::getInstance().getPortServerMap() = out;
+	};
+
+	static void _setupRoutes(Config& config) {
+		bool error = false;
+		for (IndexMap<string, Server>::iterator sit = config.server.begin();
+			 sit != config.server.end(); sit++) {
+			std::set<std::vector<string> > route_seens;
+			for (IndexMap<string, Route>::iterator route = sit->second.routes.begin();
+				 route != sit->second.routes.end(); route++) {
+				vector<string> parts = app::url_to_parts(route->first);
+				if (route_seens.count(parts) != 0) {
+					LOG(err, "Duplicate route for server "
+								 << sit->first << " (offending route: " << route->first << ")");
+					error = true;
+				}
+				route->second.parts = parts;
+				route_seens.insert(parts);
+			}
+		}
+		if (error)
+			throw std::runtime_error("Error in routes");
+	}
+
 	void checkConfig(Config& config, char** envp) {
 		_checkUnknownCgi(config);
 		_checkInvalidCgi(config, envp);
 		_checkInvalidIpPorts(config);
+		_buildPortServerMap(config);
+		_setupRoutes(config);
 	}
 }  // namespace config

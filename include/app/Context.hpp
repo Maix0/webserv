@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/02 22:07:07 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/13 16:38:48 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/18 23:10:08 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,6 +26,7 @@ namespace app {
 	typedef std::map<app::Ip, std::vector<app::Shared<app::Socket> > > SocketList;
 	typedef std::map<app::Port, std::set<app::Ip> >					   PortMap;
 	typedef std::vector<app::Shared<Connection> >					   ConnectionList;
+	typedef std::map<app::Port, std::vector<config::Server*> >		   PortServerMap;
 
 	class Context {
 		private:
@@ -35,12 +36,12 @@ namespace app {
 
 			static Context INSTANCE;
 
-			ConnectionList conns;
-			PortMap		   port_map;
-			SocketList	   sockets;
-
-			config::Config			config;
+			ConnectionList			conns;
 			Option<Shared<Socket> > shutdown;
+			PortMap					port_map;
+			PortServerMap			port_server_map;
+			SocketList				sockets;
+			config::Config			config;
 
 		public:
 			static Context& getInstance();
@@ -50,6 +51,7 @@ namespace app {
 			PortMap&				 getPortMap() { return this->port_map; };
 			ConnectionList&			 getConnections() { return this->conns; };
 			Option<Shared<Socket> >& getShutdown() { return this->shutdown; };
+			PortServerMap			 getPortServerMap() { return this->port_server_map; };
 
 			void openAllSockets();
 	};

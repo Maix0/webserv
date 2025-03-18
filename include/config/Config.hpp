@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/28 14:33:11 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/18 17:04:14 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/18 23:32:50 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@
 #include <string>
 #include <vector>
 
+#include "app/IndexMap.hpp"
 #include "app/Option.hpp"
 #include "app/Socket.hpp"
 #include "toml/Value.hpp"
@@ -77,6 +78,7 @@ namespace config {
 
 			/// will be set to the name of the route (aka path)
 			std::string				 name;
+			/// the route parts. needs to be uniq (aka `///` and `/` is the same)
 			std::vector<std::string> parts;
 
 			static Route fromTomlValue(const ::toml::Value& toml);
@@ -94,7 +96,7 @@ namespace config {
 			/// @required
 			app::Port	port;
 
-			std::map<std::string, Route> routes;
+			IndexMap<std::string, Route> routes;
 
 			/// Map error code to files (relative to `root`)
 			std::map<std::string, std::string> errors;
@@ -109,7 +111,7 @@ namespace config {
 
 	struct Config {
 			std::map<std::string, Cgi>	  cgi;
-			std::map<std::string, Server> server;
+			IndexMap<std::string, Server> server;
 			// @optional
 			// true -> port=0 => random by the OS;
 			// false -> No shutdown port;
@@ -119,8 +121,8 @@ namespace config {
 
 			static Config fromTomlValue(const ::toml::Value& toml);
 	};
-	typedef std::map<std::string, config::Route>::const_iterator  RouteIterator;
-	typedef std::map<std::string, config::Server>::const_iterator ServerIterator;
+	typedef IndexMap<std::string, config::Route>::const_iterator  RouteIterator;
+	typedef IndexMap<std::string, config::Server>::const_iterator ServerIterator;
 	typedef std::map<std::string, config::Cgi>::const_iterator	  CgiIterator;
 
 	std::ostream& operator<<(std::ostream&, const Config&);

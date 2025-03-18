@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/22 23:44:37 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/18 17:50:28 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/18 23:28:27 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@
 #include <stdexcept>
 #include <string>
 #include <vector>
+#include "app/IndexMap.hpp"
 
 namespace toml {
 	class Value;
@@ -44,29 +45,13 @@ namespace toml {
 	static Type getTagFor##TYPENAME(void);   \
 	RawTomlValue(TYPE);
 
-	typedef bool			   Bool;
-	typedef double			   Float;
-	typedef long			   Number;
-	typedef std::string		   String;
-	typedef std::vector<Value> List;
+	typedef bool						 Bool;
+	typedef double						 Float;
+	typedef long						 Number;
+	typedef std::string					 String;
+	typedef std::vector<Value>			 List;
+	typedef IndexMap<std::string, Value> Table;
 	struct Null {};
-	class Table : public std::vector<std::pair<std::string, Value> > {
-		private:
-			struct FindKey {
-					const std::string& k;
-					FindKey(const std::string& key) : k(key) {}
-					~FindKey() {};
-
-					bool operator()(const toml::Table::value_type& val) const;
-			};
-
-		public:
-			Value&					  at(const std::string& key);
-			const Value&			  at(const std::string& key) const;
-			Value&					  operator[](const std::string& key);
-			size_type				  count(const std::string& key) const;
-			std::pair<iterator, bool> insert(const value_type& value);
-	};
 
 	class Value {
 		public:

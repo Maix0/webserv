@@ -38,7 +38,6 @@ toml/Parser/parsing/parseTable                                                \
 toml/Parser/parsing/scanString                                                \
 toml/Parser/parsing/setToken                                                  \
 toml/Parser/parsing/tablePath                                                 \
-toml/Value/Table                                                              \
 toml/Value/Value                                                              \
 toml/Value/print                                                              \
 

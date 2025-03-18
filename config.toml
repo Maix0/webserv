@@ -15,6 +15,7 @@ routes."/something2" = {}
 routes."/a/b/" = {}
 routes."/a/b/c/d/e/f" = {}
 routes."/a/b/C/d/e/f" = {}
+routes."/a/b//C/d/e/f" = {}
 
 #[server.example2]
 #host = "local.maix.me"

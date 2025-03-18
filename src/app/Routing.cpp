@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/14 16:30:56 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/15 10:00:12 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/18 23:36:54 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,7 @@
 #include <string>
 #include <vector>
 
+#include "app/IndexMap.hpp"
 #include "app/Logger.hpp"
 #include "app/Routing.hpp"
 
@@ -23,7 +24,7 @@ using std::vector;
 
 namespace app {
 
-	static vector<string> to_parts(const std::string& url) {
+	vector<string> url_to_parts(const std::string& url) {
 		vector<string>	  parts;
 		std::stringstream ss(url);
 		string			  part;
@@ -50,7 +51,7 @@ namespace app {
 
 	const config::Route* getRouteFor(const config::Server& server, const std::string& url) {
 		LOG(trace, "fetching route \" " << url << "\"for server " << server.name);
-		vector<string> parts			   = to_parts(url);
+		vector<string> parts			   = url_to_parts(url);
 
 		const config::Route* closest_match = NULL;
 		int					 match_count   = 0;
@@ -58,9 +59,9 @@ namespace app {
 			closest_match = &server.routes.at("/");
 		}
 
-		for (std::map<std::string, config::Route>::const_iterator it = server.routes.begin();
+		for (IndexMap<std::string, config::Route>::const_iterator it = server.routes.begin();
 			 it != server.routes.end(); it++) {
-			vector<string> route_parts = to_parts(it->first);
+			const vector<string>& route_parts = it->second.parts;
 			// if the route is longer than the url, then it CAN'T be a match, then just skip
 			if (parts.size() < route_parts.size())
 				continue;
@@ -85,12 +86,6 @@ namespace app {
 					break;
 			}
 		}
-		if (closest_match != NULL) {
-			std::cout << "Found route " << closest_match->name << " for url " << url << std::endl;
-		} else {
-			std::cout << "Found no route for url " << url << std::endl;
-		}
-
 		return closest_match;
 	}
 
