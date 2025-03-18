@@ -32,7 +32,7 @@ namespace toml {
 		string::const_iterator tok_ptr = this->buffer.begin() + this->tok.pos;
 		// need to detect '[[' on our own because next_token() will skip whitespace,
 		//  and '[ [' would be taken as '[[', which is wrong.
-		bool llb = (tok_ptr + 1 != this->buffer.end() && *(tok_ptr + 1) == '[');
+		bool				   llb = (tok_ptr + 1 != this->buffer.end() && *(tok_ptr + 1) == '[');
 
 		// eat [ or [[
 		this->eatToken(LBRACKET, true, FLINE);

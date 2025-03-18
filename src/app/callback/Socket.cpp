@@ -49,8 +49,8 @@ namespace app {
 		}
 		struct sockaddr_in* addr_ip = (struct sockaddr_in*)(&addr);
 
-		Context&			ctx		= Context::getInstance();
-		Shared<Connection>	conn	= new Connection(res, Ip(ntohl(addr_ip->sin_addr.s_addr)),
+		Context&		   ctx		= Context::getInstance();
+		Shared<Connection> conn		= new Connection(res, Ip(ntohl(addr_ip->sin_addr.s_addr)),
 													 Port(ntohs(addr_ip->sin_port)));
 		ctx.getConnections().push_back(conn);
 		{

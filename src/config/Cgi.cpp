@@ -18,14 +18,14 @@
 #include "config/_ConfigHelper.hpp"
 #include "toml/Value.hpp"
 
-using std::string;
 using std::set;
+using std::string;
 
 namespace config {
 	Cgi Cgi::fromTomlValue(const toml::Value& toml) {
-		const toml::Table&	  table = toml.getTable();
-		Cgi					  out;
-		set<string> seen;
+		const toml::Table& table = toml.getTable();
+		Cgi				   out;
+		set<string>		   seen;
 		out.from_env = false;
 
 		for (toml::Table::const_iterator it = table.begin(); it != table.end(); it++) {

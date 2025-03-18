@@ -86,7 +86,7 @@ namespace log {
 		TRACE = trace,
 	};
 
-	extern LogLevel	   logLevel;
+	extern LogLevel logLevel;
 
 	static inline bool _setEnvLogLevel(char** envp) {
 		try {

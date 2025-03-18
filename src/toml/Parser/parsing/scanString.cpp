@@ -91,7 +91,7 @@ namespace toml {
 		for (; *p && *p != '\n'; p++) {
 			static const std::string DIGITS = "0123456789+-_.";
 
-			char					 ch		= *p;
+			char ch							= *p;
 
 			if (ch == '.' && dot_is_special)
 				break;

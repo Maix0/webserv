@@ -28,15 +28,14 @@
 #include "config/_ConfigHelper.hpp"
 #include "toml/Value.hpp"
 
-using std::string;
 using std::map;
-using std::vector;
 using std::set;
+using std::string;
+using std::vector;
 
 namespace config {
-	static vector<string> _get_binary_paths(
-		const string&							 binary,
-		const Option<vector<string> /**/>& PATH) {
+	static vector<string> _get_binary_paths(const string&					   binary,
+											const Option<vector<string> /**/>& PATH) {
 		vector<string> out;
 		if (binary.find_first_of('/') != string::npos) {
 			out.push_back(binary);
@@ -59,9 +58,9 @@ namespace config {
 			char** envp_path = envp;
 			char*  path_cstr = NULL;
 			while (*envp_path) {
-				string			   env = *envp_path;
+				string			  env = *envp_path;
 				string::size_type eq  = env.find_first_of('=');
-				string			   key = env.substr(0, eq);
+				string			  key = env.substr(0, eq);
 				if (key == "PATH") {
 					path_cstr = *envp_path;
 					break;
@@ -69,10 +68,10 @@ namespace config {
 				envp_path++;
 			}
 			if (path_cstr != NULL) {
-				string				 raw = path_cstr;
-				string::size_type	 eq	 = raw.find_first_of('=');
-				std::stringstream		 ss(raw.substr(eq + 1));
-				vector<string> out;
+				string			  raw = path_cstr;
+				string::size_type eq  = raw.find_first_of('=');
+				std::stringstream ss(raw.substr(eq + 1));
+				vector<string>	  out;
 				while (std::getline(ss, raw, ':'))
 					out.push_back(raw);
 				path = out;
@@ -81,10 +80,9 @@ namespace config {
 		// LOG(trace, "using path=" << path << "");
 
 		bool error = false;
-		for (map<string, Cgi>::iterator cit = config.cgi.begin(); cit != config.cgi.end();
-			 ++cit) {
+		for (map<string, Cgi>::iterator cit = config.cgi.begin(); cit != config.cgi.end(); ++cit) {
 			const string& name = cit->first;
-			Cgi&			   cgi	= cit->second;
+			Cgi&		  cgi  = cit->second;
 
 			(void)(name);  // used by log macro
 
@@ -92,9 +90,9 @@ namespace config {
 				char** envp2 = envp;
 				bool   found = false;
 				while (*envp2) {
-					string			   env = *envp2;
+					string			  env = *envp2;
 					string::size_type eq  = env.find_first_of('=');
-					string			   key = env.substr(0, eq);
+					string			  key = env.substr(0, eq);
 					if (key == cgi.binary) {
 						cgi.binary	 = env.substr(eq + 1);
 						cgi.from_env = false;
@@ -110,7 +108,7 @@ namespace config {
 			}
 			if (!cgi.from_env) {
 				vector<string> possible_paths = _get_binary_paths(cgi.binary, path);
-				Option<string>		 found;
+				Option<string> found;
 				for (vector<string>::const_iterator it = possible_paths.begin();
 					 it != possible_paths.end(); ++it) {
 					if (!access(it->c_str(), X_OK)) {
@@ -145,7 +143,7 @@ namespace config {
 
 			const char* hostname = sit->second.bind_str.c_str();
 
-			int			status	 = getaddrinfo(hostname, NULL, &hints, &res);
+			int status			 = getaddrinfo(hostname, NULL, &hints, &res);
 			if (status != 0) {
 				LOG(err, "error resolving " << hostname << ": " << gai_strerror(status));
 				throw std::runtime_error("failed to resolve hostname");
@@ -191,9 +189,9 @@ namespace config {
 
 	static void _checkUnknownCgi(const Config& config) {
 		for (ServerIterator sit = config.server.begin(); sit != config.server.end(); sit++) {
-			for (RouteIterator rit = sit->second.routes.begin(); rit != sit->second.routes.end(); rit++) {
-				for (map<string, string>::const_iterator cit =
-						 rit->second.cgi.begin();
+			for (RouteIterator rit = sit->second.routes.begin(); rit != sit->second.routes.end();
+				 rit++) {
+				for (map<string, string>::const_iterator cit = rit->second.cgi.begin();
 					 cit != rit->second.cgi.end(); cit++) {
 					if (config.cgi.count(cit->second) == 0) {
 						LOG(err, "cgi '" << cit->second << "' isn't known (server '" << sit->first

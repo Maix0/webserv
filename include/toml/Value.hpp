@@ -30,16 +30,16 @@ namespace toml {
 
 #define _UNION_TYPE(TAG, TYPENAME, TYPE)   \
 	struct union_##TYPENAME {              \
-		Type tag;                          \
-		TYPE raw;                          \
+			Type tag;                      \
+			TYPE raw;                      \
 	} _##TYPENAME;                         \
 	static Type getTagFor##TYPENAME(void); \
 	RawTomlValue(TYPE);
 
 #define _UNION_TYPE_PTR(TAG, TYPENAME, TYPE) \
 	struct union_##TYPENAME {                \
-		Type  tag;                           \
-		TYPE* raw;                           \
+			Type  tag;                       \
+			TYPE* raw;                       \
 	} _##TYPENAME;                           \
 	static Type getTagFor##TYPENAME(void);   \
 	RawTomlValue(TYPE);
@@ -51,105 +51,105 @@ namespace toml {
 	typedef std::vector<Value> List;
 	struct Null {};
 	class Table : public std::vector<std::pair<std::string, Value> > {
-	private:
-		struct FindKey {
-			const std::string& k;
-			FindKey(const std::string& key) : k(key) {}
-			~FindKey() {};
+		private:
+			struct FindKey {
+					const std::string& k;
+					FindKey(const std::string& key) : k(key) {}
+					~FindKey() {};
 
-			bool operator()(const toml::Table::value_type& val) const;
-		};
+					bool operator()(const toml::Table::value_type& val) const;
+			};
 
-	public:
-		Value&					  at(const std::string& key);
-		const Value&			  at(const std::string& key) const;
-		Value&					  operator[](const std::string& key);
-		size_type				  count(const std::string& key) const;
-		std::pair<iterator, bool> insert(const value_type& value);
+		public:
+			Value&					  at(const std::string& key);
+			const Value&			  at(const std::string& key) const;
+			Value&					  operator[](const std::string& key);
+			size_type				  count(const std::string& key) const;
+			std::pair<iterator, bool> insert(const value_type& value);
 	};
 
 	class Value {
-	public:
-		enum Type {
-			NULL_ = 0,
-
-			BOOL,
-			FLOAT,
-			INT,
-			LIST,
-			STRING,
-			TABLE,
-		};
-
-		Value(Bool);
-		Value(Float);
-		Value(List);
-		Value(Null);
-		Value(Number);
-		Value(String);
-		Value(Table);
-
-		Value(const char*);
-		Value(char*);
-
-		Value(float);
-
-		Value(char);
-		Value(int);
-		Value(short);
-		Value(unsigned char);
-		Value(unsigned int);
-		Value(unsigned long);
-		Value(unsigned short);
-
-		Value(void);
-		~Value(void);
-		Value(const Value&);
-		Value& operator=(const Value&);
-
-		Type   getType(void) const;
-		bool   isReadonly(void) const;
-		void   setReadonly(bool val);
-
-		_TOML_GETTERS(List, List);
-		_TOML_GETTERS(Null, Null);
-		_TOML_GETTERS(Table, Table);
-		_TOML_GETTERS(Bool, Bool);
-		_TOML_GETTERS(Float, Float);
-		_TOML_GETTERS(Number, Int);
-		_TOML_GETTERS(String, String);
-
-		class InvalidType : public std::exception {
-		private:
-			std::string msg;
-
 		public:
-			InvalidType(Type wanted, Type had);
-			InvalidType(const InvalidType&);
-			InvalidType();
-			InvalidType operator=(const InvalidType&);
-			virtual ~InvalidType() throw();
-			virtual const char* what(void) const throw();
-		};
+			enum Type {
+				NULL_ = 0,
 
-	private:
-		union RawTomlValue {
-			_UNION_TYPE(BOOL, bool, Bool);
-			_UNION_TYPE(FLOAT, float, Float);
-			_UNION_TYPE(INT, int, Number);
-			_UNION_TYPE(NULL_, null, Null);
+				BOOL,
+				FLOAT,
+				INT,
+				LIST,
+				STRING,
+				TABLE,
+			};
 
-			// Why pointers ?
-			// because cpp is a bitch...
-			_UNION_TYPE_PTR(LIST, list, List);
-			_UNION_TYPE_PTR(STRING, string, String);
-			_UNION_TYPE_PTR(TABLE, table, Table);
+			Value(Bool);
+			Value(Float);
+			Value(List);
+			Value(Null);
+			Value(Number);
+			Value(String);
+			Value(Table);
 
-			RawTomlValue();
-		};
+			Value(const char*);
+			Value(char*);
 
-		RawTomlValue raw;
-		bool		 readonly;
+			Value(float);
+
+			Value(char);
+			Value(int);
+			Value(short);
+			Value(unsigned char);
+			Value(unsigned int);
+			Value(unsigned long);
+			Value(unsigned short);
+
+			Value(void);
+			~Value(void);
+			Value(const Value&);
+			Value& operator=(const Value&);
+
+			Type getType(void) const;
+			bool isReadonly(void) const;
+			void setReadonly(bool val);
+
+			_TOML_GETTERS(List, List);
+			_TOML_GETTERS(Null, Null);
+			_TOML_GETTERS(Table, Table);
+			_TOML_GETTERS(Bool, Bool);
+			_TOML_GETTERS(Float, Float);
+			_TOML_GETTERS(Number, Int);
+			_TOML_GETTERS(String, String);
+
+			class InvalidType : public std::exception {
+				private:
+					std::string msg;
+
+				public:
+					InvalidType(Type wanted, Type had);
+					InvalidType(const InvalidType&);
+					InvalidType();
+					InvalidType operator=(const InvalidType&);
+					virtual ~InvalidType() throw();
+					virtual const char* what(void) const throw();
+			};
+
+		private:
+			union RawTomlValue {
+					_UNION_TYPE(BOOL, bool, Bool);
+					_UNION_TYPE(FLOAT, float, Float);
+					_UNION_TYPE(INT, int, Number);
+					_UNION_TYPE(NULL_, null, Null);
+
+					// Why pointers ?
+					// because cpp is a bitch...
+					_UNION_TYPE_PTR(LIST, list, List);
+					_UNION_TYPE_PTR(STRING, string, String);
+					_UNION_TYPE_PTR(TABLE, table, Table);
+
+					RawTomlValue();
+			};
+
+			RawTomlValue raw;
+			bool		 readonly;
 	};
 
 	std::ostream& operator<<(std::ostream& lhs, const Value& rhs);

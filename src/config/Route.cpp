@@ -47,8 +47,8 @@ namespace config {
 						const toml::List& l = it->second.getList();
 						out.allowed			= Option<vector<string> >::Some();
 						for (toml::List::const_iterator lit = l.begin(); lit != l.end(); lit++) {
-							const string&				method = lit->getString();
-							const vector<string>& lists  = out.allowed.get();
+							const string&		  method = lit->getString();
+							const vector<string>& lists	 = out.allowed.get();
 
 							if (std::find(lists.begin(), lists.end(), method) != lists.end())
 								LOG(warn, "duplicate Method for route (skipping...): " << method);

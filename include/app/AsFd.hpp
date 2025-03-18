@@ -16,8 +16,8 @@ namespace app {
 
 	// Something that can be cast to an Fd
 	class AsFd {
-	public:
-		virtual ~AsFd() {};
-		virtual int asFd() = 0;
+		public:
+			virtual ~AsFd() {};
+			virtual int asFd() = 0;
 	};
 }  // namespace app

@@ -30,10 +30,9 @@ namespace toml {
 	void Parser::Context::walkTabPath(void) {
 		Value* curtab = &this->root;
 
-		for (vector<Token>::iterator it = this->tabPath.begin(); it != this->tabPath.end();
-			 it++) {
-			Value*		next = NULL;
-			string key	 = this->normalizeKey(*it);
+		for (vector<Token>::iterator it = this->tabPath.begin(); it != this->tabPath.end(); it++) {
+			Value* next = NULL;
+			string key	= this->normalizeKey(*it);
 			try {
 				next = &curtab->getTable().at(key);
 			} catch (const std::out_of_range& e) {

@@ -21,36 +21,36 @@
 #include "config/Config.hpp"
 
 namespace app {
-	extern Shared<bool>												   do_shutdown;
+	extern Shared<bool> do_shutdown;
 
 	typedef std::map<app::Ip, std::vector<app::Shared<app::Socket> > > SocketList;
 	typedef std::map<app::Port, std::set<app::Ip> >					   PortMap;
 	typedef std::vector<app::Shared<Connection> >					   ConnectionList;
 
 	class Context {
-	private:
-		Context();
-		~Context();
-		// No Copy operator/assignement operator since this is a Singleton...
+		private:
+			Context();
+			~Context();
+			// No Copy operator/assignement operator since this is a Singleton...
 
-		static Context			INSTANCE;
+			static Context INSTANCE;
 
-		ConnectionList			conns;
-		PortMap					port_map;
-		SocketList				sockets;
+			ConnectionList conns;
+			PortMap		   port_map;
+			SocketList	   sockets;
 
-		config::Config			config;
-		Option<Shared<Socket> > shutdown;
+			config::Config			config;
+			Option<Shared<Socket> > shutdown;
 
-	public:
-		static Context&			 getInstance();
+		public:
+			static Context& getInstance();
 
-		config::Config&			 getConfig() { return this->config; };
-		SocketList&				 getSockets() { return this->sockets; };
-		PortMap&				 getPortMap() { return this->port_map; };
-		ConnectionList&			 getConnections() { return this->conns; };
-		Option<Shared<Socket> >& getShutdown() { return this->shutdown; };
+			config::Config&			 getConfig() { return this->config; };
+			SocketList&				 getSockets() { return this->sockets; };
+			PortMap&				 getPortMap() { return this->port_map; };
+			ConnectionList&			 getConnections() { return this->conns; };
+			Option<Shared<Socket> >& getShutdown() { return this->shutdown; };
 
-		void					 openAllSockets();
+			void openAllSockets();
 	};
 }  // namespace app

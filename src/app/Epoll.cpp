@@ -59,13 +59,13 @@ namespace app {
 		if (eventType & HANGUP)
 			e.hangup.insert(callback);
 
-		struct epoll_event ev  = {};
-		ev.data.fd			   = fd;
-		ev.events			  |= e.write.hasValue() ? EPOLLOUT : 0;
-		ev.events			  |= e.read.hasValue() ? EPOLLIN : 0;
-		ev.events			  |= e.hangup.hasValue() ? (EPOLLHUP | EPOLLRDHUP) : 0;
+		struct epoll_event ev = {};
+		ev.data.fd			  = fd;
+		ev.events			 |= e.write.hasValue() ? EPOLLOUT : 0;
+		ev.events			 |= e.read.hasValue() ? EPOLLIN : 0;
+		ev.events			 |= e.hangup.hasValue() ? (EPOLLHUP | EPOLLRDHUP) : 0;
 
-		int op				   = new_ ? EPOLL_CTL_ADD : EPOLL_CTL_MOD;
+		int op				  = new_ ? EPOLL_CTL_ADD : EPOLL_CTL_MOD;
 
 		if (epoll_ctl(this->fd, op, fd, &ev) == -1) {
 			int serrno = errno;
@@ -87,13 +87,13 @@ namespace app {
 		if (eventType & HANGUP)
 			e.hangup.remove();
 
-		struct epoll_event ev  = {};
-		ev.data.fd			   = fd;
-		ev.events			  |= e.write.hasValue() ? EPOLLOUT : 0;
-		ev.events			  |= e.read.hasValue() ? EPOLLIN : 0;
-		ev.events			  |= e.hangup.hasValue() ? (EPOLLHUP | EPOLLRDHUP) : 0;
+		struct epoll_event ev = {};
+		ev.data.fd			  = fd;
+		ev.events			 |= e.write.hasValue() ? EPOLLOUT : 0;
+		ev.events			 |= e.read.hasValue() ? EPOLLIN : 0;
+		ev.events			 |= e.hangup.hasValue() ? (EPOLLHUP | EPOLLRDHUP) : 0;
 
-		int op				   = (ev.events == 0) ? EPOLL_CTL_DEL : EPOLL_CTL_MOD;
+		int op				  = (ev.events == 0) ? EPOLL_CTL_DEL : EPOLL_CTL_MOD;
 
 		if (epoll_ctl(this->fd, op, fd, &ev) == -1) {
 			int serrno = errno;

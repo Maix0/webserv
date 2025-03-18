@@ -38,7 +38,7 @@ namespace config {
 
 	template <typename T>
 	std::map<std::string, T> _handle_map_and_set_name(const toml::Value& val,
-												  T					 (*func)(const toml::Value&)) {
+													  T (*func)(const toml::Value&)) {
 		if (!val.isTable())
 			throw std::runtime_error("Value isn't a table");
 

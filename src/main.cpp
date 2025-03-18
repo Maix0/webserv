@@ -33,59 +33,59 @@ using std::vector;
 
 app::Shared<bool> app::do_shutdown = new bool(false);
 
-static void		  install_ctrlc_handler(void);
+static void install_ctrlc_handler(void);
 
-int				  wrapped_main(char* argv0, int argc, char* argv[], char* envp[]) {
-	  (void)(argv0);
-	  (void)(argc);
-	  (void)(envp);
+int wrapped_main(char* argv0, int argc, char* argv[], char* envp[]) {
+	(void)(argv0);
+	(void)(argc);
+	(void)(envp);
 
-	  if (argc != 1) {
-		  std::cout << "usage: " << (argv0 ? argv0 : "webserv") << " <config_file>" << std::endl;
-		  return 1;
-	  }
+	if (argc != 1) {
+		std::cout << "usage: " << (argv0 ? argv0 : "webserv") << " <config_file>" << std::endl;
+		return 1;
+	}
 
-	  app::Context&	  ctx	 = app::Context::getInstance();
+	app::Context& ctx	   = app::Context::getInstance();
 
-	  toml::Value	  val	 = toml::Parser::parseFile(argv[0]);
+	toml::Value val		   = toml::Parser::parseFile(argv[0]);
 
-	  config::Config& config = (ctx.getConfig() = config::Config::fromTomlValue(val));
+	config::Config& config = (ctx.getConfig() = config::Config::fromTomlValue(val));
 
-	  config::checkConfig(config, envp);
-	  ctx.openAllSockets();
+	config::checkConfig(config, envp);
+	ctx.openAllSockets();
 
-	  app::SocketList s = ctx.getSockets();
-	  app::Epoll	  epoll;
+	app::SocketList s = ctx.getSockets();
+	app::Epoll		epoll;
 
-	  for (app::SocketList::iterator iit = s.begin(); iit != s.end(); iit++) {
-		  for (vector<app::Shared<app::Socket> >::iterator sit = iit->second.begin();
-			   sit != iit->second.end(); sit++) {
-			  app::Shared<app::Socket>		   sock	   = *sit;
-			  app::Shared<app::SocketCallback> sock_cb = new app::SocketCallback(sock);
-			  epoll.addCallback(sock->asFd(), READ, sock_cb.cast<app::Callback>());
-		  }
-	  }
+	for (app::SocketList::iterator iit = s.begin(); iit != s.end(); iit++) {
+		for (vector<app::Shared<app::Socket> >::iterator sit = iit->second.begin();
+			 sit != iit->second.end(); sit++) {
+			app::Shared<app::Socket>		 sock	 = *sit;
+			app::Shared<app::SocketCallback> sock_cb = new app::SocketCallback(sock);
+			epoll.addCallback(sock->asFd(), READ, sock_cb.cast<app::Callback>());
+		}
+	}
 
-	  if (config.shutdown_port.hasValue()) {
-		  app::Shared<app::Socket> shutdown_socket =
-			  new app::Socket(app::Ip(0), config.shutdown_port.get());
-		  ctx.getShutdown() = shutdown_socket;
-		  LOG(info, "Created shutdown socket on port: " << shutdown_socket->getBoundPort());
-		  app::Shared<app::ShutdownCallback> shutdown_cb =
-			  new app::ShutdownCallback(shutdown_socket, app::do_shutdown);
-		  epoll.addCallback(shutdown_socket->asFd(), READ, shutdown_cb.cast<app::Callback>());
-	  }
-	  install_ctrlc_handler();
-	  while (!*app::do_shutdown) {
-		  vector<app::Shared<app::Callback> > callbacks = epoll.fetchCallbacks();
-		  for (vector<app::Shared<app::Callback> >::iterator it = callbacks.begin();
-			   it != callbacks.end(); it++) {
-			  app::Shared<app::Callback> cb = *it;
-			  cb->call(epoll, cb);
-		  }
-	  };
-	  LOG(info, "shutting down now...");
-	  return 0;
+	if (config.shutdown_port.hasValue()) {
+		app::Shared<app::Socket> shutdown_socket =
+			new app::Socket(app::Ip(0), config.shutdown_port.get());
+		ctx.getShutdown() = shutdown_socket;
+		LOG(info, "Created shutdown socket on port: " << shutdown_socket->getBoundPort());
+		app::Shared<app::ShutdownCallback> shutdown_cb =
+			new app::ShutdownCallback(shutdown_socket, app::do_shutdown);
+		epoll.addCallback(shutdown_socket->asFd(), READ, shutdown_cb.cast<app::Callback>());
+	}
+	install_ctrlc_handler();
+	while (!*app::do_shutdown) {
+		vector<app::Shared<app::Callback> > callbacks = epoll.fetchCallbacks();
+		for (vector<app::Shared<app::Callback> >::iterator it = callbacks.begin();
+			 it != callbacks.end(); it++) {
+			app::Shared<app::Callback> cb = *it;
+			cb->call(epoll, cb);
+		}
+	};
+	LOG(info, "shutting down now...");
+	return 0;
 }
 #define BONUS
 #ifndef BONUS

@@ -15,8 +15,8 @@
 #include <ostream>
 #include "config/Config.hpp"
 
-using std::ostream;
 using std::map;
+using std::ostream;
 using std::string;
 using std::vector;
 
@@ -59,8 +59,8 @@ namespace config {
 			_print_ident(o, ident) << "allowed   => None," << std::endl;
 		first = true;
 		_print_ident(o, ident) << "cgi      => {" << std::endl;
-		for (map<string, string>::const_iterator it = route.cgi.begin();
-			 it != route.cgi.end(); it++) {
+		for (map<string, string>::const_iterator it = route.cgi.begin(); it != route.cgi.end();
+			 it++) {
 			if (!first)
 				first = false, o << ", " << std::endl;
 			_print_ident(o, ident + 1) << it->first << " => " << it->second;
@@ -104,8 +104,7 @@ namespace config {
 		bool		first = true;
 		o << "{" << std::endl;
 		_print_ident(o, ident) << "cgi    => {" << std::endl;
-		for (map<string, Cgi>::const_iterator it = e.cgi.begin(); it != e.cgi.end();
-			 it++) {
+		for (map<string, Cgi>::const_iterator it = e.cgi.begin(); it != e.cgi.end(); it++) {
 			if (!first)
 				o << ",\n";
 			first = false;
@@ -117,8 +116,8 @@ namespace config {
 
 		first = true;
 		_print_ident(o, ident) << "server => {" << std::endl;
-		for (map<string, Server>::const_iterator it = e.server.begin();
-			 it != e.server.end(); it++) {
+		for (map<string, Server>::const_iterator it = e.server.begin(); it != e.server.end();
+			 it++) {
 			if (!first)
 				o << ",\n";
 			first = false;

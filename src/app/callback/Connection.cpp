@@ -50,8 +50,8 @@ namespace app {
 			self->setFinished();
 			return;
 		}
-		Connection::Buffer&				   buf	 = inner->getBuffer();
-		ssize_t							   res	 = 0;
+		Connection::Buffer& buf = inner->getBuffer();
+		ssize_t				res = 0;
 		if ((res = write(inner->asFd(), &buf[0], buf.size())) < 0) {
 			LOG(warn, "Error when reading...");
 			return;
@@ -72,7 +72,8 @@ namespace app {
 
 		while (true) {
 			ConnectionList::iterator it = conn.begin();
-			for (it = conn.begin(); it != conn.end() && (*it)->asFd() != inner->asFd(); it++);
+			for (it = conn.begin(); it != conn.end() && (*it)->asFd() != inner->asFd(); it++)
+				;
 			if (it != conn.end()) {
 				conn.erase(it);
 			} else {

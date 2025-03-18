@@ -22,33 +22,34 @@
 
 namespace app {
 	class Connection : public AsFd {
-	public:
-		typedef std::vector<char> Buffer;
+		public:
+			typedef std::vector<char> Buffer;
 
-	private:
-		int	   fd;
-		Buffer rw_buffer;
-		bool   closed;
-		Ip	   remote_ip;
-		Port   remote_port;
+		private:
+			int	   fd;
+			Buffer rw_buffer;
+			bool   closed;
+			Ip	   remote_ip;
+			Port   remote_port;
 
-	public:
-		virtual ~Connection() {
-			if (this->fd != -1)
-				close(this->fd);
-			LOG(debug, "closing connection " << fd << " for " << remote_ip << ":" << remote_port);
-		};
-		Connection(int fd, Ip ip, Port port)
-			: fd(fd), closed(false), remote_ip(ip), remote_port(port) {
-			LOG(debug, "new connection " << fd << " for " << ip << ":" << port);
-		};
+		public:
+			virtual ~Connection() {
+				if (this->fd != -1)
+					close(this->fd);
+				LOG(debug,
+					"closing connection " << fd << " for " << remote_ip << ":" << remote_port);
+			};
+			Connection(int fd, Ip ip, Port port)
+				: fd(fd), closed(false), remote_ip(ip), remote_port(port) {
+				LOG(debug, "new connection " << fd << " for " << ip << ":" << port);
+			};
 
-		Buffer& getBuffer() { return this->rw_buffer; };
-		int		asFd() { return this->fd; };
-		bool	isClosed() { return this->closed; };
-		void	setClosed() { this->closed = true; };
-		Ip		getIp() { return this->remote_ip; };
-		Port	getPort() { return this->remote_port; };
+			Buffer& getBuffer() { return this->rw_buffer; };
+			int		asFd() { return this->fd; };
+			bool	isClosed() { return this->closed; };
+			void	setClosed() { this->closed = true; };
+			Ip		getIp() { return this->remote_ip; };
+			Port	getPort() { return this->remote_port; };
 	};
 
 	void _ConnCallbackR(Epoll& epoll, Shared<Callback> self, Shared<Connection> inner);
@@ -57,25 +58,25 @@ namespace app {
 
 	template <EpollType TY>
 	class ConnectionCallback : public Callback {
-	private:
-		Shared<Connection> inner;
+		private:
+			Shared<Connection> inner;
 
-	public:
-		virtual ~ConnectionCallback() {};
-		ConnectionCallback(Shared<Connection> inner) : inner(inner) {};
-		int		  getFd() { return this->inner->asFd(); };
-		EpollType getTy() { return TY; };
+		public:
+			virtual ~ConnectionCallback() {};
+			ConnectionCallback(Shared<Connection> inner) : inner(inner) {};
+			int		  getFd() { return this->inner->asFd(); };
+			EpollType getTy() { return TY; };
 
-		void	  call(Epoll& epoll, Shared<Callback> self) {
-			 if (TY == READ)
-				 return _ConnCallbackR(epoll, self, this->inner);
-			 else if (TY == WRITE)
-				 return _ConnCallbackW(epoll, self, this->inner);
-			 else if (TY == HANGUP)
-				 return _ConnCallbackH(epoll, self, this->inner);
-			 else
-				 throw std::runtime_error("Unknown ConnectionCallback Type");
-		}
+			void call(Epoll& epoll, Shared<Callback> self) {
+				if (TY == READ)
+					return _ConnCallbackR(epoll, self, this->inner);
+				else if (TY == WRITE)
+					return _ConnCallbackW(epoll, self, this->inner);
+				else if (TY == HANGUP)
+					return _ConnCallbackH(epoll, self, this->inner);
+				else
+					throw std::runtime_error("Unknown ConnectionCallback Type");
+			}
 	};
 
 };	// namespace app
