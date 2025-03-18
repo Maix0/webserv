@@ -6,7 +6,7 @@
 #    By: rparodi <rparodi@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/11/12 11:05:05 by rparodi           #+#    #+#              #
-#    Updated: 2025/03/17 14:40:49 by maiboyer         ###   ########.fr        #
+#    Updated: 2025/03/18 22:46:26 by maiboyer         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -35,7 +35,7 @@ BOLD = \033[1m
 ITALIC = \033[3m
 UNDERLINE = \033[4m
 
-WSTART = \033[D[$(RED)$(BOLD)$(UNDERLINE)WARNING$(END)]:$(CYAN) 
+WSTART = \033[D[$(RED)$(BOLD)$(UNDERLINE)WARNING$(END)]$(CYAN) 
 WEND = \n$(END)
 
 LOG_DISABLE=
@@ -82,6 +82,9 @@ export INCLUDE_DIR
 export SRC_DIR
 export NAME
 
+ECHO = /usr/bin/env echo
+export ECHO
+
 # All (make all)
 all:
 	$(eval CXXFLAGS_ADDITIONAL += -Werror)
@@ -102,47 +105,47 @@ bonus:
 
 #	Header
 header:
-	@echo -e ''
-	@echo -e '$(GOLD)            *******     ****** ******* $(END)'
-	@echo -e '$(GOLD)          ******        ***    ******* $(END)'
-	@echo -e '$(GOLD)      *******           *      ******* $(END)'
-	@echo -e '$(GOLD)     ******                  *******   $(END)'
-	@echo -e '$(GOLD)  *******                  *******     $(END)'
-	@echo -e '$(GOLD) *******************    *******      * $(END)'
-	@echo -e '$(GOLD) *******************    *******    *** $(END)'
-	@echo -e '$(GOLD)              ******    ******* ****** $(END)'
-	@echo -e '$(GOLD)              ******                   $(END)'
-	@echo -e '$(GOLD)              ******                   $(END)'
-	@echo -e '$(GREY)            Made by maiboyerlpb x bebou$(END)'
-	@echo -en $(MSG);
+	@$(ECHO) -e ''
+	@$(ECHO) -e '$(GOLD)            *******     ****** ******* $(END)'
+	@$(ECHO) -e '$(GOLD)          ******        ***    ******* $(END)'
+	@$(ECHO) -e '$(GOLD)      *******           *      ******* $(END)'
+	@$(ECHO) -e '$(GOLD)     ******                  *******   $(END)'
+	@$(ECHO) -e '$(GOLD)  *******                  *******     $(END)'
+	@$(ECHO) -e '$(GOLD) *******************    *******      * $(END)'
+	@$(ECHO) -e '$(GOLD) *******************    *******    *** $(END)'
+	@$(ECHO) -e '$(GOLD)              ******    ******* ****** $(END)'
+	@$(ECHO) -e '$(GOLD)              ******                   $(END)'
+	@$(ECHO) -e '$(GOLD)              ******                   $(END)'
+	@$(ECHO) -e '$(GREY)            Made by maiboyerlpb x bebou$(END)'
+	@$(ECHO) -e -n $(MSG);
 
 PROJ = $(CYAN)$(BOLD)$(UNDERLINE)webserv$(END)$(GOLD)
 
 #	Footer
 footer:
-	@echo -e '$(GOLD)                                       $(END)'
-	@echo -e '$(GOLD)   _____                       _____   $(END)'
-	@echo -e '$(GOLD)--'\''   __\_____           _____/__   `--$(END)'
-	@echo -e '$(GOLD)         _____) $(PROJ) (_____         $(END)'
-	@echo -e '$(GOLD)         __)               (__         $(END)'
-	@echo -e '$(GOLD)        __)                 (__        $(END)'
-	@echo -e '$(GOLD)--.______)                   (______.--$(END)'
-	@echo -e '$(GOLD)                                       $(END)'
-	@echo -e '            $(GREY)The compilation is $(END)$(GOLD)finished$(END)'
-	@echo -e '                 $(GREY)Have a good $(END)$(GOLD)correction$(END)'
+	@$(ECHO) -e '$(GOLD)                                       $(END)'
+	@$(ECHO) -e '$(GOLD)   _____                       _____   $(END)'
+	@$(ECHO) -e '$(GOLD)--'\''   __\_____           _____/__   `--$(END)'
+	@$(ECHO) -e '$(GOLD)         _____) $(PROJ) (_____         $(END)'
+	@$(ECHO) -e '$(GOLD)         __)               (__         $(END)'
+	@$(ECHO) -e '$(GOLD)        __)                 (__        $(END)'
+	@$(ECHO) -e '$(GOLD)--.______)                   (______.--$(END)'
+	@$(ECHO) -e '$(GOLD)                                       $(END)'
+	@$(ECHO) -e '            $(GREY)The compilation is $(END)$(GOLD)finished$(END)'
+	@$(ECHO) -e '                 $(GREY)Have a good $(END)$(GOLD)correction$(END)'
 
 # Clean (make clean)
 clean:
-	@echo -e '$(GREY) Removing $(END)$(RED)Objects$(END)'
-	@echo -e '$(GREY) Removing $(END)$(RED)Objects Folder$(END)'
+	@$(ECHO) -e '$(GREY) Removing $(END)$(RED)Objects$(END)'
+	@$(ECHO) -e '$(GREY) Removing $(END)$(RED)Objects Folder$(END)'
 	@$(RM) -r $(BUILD_DIR)
 
 # Clean (make fclean)
 fclean: clean
-	@echo -e '$(GREY) Removing $(END)$(RED)Program$(END)'
+	@$(ECHO) -e '$(GREY) Removing $(END)$(RED)Program$(END)'
 	@$(RM) $(NAME)
 	@$(RM) $(NAME)_bonus
-	@echo ""
+	@$(ECHO) ""
 
 # Restart (make re)
 re: 
@@ -158,23 +161,19 @@ filelist:
 
 
 archive:
-	@$(MAKE) --no-print-directory -f ./Webserv.mk archive 
+	@$(MAKE) --no-print-directory -f ./Webserv.mk archive $(PMAKE)
 
 .clangd:
 	@rm -f .clangd
-	@echo >> .clangd
-	@echo 'CompileFlags: # Tweak the parse settings' >> .clangd
-	@echo '  Compiler: clang' >> .clangd
-	@echo '  Add:' >> .clangd
-	@echo '    - "-xc++"' >> .clangd
-	@echo '    - "-std=c++98"' >> .clangd
-	@echo '    - "-I$(shell realpath $(INCLUDE_DIR))"' >> .clangd
-	@echo >> .clangd
+	@$(ECHO) >> .clangd
+	@$(ECHO) 'CompileFlags: # Tweak the parse settings' >> .clangd
+	@$(ECHO) '  Compiler: clang' >> .clangd
+	@$(ECHO) '  Add:' >> .clangd
+	@$(ECHO) '    - "-xc++"' >> .clangd
+	@$(ECHO) '    - "-std=c++98"' >> .clangd
+	@$(ECHO) '    - "-I$(shell realpath $(INCLUDE_DIR))"' >> .clangd
+	@$(ECHO) >> .clangd
 
-
-.clang-format:
-	@rm -f .clang-format
-	@curl https://raw.githubusercontent.com/Maix0/42cpp/refs/heads/master/.clang-format -o .clang-format
 
 subject: .subject.txt
 	@bat --plain ./.subject.txt
@@ -183,7 +182,7 @@ subject: .subject.txt
 	@curl $(SUBJECT_URL) | pdftotext -layout -nopgbrk -q - .subject.txt
 
 cleandl:
-	rm -rf $(DOWNLOAD_DIR);
+	rm -rf $(DOWNLOAD_DIR)
 
 download:  $(DOWNLOAD_DIR)/cgi_tester $(DOWNLOAD_DIR)/tester 
 	chmod +x $^
@@ -196,7 +195,7 @@ $(DOWNLOAD_DIR)/tester: $(DOWNLOAD_DIR)
 	curl $(SUBJECT_URL_UBUNTU_TESTER) -o $@
 
 $(DOWNLOAD_DIR):
-	mkdir -p $(DOWNLOAD_DIR)
+	@mkdir -p $(DOWNLOAD_DIR)
 
 
 

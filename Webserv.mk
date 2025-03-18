@@ -6,7 +6,7 @@
 #    By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/11/03 13:20:01 by maiboyer          #+#    #+#              #
-#    Updated: 2025/03/09 18:52:33 by maiboyer         ###   ########.fr        #
+#    Updated: 2025/03/18 22:43:29 by maiboyer         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -37,27 +37,26 @@ COL_GREEN		=	\033[32m
 COL_RESET		=	\033[0m
 COL_WHITE		=	\033[37m
 
+ECHO			?=	/usr/bin/env echo
 
 .PHONY = all bonus clean re subject filelist .clangd archive
 all: $(NAME)
 
-#$(NAME): $(TARGET)
-
 $(TARGET): $(OBJ)
-	@echo -e '$(COL_GRAY) Linking \t $(COL_GOLD)$(TARGET)$(COL_RESET)'
+	@$(ECHO) -e '$(COL_GRAY) Linking \t $(COL_GOLD)$(TARGET)$(COL_RESET)'
 	@$(CXX) $(INCLUDES) $(OBJ) $(CXXFLAGS) -o $(NAME)
 
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp
 	@mkdir -p $(dir $@)
-	@echo -e '$(COL_GRAY) Building\t $(COL_GREEN)$<$(COL_RESET)'
+	@$(ECHO) -e '$(COL_GRAY) Building\t $(COL_GREEN)$<$(COL_RESET)'
 	@$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
 
 clean:
-	@echo -e '$(COL_GRAY) Removing\t $(COL_RED)$(BUILD_DIR)$(COL_RESET)'
+	@$(ECHO) -e '$(COL_GRAY) Removing\t $(COL_RED)$(BUILD_DIR)$(COL_RESET)'
 	@rm -rf $(BUILD_DIR)
 
 fclean: clean
-	@echo -e '$(COL_GRAY) Removing\t $(COL_RED)$(NAME)$(COL_RESET)'
+	@$(ECHO) -e '$(COL_GRAY) Removing\t $(COL_RED)$(NAME)$(COL_RESET)'
 	@rm -f $(NAME)
 
 re: fclean all
