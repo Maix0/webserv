@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/08 18:07:56 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/15 09:58:12 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/19 16:12:28 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,9 +61,9 @@ namespace app {
 
 		struct epoll_event ev = {};
 		ev.data.fd			  = fd;
-		ev.events			 |= e.write.hasValue() ? EPOLLOUT : 0;
-		ev.events			 |= e.read.hasValue() ? EPOLLIN : 0;
-		ev.events			 |= e.hangup.hasValue() ? (EPOLLHUP | EPOLLRDHUP) : 0;
+		ev.events			 |= e.write.hasValue() ? (int)EPOLLOUT : 0;
+		ev.events			 |= e.read.hasValue() ? (int)EPOLLIN : 0;
+		ev.events			 |= e.hangup.hasValue() ? (int)(EPOLLHUP | EPOLLRDHUP) : 0;
 
 		int op				  = new_ ? EPOLL_CTL_ADD : EPOLL_CTL_MOD;
 
@@ -89,9 +89,9 @@ namespace app {
 
 		struct epoll_event ev = {};
 		ev.data.fd			  = fd;
-		ev.events			 |= e.write.hasValue() ? EPOLLOUT : 0;
-		ev.events			 |= e.read.hasValue() ? EPOLLIN : 0;
-		ev.events			 |= e.hangup.hasValue() ? (EPOLLHUP | EPOLLRDHUP) : 0;
+		ev.events			 |= e.write.hasValue() ? (int)EPOLLOUT : 0;
+		ev.events			 |= e.read.hasValue() ? (int)EPOLLIN : 0;
+		ev.events			 |= e.hangup.hasValue() ? (int)(EPOLLHUP | EPOLLRDHUP) : 0;
 
 		int op				  = (ev.events == 0) ? EPOLL_CTL_DEL : EPOLL_CTL_MOD;
 

@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/18 23:23:14 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/18 23:29:48 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/19 16:14:27 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,7 +55,7 @@ class IndexMap : public std::vector<std::pair<K, V> > {
 		V& operator[](const K& key) {
 			try {
 				return this->at(key);
-			} catch (std::out_of_range) {
+			} catch (const std::out_of_range& e) {
 				this->push_back(std::make_pair(key, V()));
 				return this->back().second;
 			}
@@ -69,7 +69,7 @@ class IndexMap : public std::vector<std::pair<K, V> > {
 
 				slot->second = value.second;
 				return std::make_pair(slot, true);
-			} catch (std::out_of_range) {
+			} catch (const std::out_of_range& e) {
 				this->push_back(value);
 				return std::make_pair(this->end()--, false);
 			}

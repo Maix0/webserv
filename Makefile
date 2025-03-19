@@ -6,7 +6,7 @@
 #    By: rparodi <rparodi@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/11/12 11:05:05 by rparodi           #+#    #+#              #
-#    Updated: 2025/03/19 14:38:58 by maiboyer         ###   ########.fr        #
+#    Updated: 2025/03/19 16:22:22 by maiboyer         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -44,17 +44,19 @@ PMAKE =
 ifndef PMAKE_DISABLE
 ifeq ($(shell uname), Linux)
     PMAKE = -j$(shell grep -c ^processor /proc/cpuinfo)
-    #CFLAGS_ADDITIONAL    += -DPRINT_BACKTRACE
 endif
 ifeq ($(shell uname), Darwin)
     PMAKE = -j$(shell sysctl -n hw.ncpu)
-    #CFLAGS_ADDITIONAL    += -DNVALGRIND
 endif
 endif
 
 ifeq ($(MAKECMDGOALS), bonus)
     CFLAGS_ADDITIONAL += -DBONUS=1
     BUILD_DIR := $(BUILD_DIR)/bonus
+endif
+
+ifeq ($(CXX), g++)
+	CXXFLAGS_ADDITIONAL += -Wno-c++11-compat
 endif
 
 CXXFLAGS_ADDITIONAL	+= -gcolumn-info -g3 -fno-builtin
@@ -99,7 +101,6 @@ release:
 	$(eval CXXFLAGS_ADDITIONAL += -march=native)
 	$(eval CXXFLAGS_ADDITIONAL += -mtune=native)
 	@$(MAKE) --no-print-directory header 'MSG_BONUS=$(WSTART)$(RED)Realese build - Added flags !$(RED)$(WEND)'
-	@$(MAKE) --no-print-directory -f ./Webserv.mk fclean
 	@$(MAKE) --no-print-directory -f ./Webserv.mk $(PMAKE)
 	@$(ECHO) -e '\033[90m Stripping\t\033[32m $(NAME)\033[0m'
 	@/usr/bin/env strip -s $(NAME)

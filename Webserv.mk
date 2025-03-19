@@ -6,7 +6,7 @@
 #    By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/11/03 13:20:01 by maiboyer          #+#    #+#              #
-#    Updated: 2025/03/18 22:43:29 by maiboyer         ###   ########.fr        #
+#    Updated: 2025/03/19 16:44:45 by maiboyer         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -23,9 +23,12 @@ CXX				?=	c++
 CXXFLAGS		=	-Wall -Wextra -MMD -std=c++98
 CXXFLAGS		+=	$(CXXFLAGS_ADDITIONAL)
 
+# sorting + removing useless args
+CXXFLAGS		:=	$(shell sh -c 'for arg in $(CXXFLAGS); do echo $$arg; done | sort -u')
+
 -include 			./Filelist.mk
 
-OBJ				=	$(addsuffix .o,$(addprefix $(BUILD_DIR)/,$(SRC_FILES)))
+OBJ				=	$(addsuffix .o,$(addprefix $(BUILD_DIR)/,$(SRC_FILES) .flags))
 DEPS			=	$(addsuffix .d,$(addprefix $(BUILD_DIR)/,$(SRC_FILES)))
 
 INCLUDES		=	$(addprefix -I,$(foreach P,$(INCLUDE_DIR), $(realpath $(P))))
@@ -39,14 +42,36 @@ COL_WHITE		=	\033[37m
 
 ECHO			?=	/usr/bin/env echo
 
-.PHONY = all bonus clean re subject filelist .clangd archive
-all: $(NAME)
+.PHONY = all bonus clean re subject filelist .clangd archive _flags
+
+export CXX
+export CXXFLAGS
+export BUILD_DIR
+export INCLUDES
+
+all:
+	@$(MAKE) -f Webserv.mk _flags
+	@$(MAKE) -f Webserv.mk $(NAME)
 
 $(TARGET): $(OBJ)
 	@$(ECHO) -e '$(COL_GRAY) Linking \t $(COL_GOLD)$(TARGET)$(COL_RESET)'
 	@$(CXX) $(INCLUDES) $(OBJ) $(CXXFLAGS) -o $(NAME)
 
-$(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp
+$(BUILD_DIR)/.flags.o: $(BUILD_DIR)/.flags.txt
+	@mkdir -p $(dir $@)
+	@$(ECHO) -e '$(COL_GRAY) Creating\t $(COL_GOLD).flags.o$(COL_RESET)'
+	@cd $(BUILD_DIR) && objcopy --input-target binary \
+		--output-target elf64-x86-64 \
+		--binary-architecture i386:x86-64 \
+		--rename-section .data=.rodata,CONTENTS,ALLOC,LOAD,READONLY,DATA \
+		--redefine-sym=_binary__flags_txt_start=__flags_start \
+		--redefine-sym=_binary__flags_txt_end=__flags_end \
+		--redefine-sym=_binary__flags_txt_size=__flags_size \
+		--add-section .note.GNU-stack=/dev/null \
+		.flags.txt .flags.o
+
+
+$(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp $(BUILD_DIR)/.flags.txt
 	@mkdir -p $(dir $@)
 	@$(ECHO) -e '$(COL_GRAY) Building\t $(COL_GREEN)$<$(COL_RESET)'
 	@$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
@@ -61,7 +86,7 @@ fclean: clean
 
 re: fclean all
 
-archive: $(OBJ)
+archive: $(OBJ) 
 	@echo -e '$(COL_GRAY) Bundle\t $(COL_GREEN)$(BUILD_DIR)/webserv.a$(COL_RESET)'
 	@ar rcs $(BUILD_DIR)/webserv.a $(OBJ)
 
@@ -70,5 +95,13 @@ filelist:
 	@printf '%-78s\\\n' "SRC_FILES =" > Filelist.mk
 	@tree $(SRC_DIR) -ifF | rg '$(SRC_DIR)/(.*)\.cpp$$' --replace '$$1' | sed -re 's/^(.*)_([0-9]+)$$/\1|\2/g' | sort -t'|' --key=1,1 --key=2,2n | sed -e's/|/_/' | xargs printf '%-78s\\\n' >> Filelist.mk
 	@echo "" >> Filelist.mk
+
+_flags: 
+	@$(eval BUILD_FINGERPRINT="CXX = $(CXX)\nCXXFLAGS = $(CXXFLAGS)")
+	@$(eval CURRENT_FINGERPRINT="$(shell cat $(BUILD_DIR)/.flags.txt 2>/dev/null)")
+	@if ! [ $(CURRENT_FINGERPRINT) == $(BUILD_FINGERPRINT) ]; then \
+		mkdir -p $(BUILD_DIR);                                     \
+		$(ECHO) -e $(BUILD_FINGERPRINT) > $(BUILD_DIR)/.flags.txt;       \
+	fi
 
 -include $(DEPS)
