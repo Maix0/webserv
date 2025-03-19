@@ -6,7 +6,7 @@
 #    By: rparodi <rparodi@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/11/12 11:05:05 by rparodi           #+#    #+#              #
-#    Updated: 2025/03/18 22:46:26 by maiboyer         ###   ########.fr        #
+#    Updated: 2025/03/19 14:38:58 by maiboyer         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -90,6 +90,19 @@ all:
 	$(eval CXXFLAGS_ADDITIONAL += -Werror)
 	@$(MAKE) --no-print-directory header
 	@$(MAKE) --no-print-directory -f ./Webserv.mk $(PMAKE)
+	@$(MAKE) --no-print-directory footer
+
+
+release:
+	$(eval CXXFLAGS_ADDITIONAL += -Werror)
+	$(eval CXXFLAGS_ADDITIONAL += -O2)
+	$(eval CXXFLAGS_ADDITIONAL += -march=native)
+	$(eval CXXFLAGS_ADDITIONAL += -mtune=native)
+	@$(MAKE) --no-print-directory header 'MSG_BONUS=$(WSTART)$(RED)Realese build - Added flags !$(RED)$(WEND)'
+	@$(MAKE) --no-print-directory -f ./Webserv.mk fclean
+	@$(MAKE) --no-print-directory -f ./Webserv.mk $(PMAKE)
+	@$(ECHO) -e '\033[90m Stripping\t\033[32m $(NAME)\033[0m'
+	@/usr/bin/env strip -s $(NAME)
 	@$(MAKE) --no-print-directory footer
 
 debug:
