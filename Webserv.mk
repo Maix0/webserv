@@ -6,7 +6,7 @@
 #    By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/11/03 13:20:01 by maiboyer          #+#    #+#              #
-#    Updated: 2025/03/29 18:09:32 by maiboyer         ###   ########.fr        #
+#    Updated: 2025/03/31 13:11:25 by maiboyer         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -99,7 +99,7 @@ filelist:
 _flags: 
 	@$(eval BUILD_FINGERPRINT="CXX = $(CXX)\nCXXFLAGS = $(CXXFLAGS)")
 	@$(eval CURRENT_FINGERPRINT="$(shell cat $(BUILD_DIR)/.flags.txt 2>/dev/null | sed -e 's/\\n/ /g')")
-	@if ! [ $(CURRENT_FINGERPRINT) == "$(shell echo $(BUILD_FINGERPRINT) | sed -e 's/\\n/ /g')" ]; then \
+	@if [ $(CURRENT_FINGERPRINT) != "$(shell echo $(BUILD_FINGERPRINT) | sed -e 's/\\n/ /g')" ]; then \
 		mkdir -p $(BUILD_DIR);                                     \
 		$(ECHO) -e $(BUILD_FINGERPRINT) > $(BUILD_DIR)/.flags.txt;       \
 	fi
