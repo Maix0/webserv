@@ -3,6 +3,7 @@ app/Context                                                                   \
 app/Directory                                                                 \
 app/Epoll                                                                     \
 app/File                                                                      \
+app/Request                                                                   \
 app/Routing                                                                   \
 app/Socket                                                                    \
 app/callback/Connection                                                       \

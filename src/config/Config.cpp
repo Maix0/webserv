@@ -22,7 +22,7 @@ namespace config {
 	Config Config::fromTomlValue(const toml::Value& toml) {
 		const toml::Table& table = toml.getTable();
 		Config			   out;
-		out.shutdown_port = Option<app::Port>::None();
+		out.shutdown_port = Option<Port>::None();
 		for (toml::Table::const_iterator it = table.begin(); it != table.end(); it++) {
 			try {
 				if (it->first == "cgi")
@@ -32,16 +32,16 @@ namespace config {
 				else if (it->first == "shutdown") {
 					if (it->second.isBool()) {
 						if (it->second.getBool())
-							out.shutdown_port = Option<app::Port>::Some(0);
+							out.shutdown_port = Option<Port>::Some(0);
 						else
-							out.shutdown_port = Option<app::Port>::None();
+							out.shutdown_port = Option<Port>::None();
 					} else if (it->second.isNull())
-						out.shutdown_port = Option<app::Port>::None();
+						out.shutdown_port = Option<Port>::None();
 					else {
 						toml::Number raw = it->second.getInt();
 						if (raw < 0 || raw > 65565)
 							throw std::runtime_error("invalid range (0-65565)");
-						out.shutdown_port = app::Port(raw);
+						out.shutdown_port = Port(raw);
 					}
 				} else
 					throw std::runtime_error("unknown key");

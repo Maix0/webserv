@@ -133,7 +133,7 @@ namespace config {
 
 	/// this function will change the `host` of every server
 	static void _checkInvalidIpPorts(Config& config) {
-		app::PortMap port_map;
+		PortMap port_map;
 
 		for (IndexMap<string, config::Server>::iterator sit = config.server.begin();
 			 sit != config.server.end(); sit++) {
@@ -155,7 +155,7 @@ namespace config {
 			for (p = res; p != NULL; p = p->ai_next) {
 				if (res->ai_family == AF_INET) {
 					struct sockaddr_in* ipv4 = (struct sockaddr_in*)p->ai_addr;
-					app::Ip				ip	 = ipv4->sin_addr.s_addr;
+					Ip				ip	 = ipv4->sin_addr.s_addr;
 					LOG(trace, "addrinfo: '" << hostname << "' = " << ip);
 					sit->second.bind = ip;
 					bound			 = true;
@@ -173,19 +173,19 @@ namespace config {
 
 			/// insert a set if none exists for the port
 			if (port_map.count(sit->second.port) == 0)
-				port_map[sit->second.port] = set<app::Ip>();
+				port_map[sit->second.port] = set<Ip>();
 
 			port_map[sit->second.port].insert(sit->second.bind);
 		}
 
-		for (map<app::Port, set<app::Ip> /**/>::iterator it = port_map.begin();
+		for (map<Port, set<Ip> /**/>::iterator it = port_map.begin();
 			 it != port_map.end(); it++) {
 			if (it->second.size() > 1) {
 				LOG(err, "Too many different ips tries to bind onto the port " << it->first);
 				throw std::runtime_error("duplicate port for different ips");
 			}
 		}
-		app::Context& ctx = app::Context::getInstance();
+		Context& ctx = Context::getInstance();
 		ctx.getPortMap()  = port_map;
 	}
 
@@ -206,7 +206,7 @@ namespace config {
 	}
 
 	static void _buildPortServerMap(Config& config) {
-		app::PortServerMap out;
+		PortServerMap out;
 		for (IndexMap<std::string, Server>::iterator it = config.server.begin();
 			 it != config.server.end(); it++) {
 			if (out.count(it->second.port) == 0)
@@ -214,7 +214,7 @@ namespace config {
 			out[it->second.port].push_back(&it->second);
 		}
 		bool error = false;
-		for (app::PortServerMap::iterator pit = out.begin(); pit != out.end(); pit++) {
+		for (PortServerMap::iterator pit = out.begin(); pit != out.end(); pit++) {
 			std::set<std::string> hostnames;
 			for (vector<Server*>::iterator vit = pit->second.begin(); vit != pit->second.end();
 				 vit++) {
@@ -233,7 +233,7 @@ namespace config {
 		}
 		if (error)
 			throw std::runtime_error("Duplicate hostname for same port");
-		app::Context::getInstance().getPortServerMap() = out;
+		Context::getInstance().getPortServerMap() = out;
 	};
 
 	static void _setupRoutes(Config& config) {
@@ -243,7 +243,7 @@ namespace config {
 			std::set<std::vector<string> > route_seens;
 			for (IndexMap<string, Route>::iterator route = sit->second.routes.begin();
 				 route != sit->second.routes.end(); route++) {
-				vector<string> parts = app::url_to_parts(route->first);
+				vector<string> parts = url_to_parts(route->first);
 				if (route_seens.count(parts) != 0) {
 					LOG(err, "Duplicate route for server "
 								 << sit->first << " (offending route: " << route->first << ")");

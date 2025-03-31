@@ -39,7 +39,7 @@ namespace config {
 					toml::Number raw = it->second.getInt();
 					if (raw < 0 || raw > 65565)
 						throw std::runtime_error("invalid range (0-65565)");
-					out.port = app::Port(raw);
+					out.port = Port(raw);
 				} else if (it->first == "root")
 					out.root = it->second.getString();
 				else if (it->first == "host") {

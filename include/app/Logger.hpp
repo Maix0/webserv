@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/02 18:29:43 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/15 09:56:49 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/29 18:13:51 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,6 @@
 #include <cstdlib>
 #include <exception>
 #include <iostream>
-#include <iterator>
 #include <string>
 
 #define RESET		   "\x1b[0m"
@@ -88,7 +87,7 @@ namespace log {
 
 	extern LogLevel logLevel;
 
-	static inline bool _setEnvLogLevel(char** envp) {
+	inline bool _setEnvLogLevel(char** envp) {
 		try {
 			while (*envp) {
 				std::string			   env = *envp;
@@ -135,11 +134,11 @@ namespace log {
 		return false;
 	}
 
-	static inline bool _shouldLog(LogLevel level) {
+	inline bool _shouldLog(LogLevel level) {
 		return (level <= logLevel);
 	}
 
-	static inline LogLevel _compileTimeLogLevel(void) {
+	inline LogLevel _compileTimeLogLevel(void) {
 		if (log::_setEnvLogLevel(environ))
 			return logLevel;
 		if (LOG_LEVEL < none || LOG_LEVEL > trace)
@@ -147,7 +146,7 @@ namespace log {
 		return (LogLevel)LOG_LEVEL;
 	}
 
-	static inline void setLogLevel(LogLevel level) {
+	inline void setLogLevel(LogLevel level) {
 		logLevel = level;
 	}
 
@@ -187,14 +186,20 @@ namespace log {
 #undef debug
 #undef trace
 
-#define LOG(level, code)                                                                        \
-	do {                                                                                        \
-		FILTER_##level(std::cerr << HEADER_##level << " " << __FUNCTION__ << " in " << __FILE__ \
-								 << ":" << __LINE__ << " " << code << std::endl;);              \
+#define _STRINGIFY(x) #x
+#define STRINGIFY(x)  _STRINGIFY(x)
+
+#define SLINE		  STRINGIFY(__LINE__)
+
+#define LOG(level, code)                                                                  \
+	do {                                                                                  \
+		FILTER_##level(std::cerr << HEADER_##level " " << __FUNCTION__                    \
+								 << " in " __FILE__ ":" SLINE " " << code << std::endl;); \
 	} while (0)
 
 #include <cerrno>
 #include <cstring>
+#include <stdexcept>
 
 #define _ERR_RET(code)                                       \
 	if ((code) < 0) {                                        \
@@ -210,4 +215,10 @@ namespace log {
 		(void)serr;                                          \
 		LOG(debug, "early return here: " << strerror(serr)); \
 		throw std::runtime_error("check failed");            \
+	}
+
+#define _UNREACHABLE                                     \
+	{                                                    \
+		LOG(fatal, "unreachable reached");               \
+		throw std::runtime_error("Unreachable reached"); \
 	}

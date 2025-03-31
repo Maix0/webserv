@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/18 23:23:14 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/19 16:14:27 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/03/25 18:54:34 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,6 +27,14 @@ class IndexMap : public std::vector<std::pair<K, V> > {
 				bool operator()(const std::pair<K, V>& val) const { return val.first == k; };
 		};
 
+		struct FindValue {
+				const V& v;
+				FindValue(const V& value) : v(value) {}
+				~FindValue() {};
+
+				bool operator()(const std::pair<K, V>& val) const { return val.second == v; };
+		};
+
 	public:
 		typedef typename std::vector<std::pair<K, V> >::iterator	   iterator;
 		typedef typename std::vector<std::pair<K, V> >::const_iterator const_iterator;
@@ -43,6 +51,15 @@ class IndexMap : public std::vector<std::pair<K, V> > {
 			if (v == this->end())
 				throw std::out_of_range("provied key isn't found");
 			return v->second;
+		}
+
+		iterator find_value(const V& val) {
+			iterator v = std::find_if(this->begin(), this->end(), FindValue(val));
+			return v;
+		}
+		const_iterator find_value(const V& val) const {
+			const_iterator v = std::find_if(this->begin(), this->end(), FindValue(val));
+			return v;
 		}
 
 		std::size_t count(const K& key) const {

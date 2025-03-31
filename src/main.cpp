@@ -31,7 +31,7 @@
 using std::string;
 using std::vector;
 
-app::Shared<bool> app::do_shutdown = new bool(false);
+Shared<bool> do_shutdown = new bool(false);
 
 static void install_ctrlc_handler(void);
 
@@ -45,7 +45,7 @@ int wrapped_main(char* argv0, int argc, char* argv[], char* envp[]) {
 		return 1;
 	}
 
-	app::Context& ctx	   = app::Context::getInstance();
+	Context& ctx	   = Context::getInstance();
 
 	toml::Value val		   = toml::Parser::parseFile(argv[0]);
 
@@ -54,33 +54,33 @@ int wrapped_main(char* argv0, int argc, char* argv[], char* envp[]) {
 	config::checkConfig(config, envp);
 	ctx.openAllSockets();
 
-	app::SocketList s = ctx.getSockets();
-	app::Epoll		epoll;
+	SocketList s = ctx.getSockets();
+	Epoll		epoll;
 
-	for (app::SocketList::iterator iit = s.begin(); iit != s.end(); iit++) {
-		for (vector<app::Shared<app::Socket> >::iterator sit = iit->second.begin();
+	for (SocketList::iterator iit = s.begin(); iit != s.end(); iit++) {
+		for (vector<Shared<Socket> >::iterator sit = iit->second.begin();
 			 sit != iit->second.end(); sit++) {
-			app::Shared<app::Socket>		 sock	 = *sit;
-			app::Shared<app::SocketCallback> sock_cb = new app::SocketCallback(sock);
-			epoll.addCallback(sock->asFd(), READ, sock_cb.cast<app::Callback>());
+			Shared<Socket>		 sock	 = *sit;
+			Shared<SocketCallback> sock_cb = new SocketCallback(sock);
+			epoll.addCallback(sock->asFd(), READ, sock_cb.cast<Callback>());
 		}
 	}
 
 	if (config.shutdown_port.hasValue()) {
-		app::Shared<app::Socket> shutdown_socket =
-			new app::Socket(app::Ip(0), config.shutdown_port.get());
+		Shared<Socket> shutdown_socket =
+			new Socket(Ip(0), config.shutdown_port.get());
 		ctx.getShutdown() = shutdown_socket;
 		LOG(info, "Created shutdown socket on port: " << shutdown_socket->getBoundPort());
-		app::Shared<app::ShutdownCallback> shutdown_cb =
-			new app::ShutdownCallback(shutdown_socket, app::do_shutdown);
-		epoll.addCallback(shutdown_socket->asFd(), READ, shutdown_cb.cast<app::Callback>());
+		Shared<ShutdownCallback> shutdown_cb =
+			new ShutdownCallback(shutdown_socket, do_shutdown);
+		epoll.addCallback(shutdown_socket->asFd(), READ, shutdown_cb.cast<Callback>());
 	}
 	install_ctrlc_handler();
-	while (!*app::do_shutdown) {
-		vector<app::Shared<app::Callback> > callbacks = epoll.fetchCallbacks();
-		for (vector<app::Shared<app::Callback> >::iterator it = callbacks.begin();
+	while (!*do_shutdown) {
+		vector<Shared<Callback> > callbacks = epoll.fetchCallbacks();
+		for (vector<Shared<Callback> >::iterator it = callbacks.begin();
 			 it != callbacks.end(); it++) {
-			app::Shared<app::Callback> cb = *it;
+			Shared<Callback> cb = *it;
 			cb->call(epoll, cb);
 		}
 	};
@@ -96,7 +96,7 @@ static void install_ctrlc_handler(void) {};
 static void _ctrlc_handler(int sig) {
 	(void)(sig);
 	LOG(warn, "Ctrl+C: Shutting down");
-	*app::do_shutdown = true;
+	*do_shutdown = true;
 }
 
 static void install_ctrlc_handler(void) {

@@ -92,9 +92,9 @@ namespace config {
 			/// @implementation detail
 			/// this field is only populated AFTER the config is parsed. it is populated while
 			/// validating stuff
-			app::Ip		bind;
+			Ip		bind;
 			/// @required
-			app::Port	port;
+			Port	port;
 
 			IndexMap<std::string, Route> routes;
 
@@ -117,7 +117,7 @@ namespace config {
 			// false -> No shutdown port;
 			// null -> No shutdown port;
 			// 0-65565 -> shutdown port;
-			Option<app::Port>			  shutdown_port;
+			Option<Port>			  shutdown_port;
 
 			static Config fromTomlValue(const ::toml::Value& toml);
 	};
