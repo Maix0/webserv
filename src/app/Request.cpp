@@ -6,21 +6,51 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/29 17:16:21 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/31 17:57:13 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/01 16:59:12 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "app/Request.hpp"
 #include <fcntl.h>
+#include <sys/types.h>
 #include "app/Logger.hpp"
 #include "app/StringHelper.hpp"
 
+#include <cassert>
 #include <cctype>
+#include <cerrno>
+#include <cstdlib>
 #include <sstream>
 #include <string>
 
 using std::string;
 using std::vector;
+
+std::string Request::createStatusPageFor(StatusCode code) {
+	std::stringstream req;
+	std::stringstream body;
+
+	req << "HTTP/1.1 " << code.code() << " " << code.canonical() << CRLF;
+	req << "Content-Type: text/html; charset=UTF-8" CRLF;
+	req << "Content-Length: ";
+
+	body << "<html>" CRLF;
+	body << "<head><title> " << code.code() << " " << code.canonical() << " "
+		 << "</title></head>" CRLF;
+	body << "<body>" CRLF;
+	body << "<center><h1>" << code.code() << " " << code.canonical() << " "
+		 << "</h1></center>" CRLF;
+
+	std::string						 body_str = body.str();
+	req << body_str.length() << CRLF CRLF << body_str;
+
+	return req.str();
+}
+
+std::string StatusCode::canonical() const {
+	assert(0 <= this->_code && this->_code < 600);
+	return status::_STATUS_NAMES[this->_code];
+}
 
 static const vector<string> _all_multiheaders() {
 	vector<string> out;
@@ -32,19 +62,28 @@ static const vector<string> _all_multiheaders() {
 
 const vector<string> Request::ALLOWED_MULTIHEADERS = _all_multiheaders();
 
-void Request::parseBytes(vector<char>::const_iterator beg, vector<char>::const_iterator end) {
-	this->tmp_buffer.insert(this->tmp_buffer.end(), beg, end);
+void Request::parseBytes(std::string& buffer) {
+	assert(MAX_HEADERS_SIZE > MAX_URI_SIZE);
+	bool continue_loop = false;
 	do {
+		continue_loop = true;
 		switch (this->state) {
 			case Request::HEADER: {
-				std::string::size_type clrf = this->tmp_buffer.find(CLRF);
-				if (clrf == std::string::npos)
+				std::string::size_type crlf = buffer.find(CRLF);
+
+				if (crlf == std::string::npos) {
+					if (buffer.size() >= MAX_URI_SIZE)
+						throw PageException(414);
 					return;
-				std::stringstream first_line(
-					string(this->tmp_buffer.begin(), this->tmp_buffer.begin() + clrf));
-				this->tmp_buffer.erase(this->tmp_buffer.begin(),
-									   this->tmp_buffer.begin() + clrf + 2);
-				LOG(debug, "MainHeader: " << first_line);
+				}
+				if (crlf + 2 >= MAX_URI_SIZE)
+					throw PageException(414);
+				this->headers_total_size += crlf + 2;
+
+				std::stringstream first_line(string(buffer.begin(), buffer.begin() + crlf));
+				buffer.erase(buffer.begin(), buffer.begin() + crlf + 2);
+
+				LOG(debug, "MainHeader: " << first_line.str());
 				string method, path, version;
 
 				std::getline(first_line, method, ' ');
@@ -52,59 +91,86 @@ void Request::parseBytes(vector<char>::const_iterator beg, vector<char>::const_i
 				std::getline(first_line, version, ' ');
 
 				if (method.empty() || path.empty() || version.empty()) {
-					throw PageException() return;
+					throw PageException(400);
 				}
 				this->state = Request::USERHEADERS;
+
 				break;
 			};
 			case Request::USERHEADERS: {
-				std::string::size_type clrf = this->tmp_buffer.find(CLRF);
-				if (clrf == std::string::npos)
+				std::string::size_type end	= buffer.find(CRLF CRLF);
+				std::string::size_type crlf = buffer.find(CRLF);
+				if (crlf == std::string::npos) {
+					if (this->headers_total_size + buffer.size() >= MAX_HEADERS_SIZE)
+						throw PageException(431);
+					LOG(debug, "ended");
 					return;
-				std::string header_line(this->tmp_buffer.begin(), this->tmp_buffer.begin() + clrf);
-				this->tmp_buffer.erase(this->tmp_buffer.begin(),
-									   this->tmp_buffer.begin() + clrf + 2);
-				if (header_line.empty()) {
-					this->state = Request::BODY;
-					break;
 				}
+				if (this->headers_total_size + crlf + 2 >= MAX_HEADERS_SIZE)
+					throw PageException(431);
+				this->headers_total_size += crlf + 2;
+
+				std::string header_line(string(buffer.begin(), buffer.begin() + crlf));
+				buffer.erase(buffer.begin(), buffer.begin() + crlf + 2);
+				LOG(debug, "buffer_size = " << buffer.size() << "; '" << buffer << "'");
+
 				string::size_type delim = header_line.find(":");
 				string			  name(header_line.begin(), header_line.begin() + delim);
 				string			  value(header_line.begin() + delim + 1, header_line.end());
-				trim(name);
-				trim(value);
+
+				string_trim(name);
+				string_trim(value);
+
 				for (string::iterator it = name.begin(); it != name.end(); it++)
 					*it = std::tolower(*it);
 
 				if (this->headers.count(name) == 0) {
+					if (name == "content-length") {
+						char* end			   = NULL;
+						errno				   = 0;
+						unsigned long long val = std::strtoll(value.c_str(), &end, 10);
+						if (errno != 0)
+							throw PageException(400);
+						this->body_size = val;
+					}
 					this->headers.insert(std::make_pair(name, value));
 				} else {
-					if (std::find(Request::ALLOWED_MULTIHEADERS.begin(),
-								  Request::ALLOWED_MULTIHEADERS.end(),
-								  name) == Request::ALLOWED_MULTIHEADERS.end()) {
-						// throw
-						return;
+					/// we check that it is a valid header to be concatenated.
+					/// either it is in a premade list, or it is a Vendor-specific header (start
+					/// with `X-`)
+					/// if either condition is true, then proceed to concat. otherwise just throw
+					/// 400
+					if (!(string_start_with(name, "X-") ||
+						  std::find(ALLOWED_MULTIHEADERS.begin(), ALLOWED_MULTIHEADERS.end(),
+									name) != ALLOWED_MULTIHEADERS.end())) {
+						throw PageException(400);
 					}
 					this->headers.at(name) += string(",") + value;
 				}
 				LOG(debug, "HttpHeader: " << name << ": " << value);
 
+				if (end == crlf) {
+					this->state = BODY;
+					buffer.erase(buffer.begin(), buffer.begin() + 2);
+					continue_loop = true;
+				}
 				break;
 			};
 			case Request::BODY: {
+				throw PageException(404);
 				if (this->body_fd != -1)
-					_ERR_RET_THROW(this->body_fd = open("/tmp", O_RDWR | O_CLOEXEC | O_TMPFILE));
-				size_t size = this->tmp_buffer.size();
+					_ERR_RET_THROW(this->body_fd = open("/tmp", O_RDWR | O_CLOEXEC | O_TMPFILE, 0));
+				size_t size = buffer.size();
 				if (this->content_length != -1 &&
-					(ssize_t)(this->body_size + this->tmp_buffer.size()) > this->content_length) {
-					size = this->content_length + this->tmp_buffer.size() - this->content_length;
+					(ssize_t)(this->body_size + buffer.size()) > this->content_length) {
+					size = this->content_length + buffer.size() - this->content_length;
 				}
 
 				this->body_size += size;
-				_ERR_RET_THROW(
-					write(this->body_fd, this->tmp_buffer.data(), this->tmp_buffer.size()));
-				this->tmp_buffer.erase(this->tmp_buffer.begin(), this->tmp_buffer.begin() + size);
-				if (this->content_length == this->body_size) {
+				_ERR_RET_THROW(write(this->body_fd, buffer.data(), buffer.size()));
+				buffer.erase(buffer.begin(), buffer.begin() + size);
+
+				if (this->content_length == (ssize_t)this->body_size) {
 					this->state = Request::FINISHED;
 				}
 			}
@@ -116,5 +182,5 @@ void Request::parseBytes(vector<char>::const_iterator beg, vector<char>::const_i
 				_UNREACHABLE;
 			}
 		}
-	} while (!this->tmp_buffer.empty());
+	} while (!buffer.empty() || continue_loop);
 }

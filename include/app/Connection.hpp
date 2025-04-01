@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/12 18:43:37 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/25 22:45:21 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/01 16:02:50 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,8 +31,8 @@ class Connection : public AsFd {
 				};
 		};
 
-		typedef std::vector<char> Buffer;
-		typedef State::Inner	  StateE;
+		typedef std::string	 Buffer;
+		typedef State::Inner StateE;
 
 	private:
 		StateE state;
