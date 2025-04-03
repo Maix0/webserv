@@ -10,19 +10,19 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "app/Socket.hpp"
-#include "app/Callback.hpp"
-#include "app/Connection.hpp"
+#include "app/net/Socket.hpp"
+#include "interface/Callback.hpp"
+#include "app/net/Connection.hpp"
 #include "app/Context.hpp"
-#include "app/Epoll.hpp"
-#include "app/Logger.hpp"
-#include "app/Shared.hpp"
+#include "runtime/Epoll.hpp"
+#include "runtime/Logger.hpp"
+#include "lib/Rc.hpp"
 
 #include <fcntl.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
 
-void SocketCallback::call(Epoll& epoll, Shared<Callback> self) {
+void SocketCallback::call(Epoll& epoll, Rc<Callback> self) {
 	LOG(debug, "Called for socket: " << this->socketfd->asFd());
 	// add us back to the callback queue
 	epoll.addCallback(this->socketfd->asFd(), READ, self);
@@ -49,15 +49,15 @@ void SocketCallback::call(Epoll& epoll, Shared<Callback> self) {
 	struct sockaddr_in* addr_ip = (struct sockaddr_in*)(&addr);
 
 	Context&		   ctx		= Context::getInstance();
-	Shared<Connection> conn =
+	Rc<Connection> conn =
 		new Connection(res, Ip(ntohl(addr_ip->sin_addr.s_addr)), Port(ntohs(addr_ip->sin_port)));
 	ctx.getConnections().push_back(conn);
 	{
-		Shared<ConnectionCallback<READ> > cb = new ConnectionCallback<READ>(conn);
+		Rc<ConnectionCallback<READ> > cb = new ConnectionCallback<READ>(conn);
 		epoll.addCallback(res, READ, cb.cast<Callback>());
 	}
 	{
-		Shared<ConnectionCallback<HANGUP> > cb = new ConnectionCallback<HANGUP>(conn);
+		Rc<ConnectionCallback<HANGUP> > cb = new ConnectionCallback<HANGUP>(conn);
 		epoll.addCallback(res, HANGUP, cb.cast<Callback>());
 	}
 };

@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 13:36:52 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/25 22:45:13 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/02 15:02:43 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,9 +14,9 @@
 
 #include <sys/socket.h>
 #include <ostream>
-#include "app/AsFd.hpp"
-#include "app/Callback.hpp"
-#include "app/Shared.hpp"
+#include "interface/AsFd.hpp"
+#include "interface/Callback.hpp"
+#include "lib/Rc.hpp"
 
 struct Ip {
 		unsigned int inner;
@@ -97,30 +97,30 @@ class Socket : public AsFd {
 
 class SocketCallback : public Callback {
 	private:
-		Shared<Socket> socketfd;
+		Rc<Socket> socketfd;
 
 	public:
 		virtual ~SocketCallback() {};
-		SocketCallback(Shared<Socket> s) : socketfd(s) {};
+		SocketCallback(Rc<Socket> s) : socketfd(s) {};
 		SocketCallback(const SocketCallback& rhs) : socketfd(rhs.socketfd) {};
 		SocketCallback& operator=(const SocketCallback& rhs) {
 			if (this != &rhs)
 				this->socketfd = rhs.socketfd;
 			return (*this);
 		};
-		void	  call(Epoll& epoll, Shared<Callback> self);
+		void	  call(Epoll& epoll, Rc<Callback> self);
 		int		  getFd() { return this->socketfd->asFd(); };
 		EpollType getTy() { return READ; };
 };
 
 class ShutdownCallback : public Callback {
 	private:
-		Shared<Socket> socketfd;
-		Shared<bool>   shutdown;
+		Rc<Socket> socketfd;
+		Rc<bool>   shutdown;
 
 	public:
 		virtual ~ShutdownCallback() {};
-		ShutdownCallback(Shared<Socket> s, Shared<bool> shutdown)
+		ShutdownCallback(Rc<Socket> s, Rc<bool> shutdown)
 			: socketfd(s), shutdown(shutdown) {};
 		ShutdownCallback(const ShutdownCallback& rhs)
 			: socketfd(rhs.socketfd), shutdown(rhs.shutdown) {};
@@ -131,7 +131,7 @@ class ShutdownCallback : public Callback {
 			}
 			return (*this);
 		};
-		void call(Epoll& epoll, Shared<Callback> self);
+		void call(Epoll& epoll, Rc<Callback> self);
 
 		int		  getFd() { return this->socketfd->asFd(); };
 		EpollType getTy() { return READ; };

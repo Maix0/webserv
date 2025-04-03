@@ -21,7 +21,7 @@
 #include <stdexcept>
 #include "app/Context.hpp"
 #include "app/Error.hpp"
-#include "app/Logger.hpp"
+#include "runtime/Logger.hpp"
 
 struct FdWrapper {
 		int fd;

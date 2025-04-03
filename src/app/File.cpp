@@ -10,13 +10,13 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "app/File.hpp"
+#include "app/fs/File.hpp"
 #include <fcntl.h>
 #include <cerrno>
 #include <cstring>
 #include <stdexcept>
 #include <vector>
-#include "app/Logger.hpp"
+#include "runtime/Logger.hpp"
 
 FileRead::FileRead(int fd) : fd(fd), eof(false) {
 	if (this->fd == -1)

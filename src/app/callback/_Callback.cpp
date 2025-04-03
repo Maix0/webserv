@@ -10,10 +10,10 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "app/Callback.hpp"
-#include "app/Epoll.hpp"
+#include "interface/Callback.hpp"
+#include "runtime/Epoll.hpp"
 
-void ChainedCallback::call(Epoll& epoll, Shared<Callback> self) {
+void ChainedCallback::call(Epoll& epoll, Rc<Callback> self) {
 	/// if we are called, we propagate to inner Callback
 	this->inner->call(epoll, this->inner);
 

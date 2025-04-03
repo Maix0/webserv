@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/02 22:07:07 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/03 13:22:10 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/02 15:02:43 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,16 +16,16 @@
 #include <set>
 #include <vector>
 #include "app/net/Connection.hpp"
+#include "lib/Rc.hpp"
 #include "app/net/Socket.hpp"
 #include "config/Config.hpp"
-#include "lib/Rc.hpp"
 
 extern Rc<bool> do_shutdown;
 
-typedef std::map<Ip, std::vector<Rc<Socket> > >		  SocketList;
-typedef std::map<Port, std::set<Ip> >				  PortMap;
-typedef std::vector<Rc<Connection> >				  ConnectionList;
-typedef std::map<Port, std::vector<config::Server*> > PortServerMap;
+typedef std::map<Ip, std::vector<Rc<Socket> > > SocketList;
+typedef std::map<Port, std::set<Ip> >					   PortMap;
+typedef std::vector<Rc<Connection> >					   ConnectionList;
+typedef std::map<Port, std::vector<config::Server*> >		   PortServerMap;
 
 class Context {
 	private:
@@ -35,22 +35,22 @@ class Context {
 
 		static Context INSTANCE;
 
-		ConnectionList		conns;
+		ConnectionList			conns;
 		Option<Rc<Socket> > shutdown;
-		PortMap				port_map;
-		PortServerMap		port_server_map;
-		SocketList			sockets;
-		config::Config		config;
+		PortMap					port_map;
+		PortServerMap			port_server_map;
+		SocketList				sockets;
+		config::Config			config;
 
 	public:
 		static Context& getInstance();
 
-		config::Config&		 getConfig() { return this->config; };
-		SocketList&			 getSockets() { return this->sockets; };
-		PortMap&			 getPortMap() { return this->port_map; };
-		ConnectionList&		 getConnections() { return this->conns; };
+		config::Config&			 getConfig() { return this->config; };
+		SocketList&				 getSockets() { return this->sockets; };
+		PortMap&				 getPortMap() { return this->port_map; };
+		ConnectionList&			 getConnections() { return this->conns; };
 		Option<Rc<Socket> >& getShutdown() { return this->shutdown; };
-		PortServerMap		 getPortServerMap() { return this->port_server_map; };
+		PortServerMap			 getPortServerMap() { return this->port_server_map; };
 
 		void openAllSockets();
 };

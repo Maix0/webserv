@@ -16,8 +16,8 @@
 #include <set>
 #include <stdexcept>
 
-#include "app/Logger.hpp"
-#include "app/Socket.hpp"
+#include "runtime/Logger.hpp"
+#include "app/net/Socket.hpp"
 #include "config/Config.hpp"
 #include "config/_ConfigHelper.hpp"
 #include "toml/Value.hpp"

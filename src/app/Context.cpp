@@ -6,13 +6,13 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/02 22:14:09 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/25 22:46:06 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/02 15:02:43 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "app/Context.hpp"
 #include <vector>
-#include "app/Logger.hpp"
+#include "runtime/Logger.hpp"
 
 using std::set;
 using std::vector;
@@ -40,7 +40,7 @@ void Context::openAllSockets() {
 			const Ip& ip = *iit;
 
 			if (this->sockets.count(ip) == 0)
-				this->sockets[ip] = vector<Shared<Socket> >();
+				this->sockets[ip] = vector<Rc<Socket> >();
 			LOG(trace, "creating socket for " << ip << ":" << port);
 			this->sockets[ip].push_back(new Socket(ip, port));
 		}

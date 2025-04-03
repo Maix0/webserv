@@ -10,14 +10,14 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "app/File.hpp"
+#include "app/fs/File.hpp"
 #include <cstdio>
-#include "app/Callback.hpp"
-#include "app/Shared.hpp"
+#include "interface/Callback.hpp"
+#include "lib/Rc.hpp"
 
 #define READ_BUFFER_SIZE (1024 * 4)
 
-void FileReadCallback::call(Epoll& epoll, Shared<Callback> self) {
+void FileReadCallback::call(Epoll& epoll, Rc<Callback> self) {
 	if (this->inner->isEof()) {
 		self->setFinished();
 		return;
@@ -34,7 +34,7 @@ void FileReadCallback::call(Epoll& epoll, Shared<Callback> self) {
 		epoll.addCallback(this->inner->asFd(), READ, self);
 };
 
-void FileWriteCallback::call(Epoll& epoll, Shared<Callback> self) {
+void FileWriteCallback::call(Epoll& epoll, Rc<Callback> self) {
 	if (this->inner->getBuf().empty()) {
 		self->setFinished();
 		return;

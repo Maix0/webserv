@@ -15,7 +15,7 @@
 #include <cstring>
 #include <exception>
 #include <string>
-#include "app/Logger.hpp"
+#include "runtime/Logger.hpp"
 
 namespace log {
 	LogLevel logLevel = ::log::_compileTimeLogLevel();

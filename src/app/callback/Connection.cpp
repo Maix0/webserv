@@ -6,18 +6,18 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/12 18:56:10 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/01 16:53:28 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/02 15:02:43 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <unistd.h>
 
-#include "app/Callback.hpp"
-#include "app/Connection.hpp"
+#include "interface/Callback.hpp"
+#include "app/net/Connection.hpp"
 #include "app/Context.hpp"
-#include "app/EpollType.hpp"
-#include "app/Logger.hpp"
-#include "app/Request.hpp"
+#include "runtime/EpollType.hpp"
+#include "runtime/Logger.hpp"
+#include "app/http/Request.hpp"
 
 // 4 MiB
 #define MAX_READ_BYTES (4 * 1024 * 1024)
@@ -26,7 +26,7 @@ static char READ_BUF[MAX_READ_BYTES];
 
 static Request req;
 
-void _ConnCallbackR(Epoll& epoll, Shared<Callback> self, Shared<Connection> inner) {
+void _ConnCallbackR(Epoll& epoll, Rc<Callback> self, Rc<Connection> inner) {
 	if (inner->isClosed()) {
 		self->setFinished();
 		return;
@@ -48,7 +48,7 @@ void _ConnCallbackR(Epoll& epoll, Shared<Callback> self, Shared<Connection> inne
 			inner->getOutBuffer().insert(inner->getOutBuffer().end(), possible_reponse.begin(),
 										 possible_reponse.end());
 			{
-				Shared<ConnectionCallback<WRITE> > con = new ConnectionCallback<WRITE>(inner);
+				Rc<ConnectionCallback<WRITE> > con = new ConnectionCallback<WRITE>(inner);
 				epoll.addCallback(inner->asFd(), WRITE, con.cast<Callback>());
 			}
 			req.setFinished();
@@ -60,7 +60,7 @@ void _ConnCallbackR(Epoll& epoll, Shared<Callback> self, Shared<Connection> inne
 			inner->getOutBuffer().insert(inner->getOutBuffer().end(), possible_reponse.begin(),
 										 possible_reponse.end());
 			{
-				Shared<ConnectionCallback<WRITE> > con = new ConnectionCallback<WRITE>(inner);
+				Rc<ConnectionCallback<WRITE> > con = new ConnectionCallback<WRITE>(inner);
 				epoll.addCallback(inner->asFd(), WRITE, con.cast<Callback>());
 			}
 			req.setFinished();
@@ -73,7 +73,7 @@ void _ConnCallbackR(Epoll& epoll, Shared<Callback> self, Shared<Connection> inne
 		inner->getOutBuffer().insert(inner->getOutBuffer().end(), possible_reponse.begin(),
 									 possible_reponse.end());
 		{
-			Shared<ConnectionCallback<WRITE> > con = new ConnectionCallback<WRITE>(inner);
+			Rc<ConnectionCallback<WRITE> > con = new ConnectionCallback<WRITE>(inner);
 			epoll.addCallback(inner->asFd(), WRITE, con.cast<Callback>());
 		}
 		req.setFinished();
@@ -83,7 +83,7 @@ void _ConnCallbackR(Epoll& epoll, Shared<Callback> self, Shared<Connection> inne
 	LOG(info, "finished reading...");
 }
 
-void _ConnCallbackW(Epoll& epoll, Shared<Callback> self, Shared<Connection> inner) {
+void _ConnCallbackW(Epoll& epoll, Rc<Callback> self, Rc<Connection> inner) {
 	if (inner->isClosed()) {
 		self->setFinished();
 		return;
@@ -99,7 +99,7 @@ void _ConnCallbackW(Epoll& epoll, Shared<Callback> self, Shared<Connection> inne
 	epoll.addCallback(inner->asFd(), WRITE, self);
 }
 
-void _ConnCallbackH(Epoll& epoll, Shared<Callback> self, Shared<Connection> inner) {
+void _ConnCallbackH(Epoll& epoll, Rc<Callback> self, Rc<Connection> inner) {
 	(void)(self);
 	self->setFinished();
 	inner->setClosed();

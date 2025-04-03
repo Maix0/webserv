@@ -6,14 +6,14 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/12 13:59:36 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/25 22:44:02 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/02 15:02:43 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
-#include "app/EpollType.hpp"
-#include "app/Shared.hpp"
+#include "runtime/EpollType.hpp"
+#include "lib/Rc.hpp"
 
 class Epoll;
 // A callback function that handles an epoll event
@@ -24,7 +24,7 @@ class Callback {
 	public:
 		Callback() : finished(false) {};
 		virtual ~Callback() {};
-		virtual void	  call(Epoll& epoll, Shared<Callback> self) = 0;
+		virtual void	  call(Epoll& epoll, Rc<Callback> self) = 0;
 		virtual int		  getFd()									= 0;
 		virtual EpollType getTy()									= 0;
 		void			  setFinished() { this->finished = true; };
@@ -33,15 +33,15 @@ class Callback {
 
 class ChainedCallback : public Callback {
 	private:
-		Shared<Callback> inner;
-		Shared<Callback> next;
+		Rc<Callback> inner;
+		Rc<Callback> next;
 
 	public:
-		ChainedCallback(Shared<Callback> current, Shared<Callback> after)
+		ChainedCallback(Rc<Callback> current, Rc<Callback> after)
 			: inner(current), next(after) {};
 		virtual ~ChainedCallback() {};
 
-		virtual void call(Epoll& epoll, Shared<Callback> self);
+		virtual void call(Epoll& epoll, Rc<Callback> self);
 
 		virtual int getFd() { return this->inner->getFd(); }
 

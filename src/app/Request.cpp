@@ -6,21 +6,22 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/29 17:16:21 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/01 16:59:12 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/02 16:59:21 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "app/Request.hpp"
+#include "app/http/Request.hpp"
 #include <fcntl.h>
 #include <sys/types.h>
-#include "app/Logger.hpp"
-#include "app/StringHelper.hpp"
+#include "runtime/Logger.hpp"
+#include "lib/StringHelper.hpp"
 
 #include <cassert>
 #include <cctype>
 #include <cerrno>
 #include <cstdlib>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 
 using std::string;
@@ -49,7 +50,11 @@ std::string Request::createStatusPageFor(StatusCode code) {
 
 std::string StatusCode::canonical() const {
 	assert(0 <= this->_code && this->_code < 600);
-	return status::_STATUS_NAMES[this->_code];
+	try {
+		return status::_NAMES.at(this->_code);
+	} catch (const std::out_of_range& e) {
+		return "Unknown";
+	}
 }
 
 static const vector<string> _all_multiheaders() {

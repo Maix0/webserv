@@ -18,9 +18,9 @@
 #include <string>
 #include <vector>
 
-#include "app/IndexMap.hpp"
-#include "app/Option.hpp"
-#include "app/Socket.hpp"
+#include "lib/IndexMap.hpp"
+#include "lib/Option.hpp"
+#include "app/net/Socket.hpp"
 #include "toml/Value.hpp"
 namespace config {
 	struct Cgi {

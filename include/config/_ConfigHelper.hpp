@@ -16,7 +16,7 @@
 #include <map>
 #include <stdexcept>
 #include <string>
-#include "app/IndexMap.hpp"
+#include "lib/IndexMap.hpp"
 #include "toml/Value.hpp"
 namespace config {
 	template <typename T>

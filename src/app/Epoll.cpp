@@ -10,10 +10,10 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "app/Epoll.hpp"
-#include "app/Callback.hpp"
-#include "app/Logger.hpp"
-#include "app/Shared.hpp"
+#include "runtime/Epoll.hpp"
+#include "interface/Callback.hpp"
+#include "runtime/Logger.hpp"
+#include "lib/Rc.hpp"
 
 #include <fcntl.h>
 #include <sys/epoll.h>
@@ -39,7 +39,7 @@ Epoll::~Epoll() {
 	if (this->fd != -1)
 		close(this->fd);
 }
-bool Epoll::addCallback(int fd, EpollType eventType, Shared<Callback> callback) {
+bool Epoll::addCallback(int fd, EpollType eventType, Rc<Callback> callback) {
 	bool new_ = false;
 	if (this->callbacks.count(fd) == 0) {
 		this->callbacks[fd] = EpollCallback();
@@ -102,8 +102,8 @@ bool Epoll::removeCallback(int fd, EpollType eventType) {
 	return true;
 }
 
-std::vector<Shared<Callback> > Epoll::fetchCallbacks() {
-	std::vector<Shared<Callback> > out;
+std::vector<Rc<Callback> > Epoll::fetchCallbacks() {
+	std::vector<Rc<Callback> > out;
 	struct epoll_event			   events[MAX_EVENTS] = {};
 	int event_count = epoll_wait(this->fd, events, MAX_EVENTS, EPOLL_TIMEOUT);
 	if (event_count == -1) {

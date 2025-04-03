@@ -23,9 +23,9 @@
 #include <stdexcept>
 #include <string>
 #include "app/Context.hpp"
-#include "app/IndexMap.hpp"
-#include "app/Logger.hpp"
-#include "app/Routing.hpp"
+#include "lib/IndexMap.hpp"
+#include "runtime/Logger.hpp"
+#include "app/http/Routing.hpp"
 #include "config/Config.hpp"
 #include "config/_ConfigHelper.hpp"
 #include "toml/Value.hpp"

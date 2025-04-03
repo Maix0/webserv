@@ -10,7 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "app/Socket.hpp"
+#include "app/net/Socket.hpp"
 
 #include <fcntl.h>
 #include <netdb.h>
@@ -22,7 +22,7 @@
 #include <cstring>
 #include <stdexcept>
 
-#include "app/Logger.hpp"
+#include "runtime/Logger.hpp"
 
 using std::runtime_error;
 

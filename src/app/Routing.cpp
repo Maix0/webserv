@@ -15,9 +15,9 @@
 #include <string>
 #include <vector>
 
-#include "app/IndexMap.hpp"
-#include "app/Logger.hpp"
-#include "app/Routing.hpp"
+#include "lib/IndexMap.hpp"
+#include "runtime/Logger.hpp"
+#include "app/http/Routing.hpp"
 
 using std::string;
 using std::vector;

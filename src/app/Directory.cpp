@@ -10,8 +10,8 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "app/Directory.hpp"
-#include "app/Logger.hpp"
+#include "app/fs/Directory.hpp"
+#include "runtime/Logger.hpp"
 
 #include <dirent.h>
 #include <sys/types.h>

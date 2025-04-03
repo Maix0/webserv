@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/08 18:01:53 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/25 22:42:49 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/02 15:02:43 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,16 +15,16 @@
 #include <sys/epoll.h>
 #include <map>
 #include <vector>
-#include "app/Callback.hpp"
-#include "app/Option.hpp"
-#include "app/Shared.hpp"
+#include "interface/Callback.hpp"
+#include "lib/Option.hpp"
+#include "lib/Rc.hpp"
 
 class Epoll {
 	private:
 		struct EpollCallback {
-				Option<Shared<Callback> > read;
-				Option<Shared<Callback> > write;
-				Option<Shared<Callback> > hangup;
+				Option<Rc<Callback> > read;
+				Option<Rc<Callback> > write;
+				Option<Rc<Callback> > hangup;
 		};
 
 		typedef std::map<int, EpollCallback> CallbackStorage;
@@ -42,9 +42,9 @@ class Epoll {
 		~Epoll();
 
 		/// @return true in success, false on error
-		bool addCallback(int fd, EpollType ty, Shared<Callback> callback);
+		bool addCallback(int fd, EpollType ty, Rc<Callback> callback);
 		/// @return true in success, false on error
 		bool removeCallback(int fd, EpollType ty);
 
-		std::vector<Shared<Callback> > fetchCallbacks();
+		std::vector<Rc<Callback> > fetchCallbacks();
 };

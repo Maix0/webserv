@@ -15,11 +15,11 @@
 #include <unistd.h>
 #include <string>
 #include <vector>
-#include "app/AsFd.hpp"
-#include "app/Callback.hpp"
-#include "app/Epoll.hpp"
-#include "app/EpollType.hpp"
-#include "app/Shared.hpp"
+#include "interface/AsFd.hpp"
+#include "interface/Callback.hpp"
+#include "runtime/Epoll.hpp"
+#include "runtime/EpollType.hpp"
+#include "lib/Rc.hpp"
 
 class FileRead : AsFd {
 	private:
@@ -46,13 +46,13 @@ class FileRead : AsFd {
 
 class FileReadCallback : public Callback {
 	private:
-		Shared<FileRead> inner;
+		Rc<FileRead> inner;
 
 	public:
-		FileReadCallback(Shared<FileRead> file) : inner(file) {};
+		FileReadCallback(Rc<FileRead> file) : inner(file) {};
 		~FileReadCallback() {};
 
-		void	  call(Epoll& epoll, Shared<Callback> self);
+		void	  call(Epoll& epoll, Rc<Callback> self);
 		int		  getFd() { return this->inner->asFd(); };
 		EpollType getTy() { return READ; };
 };
@@ -79,13 +79,13 @@ class FileWrite : public AsFd {
 
 class FileWriteCallback : public Callback {
 	private:
-		Shared<FileWrite> inner;
+		Rc<FileWrite> inner;
 
 	public:
-		FileWriteCallback(Shared<FileWrite> file) : inner(file) {};
+		FileWriteCallback(Rc<FileWrite> file) : inner(file) {};
 		~FileWriteCallback() {};
 
-		void	  call(Epoll& epoll, Shared<Callback> self);
+		void	  call(Epoll& epoll, Rc<Callback> self);
 		int		  getFd() { return this->inner->asFd(); };
 		EpollType getTy() { return WRITE; };
 };

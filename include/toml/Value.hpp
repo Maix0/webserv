@@ -18,7 +18,7 @@
 #include <stdexcept>
 #include <string>
 #include <vector>
-#include "app/IndexMap.hpp"
+#include "lib/IndexMap.hpp"
 
 namespace toml {
 	class Value;
