@@ -16,7 +16,7 @@
 #include "toml/Parser.hpp"
 
 namespace toml {
-	std::string Parser::Context::normalizeDecimalString(const std::string& str,
+	std::string Parser::State::normalizeDecimalString(const std::string& str,
 														std::size_t		   lineno) {
 		(void)str;
 		std::size_t		  index = 0;

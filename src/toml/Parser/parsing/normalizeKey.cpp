@@ -19,7 +19,7 @@ using std::string;
 using std::stringstream;
 
 namespace toml {
-	string Parser::Context::normalizeKey(Token& stok) {
+	string Parser::State::normalizeKey(Token& stok) {
 		string::const_iterator s_start	  = this->buffer.begin() + stok.pos;
 		string::const_iterator s_end	  = this->buffer.begin() + stok.pos + stok.raw.size();
 		char				   char_start = *s_start;

@@ -19,7 +19,7 @@
 #define FLINE		 __FILE__ ":" TOSTRING(__LINE__)
 
 namespace toml {
-	void Parser::Context::parseInlineTable(Value& tab, std::size_t lineno) {
+	void Parser::State::parseInlineTable(Value& tab, std::size_t lineno) {
 		this->eatToken(LBRACE, true, FLINE);
 
 		for (;;) {

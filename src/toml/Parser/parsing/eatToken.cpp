@@ -15,7 +15,7 @@
 #include "toml/Value.hpp"
 
 namespace toml {
-	void Parser::Context::eatToken(TokType typ, bool dot_is_special, std::string flineno) {
+	void Parser::State::eatToken(TokType typ, bool dot_is_special, std::string flineno) {
 		if (this->tok.ty != typ)
 			throw InternalError(std::string("internal error: ") + flineno);
 		this->nextToken(dot_is_special);

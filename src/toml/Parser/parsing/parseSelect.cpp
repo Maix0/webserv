@@ -25,7 +25,7 @@ using std::string;
 using std::stringstream;
 
 namespace toml {
-	void Parser::Context::parseSelect(void) {
+	void Parser::State::parseSelect(void) {
 		assert(this->tok.ty == LBRACKET);
 
 		// true if [[

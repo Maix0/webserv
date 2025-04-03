@@ -21,7 +21,7 @@ namespace toml {
 	 * Convert src to raw unescaped utf-8 string.
 	 * Returns NULL if error with errmsg in errbuf.
 	 */
-	std::string Parser::Context::normalizeBasicString(std::string::const_iterator src,
+	std::string Parser::State::normalizeBasicString(std::string::const_iterator src,
 													  std::string::const_iterator end,
 													  std::size_t				  lineno) {
 		std::string dst;

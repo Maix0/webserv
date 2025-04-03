@@ -15,7 +15,7 @@
 #include "toml/Value.hpp"
 
 namespace toml {
-	void Parser::Context::nextToken(bool dotisspecial) {
+	void Parser::State::nextToken(bool dotisspecial) {
 		std::size_t			  lineno = this->tok.line;
 		std::string::iterator p		 = (this->buffer.begin() + this->tok.pos);
 

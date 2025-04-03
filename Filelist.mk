@@ -1,6 +1,6 @@
 SRC_FILES =                                                                   \
 CgiInstance                                                                   \
-Context                                                                       \
+State                                                                         \
 callback/Connection                                                           \
 callback/File                                                                 \
 callback/Shutdown                                                             \

@@ -20,7 +20,7 @@
 #include "toml/Value.hpp"
 
 namespace toml {
-	Value Parser::Context::parseString(const std::string& str, std::size_t lineno) {
+	Value Parser::State::parseString(const std::string& str, std::size_t lineno) {
 		if (str == "true")
 			return Value(true);
 		else if (str == "false")

@@ -16,7 +16,7 @@
 #include "toml/Value.hpp"
 
 namespace toml {
-	void Parser::Context::setToken(TokType				 ty,
+	void Parser::State::setToken(TokType				 ty,
 								   std::size_t			 lineno,
 								   std::string::iterator p,
 								   std::size_t			 len) {

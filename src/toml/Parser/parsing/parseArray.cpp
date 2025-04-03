@@ -20,7 +20,7 @@
 #define FLINE		 __FILE__ ":" TOSTRING(__LINE__)
 
 namespace toml {
-	void Parser::Context::skipNewlines(bool is_dot_special) {
+	void Parser::State::skipNewlines(bool is_dot_special) {
 		while (this->tok.ty == Parser::NEWLINE) {
 			this->nextToken(is_dot_special);
 			if (this->tok.eof)
@@ -28,7 +28,7 @@ namespace toml {
 		}
 	}
 
-	void Parser::Context::parseArray(Value& val) {
+	void Parser::State::parseArray(Value& val) {
 		this->eatToken(LBRACKET, false, FLINE);
 
 		for (;;) {

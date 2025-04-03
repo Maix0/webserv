@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/02 15:40:51 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/03 13:11:41 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/03 13:51:32 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 #include <cassert>
 #include <map>
 #include <string>
+#include "lib/Option.hpp"
 
 struct StatusCode {
 	private:
@@ -29,8 +30,8 @@ struct StatusCode {
 			return (*this);
 		}
 
-		std::string canonical() const;
-		int			code() const { return this->_code; };
+		Option<std::string> canonical() const;
+		int					code() const { return this->_code; };
 };
 
 #define STATUS_CODE_VAL(CODE, NAME, CANONICAL) static const StatusCode NAME = StatusCode(CODE);

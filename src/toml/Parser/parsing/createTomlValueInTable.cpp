@@ -17,7 +17,7 @@
 #include "toml/Value.hpp"
 
 namespace toml {
-	Value& Parser::Context::createTomlValueInTable(Value& tab, Token& key, Value (*new_val)(void)) {
+	Value& Parser::State::createTomlValueInTable(Value& tab, Token& key, Value (*new_val)(void)) {
 		std::string key_normalized = this->normalizeKey(key);
 
 		if (tab.getTable().count(key_normalized) != 0) {

@@ -22,7 +22,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
-#include "app/Context.hpp"
+#include "app/State.hpp"
 #include "lib/IndexMap.hpp"
 #include "runtime/Logger.hpp"
 #include "app/http/Routing.hpp"
@@ -185,7 +185,7 @@ namespace config {
 				throw std::runtime_error("duplicate port for different ips");
 			}
 		}
-		Context& ctx = Context::getInstance();
+		State& ctx = State::getInstance();
 		ctx.getPortMap()  = port_map;
 	}
 
@@ -233,7 +233,7 @@ namespace config {
 		}
 		if (error)
 			throw std::runtime_error("Duplicate hostname for same port");
-		Context::getInstance().getPortServerMap() = out;
+		State::getInstance().getPortServerMap() = out;
 	};
 
 	static void _setupRoutes(Config& config) {

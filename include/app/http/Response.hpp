@@ -6,12 +6,16 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/02 15:39:45 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/02 15:40:17 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/03 13:49:26 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
-#include "app/net/Connection.hpp"
-#include "lib/Option.hpp"
-#include "app/http/Request.hpp"
+#include <string>
+#include "app/http/StatusCode.hpp"
+
+class Response {
+	public:
+		static std::string createStatusPageFor(StatusCode code);
+};

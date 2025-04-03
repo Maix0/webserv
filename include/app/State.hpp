@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Context.hpp                                        :+:      :+:    :+:   */
+/*   State.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/02 22:07:07 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/03 13:22:10 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/03 13:40:13 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,13 +27,13 @@ typedef std::map<Port, std::set<Ip> >				  PortMap;
 typedef std::vector<Rc<Connection> >				  ConnectionList;
 typedef std::map<Port, std::vector<config::Server*> > PortServerMap;
 
-class Context {
+class State {
 	private:
-		Context();
-		~Context();
+		State();
+		~State();
 		// No Copy operator/assignement operator since this is a Singleton...
 
-		static Context INSTANCE;
+		static State INSTANCE;
 
 		ConnectionList		conns;
 		Option<Rc<Socket> > shutdown;
@@ -43,7 +43,7 @@ class Context {
 		config::Config		config;
 
 	public:
-		static Context& getInstance();
+		static State& getInstance();
 
 		config::Config&		 getConfig() { return this->config; };
 		SocketList&			 getSockets() { return this->sockets; };

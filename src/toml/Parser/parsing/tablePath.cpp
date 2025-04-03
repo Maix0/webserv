@@ -27,7 +27,7 @@ using std::stringstream;
 using std::vector;
 
 namespace toml {
-	void Parser::Context::walkTabPath(void) {
+	void Parser::State::walkTabPath(void) {
 		Value* curtab = &this->root;
 
 		for (vector<Token>::iterator it = this->tabPath.begin(); it != this->tabPath.end(); it++) {
@@ -74,7 +74,7 @@ namespace toml {
 		this->current_table = curtab;
 	}
 
-	void Parser::Context::fillTabPath(void) {
+	void Parser::State::fillTabPath(void) {
 		int lineno = this->tok.line;
 
 		this->tabPath.clear();

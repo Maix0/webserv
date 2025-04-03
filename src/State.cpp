@@ -1,37 +1,38 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Context.cpp                                        :+:      :+:    :+:   */
+/*   State.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/02 22:14:09 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/02 15:02:43 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/03 13:40:26 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "app/Context.hpp"
 #include <vector>
+
+#include "app/State.hpp"
 #include "runtime/Logger.hpp"
 
 using std::set;
 using std::vector;
 
-Context Context::INSTANCE;
+State State::INSTANCE;
 
-Context::Context() {
+State::State() {
 	LOG(trace, "creating context singleton");
 }
 
-Context::~Context() {
+State::~State() {
 	LOG(trace, "destroying context singleton");
 }
 
-Context& Context::getInstance() {
-	return (Context::INSTANCE);
+State& State::getInstance() {
+	return (State::INSTANCE);
 }
 
-void Context::openAllSockets() {
+void State::openAllSockets() {
 	for (PortMap::const_iterator pit = this->port_map.begin(); pit != this->port_map.end(); pit++) {
 		const Port&	   port = pit->first;
 		const set<Ip>& ips	= pit->second;

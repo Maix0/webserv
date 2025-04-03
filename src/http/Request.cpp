@@ -6,56 +6,25 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/29 17:16:21 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/02 16:59:21 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/03 13:56:56 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "app/http/Request.hpp"
 #include <fcntl.h>
 #include <sys/types.h>
-#include "runtime/Logger.hpp"
 #include "lib/StringHelper.hpp"
+#include "runtime/Logger.hpp"
 
 #include <cassert>
 #include <cctype>
 #include <cerrno>
 #include <cstdlib>
 #include <sstream>
-#include <stdexcept>
 #include <string>
 
 using std::string;
 using std::vector;
-
-std::string Request::createStatusPageFor(StatusCode code) {
-	std::stringstream req;
-	std::stringstream body;
-
-	req << "HTTP/1.1 " << code.code() << " " << code.canonical() << CRLF;
-	req << "Content-Type: text/html; charset=UTF-8" CRLF;
-	req << "Content-Length: ";
-
-	body << "<html>" CRLF;
-	body << "<head><title> " << code.code() << " " << code.canonical() << " "
-		 << "</title></head>" CRLF;
-	body << "<body>" CRLF;
-	body << "<center><h1>" << code.code() << " " << code.canonical() << " "
-		 << "</h1></center>" CRLF;
-
-	std::string						 body_str = body.str();
-	req << body_str.length() << CRLF CRLF << body_str;
-
-	return req.str();
-}
-
-std::string StatusCode::canonical() const {
-	assert(0 <= this->_code && this->_code < 600);
-	try {
-		return status::_NAMES.at(this->_code);
-	} catch (const std::out_of_range& e) {
-		return "Unknown";
-	}
-}
 
 static const vector<string> _all_multiheaders() {
 	vector<string> out;

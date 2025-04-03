@@ -13,7 +13,7 @@
 #include "app/net/Socket.hpp"
 #include "interface/Callback.hpp"
 #include "app/net/Connection.hpp"
-#include "app/Context.hpp"
+#include "app/State.hpp"
 #include "runtime/Epoll.hpp"
 #include "runtime/Logger.hpp"
 #include "lib/Rc.hpp"
@@ -48,7 +48,7 @@ void SocketCallback::call(Epoll& epoll, Rc<Callback> self) {
 	}
 	struct sockaddr_in* addr_ip = (struct sockaddr_in*)(&addr);
 
-	Context&		   ctx		= Context::getInstance();
+	State&		   ctx		= State::getInstance();
 	Rc<Connection> conn =
 		new Connection(res, Ip(ntohl(addr_ip->sin_addr.s_addr)), Port(ntohs(addr_ip->sin_port)));
 	ctx.getConnections().push_back(conn);

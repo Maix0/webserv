@@ -6,18 +6,20 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/12 18:56:10 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/02 15:02:43 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/03 14:00:40 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <unistd.h>
 
-#include "interface/Callback.hpp"
+#include "app/State.hpp"
+#include "app/http/Request.hpp"
+#include "app/http/Response.hpp"
+#include "app/http/StatusCode.hpp"
 #include "app/net/Connection.hpp"
-#include "app/Context.hpp"
+#include "interface/Callback.hpp"
 #include "runtime/EpollType.hpp"
 #include "runtime/Logger.hpp"
-#include "app/http/Request.hpp"
 
 // 4 MiB
 #define MAX_READ_BYTES (4 * 1024 * 1024)
@@ -25,6 +27,23 @@
 static char READ_BUF[MAX_READ_BYTES];
 
 static Request req;
+
+static void _send_builtin_err_response(Epoll&		  epoll,
+									   Rc<Callback>	  self,
+									   Rc<Connection> inner,
+									   StatusCode	  code) {
+	(void)(self);
+	std::string res;
+	LOG(info, "Early fail for request with code: " << code.code());
+	res = Response::createStatusPageFor(code.code());
+	inner->getOutBuffer().insert(inner->getOutBuffer().end(), res.begin(), res.end());
+	{
+		Rc<ConnectionCallback<WRITE> > con = new ConnectionCallback<WRITE>(inner);
+		epoll.addCallback(inner->asFd(), WRITE, con.cast<Callback>());
+	}
+	req.setFinished();
+	req = Request();
+}
 
 void _ConnCallbackR(Epoll& epoll, Rc<Callback> self, Rc<Connection> inner) {
 	if (inner->isClosed()) {
@@ -38,47 +57,12 @@ void _ConnCallbackR(Epoll& epoll, Rc<Callback> self, Rc<Connection> inner) {
 		return;
 	}
 	inner->getInBuffer().insert(inner->getInBuffer().end(), &READ_BUF[0], &READ_BUF[res]);
-	std::string possible_reponse;
 	try {
-		try {
-			req.parseBytes(inner->getInBuffer());
-		} catch (const Request::PageException& e) {
-			LOG(info, "Early fail for request with code: " << e.statusCode());
-			possible_reponse = Request::createStatusPageFor(e.statusCode());
-			inner->getOutBuffer().insert(inner->getOutBuffer().end(), possible_reponse.begin(),
-										 possible_reponse.end());
-			{
-				Rc<ConnectionCallback<WRITE> > con = new ConnectionCallback<WRITE>(inner);
-				epoll.addCallback(inner->asFd(), WRITE, con.cast<Callback>());
-			}
-			req.setFinished();
-			req = Request();
-			return;
-		} catch (const std::exception& e) {
-			LOG(info, "Early fail for request 500: " << e.what());
-			possible_reponse = Request::createStatusPageFor(500);
-			inner->getOutBuffer().insert(inner->getOutBuffer().end(), possible_reponse.begin(),
-										 possible_reponse.end());
-			{
-				Rc<ConnectionCallback<WRITE> > con = new ConnectionCallback<WRITE>(inner);
-				epoll.addCallback(inner->asFd(), WRITE, con.cast<Callback>());
-			}
-			req.setFinished();
-			req = Request();
-			return;
-		}
+		req.parseBytes(inner->getInBuffer());
+	} catch (const Request::PageException& e) {
+		return _send_builtin_err_response(epoll, self, inner, e.statusCode());
 	} catch (const std::exception& e) {
-		LOG(info, "Early fail for request 500: " << e.what());
-		possible_reponse = Request::createStatusPageFor(500);
-		inner->getOutBuffer().insert(inner->getOutBuffer().end(), possible_reponse.begin(),
-									 possible_reponse.end());
-		{
-			Rc<ConnectionCallback<WRITE> > con = new ConnectionCallback<WRITE>(inner);
-			epoll.addCallback(inner->asFd(), WRITE, con.cast<Callback>());
-		}
-		req.setFinished();
-		req = Request();
-		return;
+		return _send_builtin_err_response(epoll, self, inner, 500);
 	}
 	LOG(info, "finished reading...");
 }
@@ -103,7 +87,7 @@ void _ConnCallbackH(Epoll& epoll, Rc<Callback> self, Rc<Connection> inner) {
 	(void)(self);
 	self->setFinished();
 	inner->setClosed();
-	Context&		ctx	 = Context::getInstance();
+	State&			ctx	 = State::getInstance();
 	ConnectionList& conn = ctx.getConnections();
 
 	while (true) {

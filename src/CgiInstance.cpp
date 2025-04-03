@@ -19,7 +19,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <stdexcept>
-#include "app/Context.hpp"
+#include "app/State.hpp"
 #include "runtime/Logger.hpp"
 
 struct FdWrapper {

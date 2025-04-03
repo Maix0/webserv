@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/28 14:52:32 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/12 19:37:01 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/03 13:55:38 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -71,6 +71,30 @@ class Option {
 		static Option None() { return Option(); }
 		static Option Some(const T& val) { return Option(val); }
 		static Option Some() { return Option(T()); }
+
+		const T& get_or(const T& default_value) const {
+			if (this->value == NULL)
+				return default_value;
+			return *this->value;
+		}
+
+		T& get_or(T& default_value) {
+			if (this->value == NULL)
+				return default_value;
+			return *this->value;
+		}
+
+		T& get_or_insert() {
+			if (this->value == NULL)
+				this->value = new T();
+			return (*this->value);
+		}
+
+		T& get_or_insert(const T& val) {
+			if (this->value == NULL)
+				this->value = new T(val);
+			return (*this->value);
+		}
 };
 
 template <typename T>

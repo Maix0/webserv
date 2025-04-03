@@ -35,7 +35,7 @@ namespace toml {
 		(void)(s);
 		std::istreambuf_iterator<char> eos;
 		string						   full(std::istreambuf_iterator<char>(s), eos);
-		Parser::Context				   ctx(full);
+		Parser::State				   ctx(full);
 
 		for (Parser::Token tok = ctx.tok; !tok.eof; tok = ctx.tok) {
 			switch (tok.ty) {

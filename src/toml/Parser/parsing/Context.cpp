@@ -1,7 +1,7 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Context.cpp                                        :+:      :+:    :+:   */
+/*   State.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
@@ -20,22 +20,22 @@
 #define FLINE		 __FILE__ ":" TOSTRING(__LINE__)
 
 namespace toml {
-	Parser::Context::Context(std::string buffer)
+	Parser::State::State(std::string buffer)
 		: root(Table()), current_table(&root), tok(Token()), buffer(buffer) {
 		this->tok.line = 0;
 		this->tok.eof  = false;
 		this->tok.ty   = NEWLINE;
 	};
 
-	Parser::Context::~Context() {};
-	Parser::Context::Context(const Parser::Context& rhs)
+	Parser::State::~State() {};
+	Parser::State::State(const Parser::State& rhs)
 		: root(rhs.root), current_table(&root), tok(Token()), buffer(rhs.buffer) {
 		this->tok.line = 0;
 		this->tok.eof  = false;
 		this->tok.ty   = NEWLINE;
 	};
 
-	Parser::Context& Parser::Context::operator=(const Parser::Context& rhs) {
+	Parser::State& Parser::State::operator=(const Parser::State& rhs) {
 		if (this != &rhs) {
 			this->buffer		= rhs.buffer;
 
@@ -49,7 +49,7 @@ namespace toml {
 		return (*this);
 	}
 
-	void Parser::Context::setEof(std::size_t lineno) {
+	void Parser::State::setEof(std::size_t lineno) {
 		this->setToken(NEWLINE, lineno, this->buffer.end(), 0);
 		this->tok.eof = 1;
 	}

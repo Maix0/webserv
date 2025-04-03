@@ -21,7 +21,7 @@
 #define FLINE		 __FILE__ ":" TOSTRING(__LINE__)
 
 namespace toml {
-	void Parser::Context::parseKeyValue(Value& tab) {
+	void Parser::State::parseKeyValue(Value& tab) {
 		if (tab.isReadonly()) {
 			std::stringstream ss;
 			ss << "cannot insert new entry into existing table: line " << this->tok.line;

@@ -17,7 +17,7 @@
 #include <typeinfo>
 
 #include "interface/Callback.hpp"
-#include "app/Context.hpp"
+#include "app/State.hpp"
 #include "app/fs/Directory.hpp"
 #include "runtime/Epoll.hpp"
 #include "runtime/Logger.hpp"
@@ -45,7 +45,7 @@ int wrapped_main(char* argv0, int argc, char* argv[], char* envp[]) {
 		return 1;
 	}
 
-	Context& ctx	   = Context::getInstance();
+	State& ctx	   = State::getInstance();
 
 	toml::Value val		   = toml::Parser::parseFile(argv[0]);
 

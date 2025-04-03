@@ -58,7 +58,7 @@ namespace toml {
 					bool	eof;
 			};
 
-			class Context {
+			class State {
 				public:
 					Value  root;
 					Value* current_table;
@@ -68,10 +68,10 @@ namespace toml {
 
 					std::vector<Token> tabPath;
 
-					Context& operator=(const Context&);
-					Context(const Context&);
-					explicit Context(std::string);
-					~Context(void);
+					State& operator=(const State&);
+					State(const State&);
+					explicit State(std::string);
+					~State(void);
 
 					void nextToken(bool is_dot_special);
 					void parseKeyValue(Value& current_table);

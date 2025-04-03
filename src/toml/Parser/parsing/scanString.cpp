@@ -15,7 +15,7 @@
 #include "toml/Value.hpp"
 
 namespace toml {
-	void Parser::Context::scanString(std::string::iterator p,
+	void Parser::State::scanString(std::string::iterator p,
 									 std::size_t		   lineno,
 									 bool				   dot_is_special) {
 		std::string::iterator orig = p;
