@@ -1,21 +1,17 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Routing.hpp                                        :+:      :+:    :+:   */
+/*   Logger.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/03/14 16:33:00 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/03 18:46:15 by maiboyer         ###   ########.fr       */
+/*   Created: 2025/04/03 19:35:46 by maiboyer          #+#    #+#             */
+/*   Updated: 2025/04/03 19:35:57 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#pragma once
+#include "runtime/Logger.hpp"
 
-#include "config/Config.hpp"
-
-/// get the associated route for an url + server combo
-/// @return Null in case of no matching routes
-const config::Route* getRouteFor(const config::Server& server, const std::string& url);
-
-std::vector<std::string> url_to_parts(const std::string& url);
+namespace log {
+	LogLevel logLevel = ::log::_compileTimeLogLevel();
+}

@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/08 16:52:34 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/03 18:12:13 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/03 20:21:17 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,9 @@
 #include "lib/Option.hpp"
 #include "runtime/Logger.hpp"
 
+#define assert_valid(OBJ) \
+	assert((OBJ).ptr && ((OBJ).ptr->strong > 0 || ((OBJ).ptr->strong == 0 && (OBJ).ptr->weak > 0)))
+
 template <typename T>
 class Rc {
 	private:
@@ -29,12 +32,7 @@ class Rc {
 		};
 		RcInner* ptr;
 
-		Rc(RcInner* ptr) : ptr(ptr) { this->assert_valid(); };
-
-		inline void assert_valid() const {
-			assert(this->ptr &&
-				   (this->ptr->strong > 0 || (this->ptr->strong == 0 && this->ptr->weak > 0)));
-		};
+		Rc(RcInner* ptr) : ptr(ptr) { assert_valid(*this); };
 
 	public:
 		// Opaque type. Represent RcInner::RcInner
@@ -44,7 +42,7 @@ class Rc {
 			this->ptr->strong = 1;
 			this->ptr->weak	  = 0;
 			this->ptr->value  = new T();
-			this->assert_valid();
+			assert_valid(*this);
 		}
 
 		Rc(T* val) {
@@ -54,11 +52,11 @@ class Rc {
 			this->ptr->strong = 1;
 			this->ptr->weak	  = 0;
 			this->ptr->value  = val;
-			this->assert_valid();
+			assert_valid(*this);
 		}
 
 		~Rc() {
-			this->assert_valid();
+			assert_valid(*this);
 			--this->ptr->strong;
 			if (this->ptr->strong == 0 && this->ptr->value != NULL) {
 				delete this->ptr->value;
@@ -70,15 +68,15 @@ class Rc {
 		}
 
 		Rc(const Rc& rhs) {
-			rhs.assert_valid();
+			assert_valid(rhs);
 			this->ptr = rhs.ptr;
 			if (this->ptr == NULL)
 				throw std::runtime_error("shared.ptr == NULL");
 			this->ptr->strong++;
 		}
 		Rc& operator=(const Rc& rhs) {
-			rhs.assert_valid();
-			this->assert_valid();
+			assert_valid(rhs);
+			assert_valid(*this);
 			if (this != &rhs) {
 				{
 					this->ptr->strong--;
@@ -92,14 +90,14 @@ class Rc {
 			return (*this);
 		}
 
-		T&		 operator*() { return (this->assert_valid(), *this->ptr->value); }
-		const T& operator*() const { return (this->assert_valid(), *this->ptr->value); }
-		T*		 operator->() { return (this->assert_valid(), this->ptr->value); }
-		const T* operator->() const { return (this->assert_valid(), this->ptr->value); }
+		T&		 operator*() { return (assert_valid(*this), *this->ptr->value); }
+		const T& operator*() const { return (assert_valid(*this), *this->ptr->value); }
+		T*		 operator->() { return (assert_valid(*this), this->ptr->value); }
+		const T* operator->() const { return (assert_valid(*this), this->ptr->value); }
 
 		// GetRaw
 		RawRc* getRaw() {
-			this->assert_valid();
+			assert_valid(*this);
 			return ((RawRc*)this->ptr);
 		}
 
@@ -114,7 +112,7 @@ class Rc {
 
 		template <typename U>
 		Rc<U> cast() {
-			this->assert_valid();
+			assert_valid(*this);
 			U* ptr = (this->ptr->value);
 			assert((void*)ptr == (void*)this->ptr->value);
 			this->ptr->strong++;
@@ -124,7 +122,7 @@ class Rc {
 
 		template <typename U>
 		Rc<U> try_cast() {
-			this->assert_valid();
+			assert_valid(*this);
 			T& val		= *this->ptr->value;
 			U& val_cast = dynamic_cast<U&>(val);
 			assert(&val == &val_cast);
@@ -135,12 +133,7 @@ class Rc {
 
 		class Weak {
 				RcInner* ptr;
-				Weak(RcInner* ptr) : ptr(ptr) { this->assert_valid(); };
-
-				inline void assert_valid() const {
-					assert(this->ptr && (this->ptr->strong > 0 ||
-										 (this->ptr->strong == 0 && this->ptr->weak > 0)));
-				};
+				Weak(RcInner* ptr) : ptr(ptr) { assert_valid(*this); };
 
 			public:
 				static Weak make_weak(Rc& shared) {
@@ -150,7 +143,7 @@ class Rc {
 				};
 
 				~Weak() {
-					this->assert_valid();
+					assert_valid(*this);
 					--this->ptr->weak;
 					if (this->ptr->strong == 0 && this->ptr->value != NULL) {
 						delete this->ptr->value;
@@ -166,17 +159,17 @@ class Rc {
 					this->ptr->value  = NULL;
 					this->ptr->weak	  = 1;
 					this->ptr->strong = 0;
-					this->assert_valid();
+					assert_valid(*this);
 				}
 
 				Weak(const Weak& rhs) {
-					rhs.assert_valid();
+					assert_valid(rhs);
 					this->ptr = rhs.ptr;
 					++this->ptr->weak;
 				}
 				Weak& operator=(const Weak& rhs) {
-					this->assert_valid();
-					rhs.assert_valid();
+					assert_valid(*this);
+					assert_valid(rhs);
 					if (this != &rhs) {
 						Weak cpy(*this);
 						--this->ptr->weak;
@@ -188,7 +181,7 @@ class Rc {
 				}
 
 				Option<Rc> upgrade() {
-					this->assert_valid();
+					assert_valid(*this);
 					if (this->ptr->strong != 0) {
 						++this->ptr->strong;
 						return Option<Rc>::Some(

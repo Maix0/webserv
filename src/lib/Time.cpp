@@ -1,21 +1,24 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Routing.hpp                                        :+:      :+:    :+:   */
+/*   Time.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/03/14 16:33:00 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/03 18:46:15 by maiboyer         ###   ########.fr       */
+/*   Created: 2025/04/03 19:30:11 by maiboyer          #+#    #+#             */
+/*   Updated: 2025/04/03 19:34:47 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#pragma once
+#include "lib/Time.hpp"
+#include "runtime/Logger.hpp"
 
-#include "config/Config.hpp"
+#include <cassert>
+#include <ctime>
 
-/// get the associated route for an url + server combo
-/// @return Null in case of no matching routes
-const config::Route* getRouteFor(const config::Server& server, const std::string& url);
+Time Time::now() {
+	Time out;
 
-std::vector<std::string> url_to_parts(const std::string& url);
+	_ERR_RET_THROW(out.inner = time(NULL));
+	return out;
+}

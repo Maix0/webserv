@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/02 18:23:58 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/19 16:13:03 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/03 19:35:39 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,10 +16,6 @@
 #include <exception>
 #include <string>
 #include "runtime/Logger.hpp"
-
-namespace log {
-	LogLevel logLevel = ::log::_compileTimeLogLevel();
-}
 
 int wrapped_main(char* argv0, int argc, char* argv[], char* envp[]);
 

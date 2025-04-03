@@ -6,23 +6,27 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/12 18:43:37 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/03 17:51:21 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/03 20:27:42 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
 #include <unistd.h>
+#include <cstddef>
 #include "app/http/Request.hpp"
 #include "app/net/Socket.hpp"
 #include "interface/AsFd.hpp"
 #include "lib/Rc.hpp"
+#include "lib/Time.hpp"
 #include "runtime/Epoll.hpp"
 #include "runtime/Logger.hpp"
 
 class Connection : public AsFd {
 	public:
 		typedef std::string Buffer;
+
+		static const std::size_t KEEP_ALIVE_TIMEOUT = 5;
 
 	private:
 		int fd;
@@ -37,14 +41,22 @@ class Connection : public AsFd {
 		Rc<Socket> socket;
 		Request	   request;
 
+		Time last_updated;
+
 	public:
 		virtual ~Connection() {
 			if (this->fd != -1)
 				close(this->fd);
 			LOG(debug, "closing connection " << fd << " for " << remote_ip << ":" << remote_port);
 		};
-		Connection(int fd, Ip ip, Port port)
-			: fd(fd), closed(false), remote_ip(ip), remote_port(port), request(port) {
+		Connection(int fd, Ip ip, Port port, Rc<Socket> sock)
+			: fd(fd),
+			  closed(false),
+			  remote_ip(ip),
+			  remote_port(port),
+			  socket(sock),
+			  request(sock->getPort()),
+			  last_updated(Time::now()) {
 			LOG(debug, "new connection " << fd << " for " << ip << ":" << port);
 		};
 
@@ -59,6 +71,16 @@ class Connection : public AsFd {
 		int	 asFd() { return this->fd; };
 		bool isClosed() { return this->closed; };
 		void setClosed() { this->closed = true; };
+		void updateTime() {
+			LOG(trace, "Updating keep_alive for " << this->fd);
+
+			this->last_updated = Time::now();
+		};
+		bool timeout() const {
+			Time should_to;
+			should_to.inner = this->last_updated.inner + Connection::KEEP_ALIVE_TIMEOUT;
+			return should_to <= Time::now();
+		}
 };
 
 void _ConnCallbackR(Epoll& epoll, Rc<Callback> self, Rc<Connection> inner);

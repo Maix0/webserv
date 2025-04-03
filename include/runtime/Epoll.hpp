@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/08 18:01:53 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/02 15:02:43 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/03 20:21:44 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,7 +37,7 @@ class Epoll {
 
 	public:
 		static const int MAX_EVENTS	   = 5000;
-		static const int EPOLL_TIMEOUT = -1;
+		static const int EPOLL_TIMEOUT = 1;
 		Epoll();
 		~Epoll();
 

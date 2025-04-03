@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/12 18:56:10 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/03 17:50:46 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/03 19:39:22 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,6 +54,8 @@ void _ConnCallbackR(Epoll& epoll, Rc<Callback> self, Rc<Connection> inner) {
 		if ((res = read(inner->asFd(), &READ_BUF, MAX_READ_BYTES)) < 0) {
 			throw Request::PageException(500);
 		}
+		if (res > 0)
+			inner->updateTime();
 		inner->getInBuffer().insert(inner->getInBuffer().end(), &READ_BUF[0], &READ_BUF[res]);
 
 		if (inner->getRequest().parseBytes(inner->getInBuffer()))
@@ -71,13 +73,14 @@ void _ConnCallbackW(Epoll& epoll, Rc<Callback> self, Rc<Connection> inner) {
 		self->setFinished();
 		return;
 	}
-	LOG(info, "started writing...");
 	Connection::Buffer& buf = inner->getOutBuffer();
 	ssize_t				res = 0;
 	if ((res = write(inner->asFd(), &buf[0], buf.size())) < 0) {
 		LOG(warn, "Error when reading...");
 		return;
 	}
+	if (res > 0)
+		inner->updateTime();
 	buf.erase(buf.begin(), buf.begin() + res);
 	epoll.addCallback(inner->asFd(), WRITE, self);
 }

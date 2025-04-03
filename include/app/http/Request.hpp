@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/24 17:51:48 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/03 17:47:29 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/03 19:24:34 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include "app/http/StatusCode.hpp"
 #include "app/net/Socket.hpp"
 #include "config/Config.hpp"
 #include "lib/IndexMap.hpp"
@@ -53,13 +54,15 @@ class Request {
 		ssize_t content_length;
 
 		// Weak reference to the server configs
-		Rc<config::Server>::Weak server;
-		Port					 port;
+		const config::Server* server;
+		const config::Route*  route;
+		Port				  port;
 
 	public:
 		const HeaderMap& getHeaders() const { return this->headers; };
 		const Url&		 getUrl() const { return this->url; };
 		const Method&	 getMethod() const { return this->method; };
+		ParsingState	 getState() const { return this->state; };
 
 		HeaderMap&	 getHeaders() { return this->headers; };
 		Url&		 getUrl() { return this->url; };
@@ -69,7 +72,13 @@ class Request {
 		bool parseBytes(std::string& buffer);
 
 		Request(Port port)
-			: state(HEADER), body_fd(-1), body_size(0), content_length(-1), port(port) {};
+			: state(HEADER),
+			  headers_total_size(0),
+			  body_fd(-1),
+			  body_size(0),
+			  content_length(-1),
+			  server(NULL),
+			  port(port) {};
 		~Request() {
 			if (this->body_fd != -1)
 				close(this->body_fd);
@@ -87,16 +96,16 @@ class Request {
 		class PageException : public std::exception {
 			private:
 				std::string str;
-				int			code;
+				StatusCode	code;
 
 			public:
 				virtual ~PageException() throw() {}
-				PageException(int code) : code(code) {
+				PageException(StatusCode code) : code(code) {
 					std::stringstream ss;
-					ss << "requested Page for status code " << code;
+					ss << "requested Page for status code " << code.code();
 					this->str = ss.str();
 				}
 				virtual const char* what(void) const throw() { return this->str.c_str(); }
-				int					statusCode() const { return this->code; };
+				StatusCode			statusCode() const { return this->code; };
 		};
 };

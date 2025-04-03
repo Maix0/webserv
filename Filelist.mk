@@ -19,8 +19,10 @@ http/Request                                                                  \
 http/Response                                                                 \
 http/Routing                                                                  \
 http/StatusCode                                                               \
+lib/Time                                                                      \
 net/Socket                                                                    \
 runtime/Epoll                                                                 \
+runtime/Logger                                                                \
 runtime/main                                                                  \
 runtime/shim                                                                  \
 toml/Parser/Parser                                                            \

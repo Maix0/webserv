@@ -6,16 +6,21 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/29 17:16:21 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/03 18:07:21 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/03 19:25:37 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "app/http/Request.hpp"
-#include <fcntl.h>
-#include <sys/types.h>
+#include "app/State.hpp"
+#include "app/http/Routing.hpp"
+#include "app/http/StatusCode.hpp"
+#include "config/Config.hpp"
+#include "lib/IndexMap.hpp"
 #include "lib/StringHelper.hpp"
 #include "runtime/Logger.hpp"
 
+#include <fcntl.h>
+#include <sys/types.h>
 #include <cassert>
 #include <cctype>
 #include <cerrno>
@@ -34,7 +39,8 @@ static const vector<string> _all_multiheaders() {
 	return out;
 }
 
-const vector<string> Request::ALLOWED_MULTIHEADERS = _all_multiheaders();
+const vector<string>						  Request::ALLOWED_MULTIHEADERS = _all_multiheaders();
+typedef IndexMap<std::string, config::Server> ServerMap;
 
 bool Request::parseBytes(std::string& buffer) {
 	assert(MAX_HEADERS_SIZE > MAX_URI_SIZE);
@@ -47,17 +53,16 @@ bool Request::parseBytes(std::string& buffer) {
 
 				if (crlf == std::string::npos) {
 					if (buffer.size() >= MAX_URI_SIZE)
-						throw PageException(414);
+						throw PageException(status::URI_TOO_LONG);
 					return false;
 				}
 				if (crlf + 2 >= MAX_URI_SIZE)
-					throw PageException(414);
+					throw PageException(status::URI_TOO_LONG);
 				this->headers_total_size += crlf + 2;
 
 				std::stringstream first_line(string(buffer.begin(), buffer.begin() + crlf));
 				buffer.erase(buffer.begin(), buffer.begin() + crlf + 2);
 
-				LOG(debug, "MainHeader: " << first_line.str());
 				string method, path, version;
 
 				std::getline(first_line, method, ' ');
@@ -65,7 +70,7 @@ bool Request::parseBytes(std::string& buffer) {
 				std::getline(first_line, version, ' ');
 
 				if (method.empty() || path.empty() || version.empty()) {
-					throw PageException(400);
+					throw PageException(status::BAD_REQUEST);
 				}
 				this->state = Request::USERHEADERS;
 
@@ -76,11 +81,11 @@ bool Request::parseBytes(std::string& buffer) {
 				std::string::size_type crlf = buffer.find(CRLF);
 				if (crlf == std::string::npos) {
 					if (this->headers_total_size + buffer.size() >= MAX_HEADERS_SIZE)
-						throw PageException(431);
+						throw PageException(status::REQUEST_HEADER_FIELDS_TOO_LARGE);
 					return false;
 				}
 				if (this->headers_total_size + crlf + 2 >= MAX_HEADERS_SIZE)
-					throw PageException(431);
+					throw PageException(status::REQUEST_HEADER_FIELDS_TOO_LARGE);
 				this->headers_total_size += crlf + 2;
 
 				std::string header_line(string(buffer.begin(), buffer.begin() + crlf));
@@ -97,14 +102,6 @@ bool Request::parseBytes(std::string& buffer) {
 					*it = std::tolower(*it);
 
 				if (this->headers.count(name) == 0) {
-					if (name == "content-length") {
-						char* end			   = NULL;
-						errno				   = 0;
-						unsigned long long val = std::strtoll(value.c_str(), &end, 10);
-						if (errno != 0 || (end != NULL && *end != '\0'))
-							throw PageException(400);
-						this->content_length = val;
-					}
 					this->headers.insert(std::make_pair(name, value));
 				} else {
 					/// we check that it is a valid header to be concatenated.
@@ -115,11 +112,10 @@ bool Request::parseBytes(std::string& buffer) {
 					if (!(string_start_with(name, "X-") ||
 						  std::find(ALLOWED_MULTIHEADERS.begin(), ALLOWED_MULTIHEADERS.end(),
 									name) != ALLOWED_MULTIHEADERS.end())) {
-						throw PageException(400);
+						throw PageException(status::BAD_REQUEST);
 					}
 					this->headers.at(name) += string(",") + value;
 				}
-				LOG(debug, "HttpHeader: " << name << ": " << value);
 
 				if (end == crlf) {
 					this->state		= BODY;
@@ -129,8 +125,43 @@ bool Request::parseBytes(std::string& buffer) {
 
 					if (this->headers.count("host")) {
 						std::string host = this->headers.at("host");
-						host.erase(host.begin(), host.begin() + host.find(":"));
+						host.erase(host.begin() + host.find(":"), host.end());
+
+						ServerMap& servers = State::getInstance().getConfig().server;
+						for (ServerMap::iterator it = servers.begin(); it != servers.end(); it++) {
+							LOG(info, "this->Port = " << this->port << "; Host='" << host
+													  << "'; Server->Port = " << it->second.port
+													  << "; Server->name = '" << it->second.hostname
+													  << "'");
+							if (it->second.port == this->port) {
+								this->server = &it->second;
+								break;
+							}
+						}
+
+						for (ServerMap::iterator it = servers.begin(); it != servers.end(); it++) {
+							if (it->second.port == this->port && it->second.hostname.hasValue() &&
+								it->second.hostname.get() == host) {
+								this->server = &it->second;
+								break;
+							}
+						}
+
+						assert(this->server != NULL);
+						this->route = getRouteFor(*this->server, this->url);
 					}
+					if (this->headers.count("host")) {
+						char* end = NULL;
+						errno	  = 0;
+						unsigned long long val =
+							std::strtoull(this->headers.at("host").c_str(), &end, 10);
+						if (errno != 0 || (end != NULL && *end != '\0'))
+							throw PageException(400);
+						this->content_length = val;
+					}
+					if (this->route && this->content_length != -1 &&
+						(size_t)this->content_length > this->route->max_size)
+						throw PageException(status::PAYLOAD_TOO_LARGE);
 				}
 				break;
 			};

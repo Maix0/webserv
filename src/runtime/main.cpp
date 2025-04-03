@@ -6,13 +6,14 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/23 00:07:08 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/03 18:12:29 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/03 20:16:26 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <fcntl.h>
 #include <sys/socket.h>
 #include <unistd.h>
+#include <cstddef>
 #include <cstdio>
 #include <exception>
 #include <iostream>
@@ -84,11 +85,28 @@ int wrapped_main(char* argv0, int argc, char* argv[], char* envp[]) {
 		epoll.addCallback(shutdown_socket->asFd(), READ, shutdown_cb.cast<Callback>());
 	}
 	install_ctrlc_handler();
+	vector<size_t>			 to_indexes;
+	size_t					 idx = 0;
+	ConnectionList::iterator conn;
 	while (!*do_shutdown) {
 		vector<Rc<Callback> > callbacks = epoll.fetchCallbacks();
 		for (vector<Rc<Callback> >::iterator it = callbacks.begin(); it != callbacks.end(); it++) {
 			Rc<Callback> cb = *it;
 			cb->call(epoll, cb);
+		}
+		ConnectionList& connections = ctx.getConnections();
+		to_indexes.clear();
+		for (conn = connections.begin(), idx = 0; conn != connections.end(); conn++, idx++)
+			if ((*conn)->timeout())
+				to_indexes.push_back(idx);
+		for (vector<size_t>::reverse_iterator it = to_indexes.rbegin(); it != to_indexes.rend();
+			 it++) {
+			ConnectionList::iterator c = connections.begin() + *it;
+			epoll.removeCallback((*c)->asFd(), WRITE);
+			epoll.removeCallback((*c)->asFd(), READ);
+			epoll.removeCallback((*c)->asFd(), HANGUP);
+			LOG(trace, "Keep alive timeout for " << (*c)->asFd());
+			connections.erase(c);
 		}
 	};
 	LOG(info, "shutting down now...");

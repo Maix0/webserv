@@ -6,17 +6,17 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/12 14:28:15 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/25 22:45:31 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/03 20:28:31 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "app/net/Socket.hpp"
-#include "interface/Callback.hpp"
-#include "app/net/Connection.hpp"
 #include "app/State.hpp"
+#include "app/net/Connection.hpp"
+#include "interface/Callback.hpp"
+#include "lib/Rc.hpp"
 #include "runtime/Epoll.hpp"
 #include "runtime/Logger.hpp"
-#include "lib/Rc.hpp"
 
 #include <fcntl.h>
 #include <netinet/in.h>
@@ -48,9 +48,9 @@ void SocketCallback::call(Epoll& epoll, Rc<Callback> self) {
 	}
 	struct sockaddr_in* addr_ip = (struct sockaddr_in*)(&addr);
 
-	State&		   ctx		= State::getInstance();
-	Rc<Connection> conn =
-		new Connection(res, Ip(ntohl(addr_ip->sin_addr.s_addr)), Port(ntohs(addr_ip->sin_port)));
+	State&		   ctx			= State::getInstance();
+	Rc<Connection> conn = new Connection(res, Ip(ntohl(addr_ip->sin_addr.s_addr)),
+										 Port(ntohs(addr_ip->sin_port)), this->socketfd);
 	ctx.getConnections().push_back(conn);
 	{
 		Rc<ConnectionCallback<READ> > cb = new ConnectionCallback<READ>(conn);
