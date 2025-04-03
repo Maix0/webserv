@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/12 18:56:10 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/03 14:00:40 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/03 17:50:46 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,16 +22,14 @@
 #include "runtime/Logger.hpp"
 
 // 4 MiB
-#define MAX_READ_BYTES (4 * 1024 * 1024)
+#define MAX_READ_BYTES (1 << 22)
 
 static char READ_BUF[MAX_READ_BYTES];
 
-static Request req;
-
-static void _send_builtin_err_response(Epoll&		  epoll,
-									   Rc<Callback>	  self,
-									   Rc<Connection> inner,
-									   StatusCode	  code) {
+static void _send_builtin_code_response(Epoll&		   epoll,
+										Rc<Callback>   self,
+										Rc<Connection> inner,
+										StatusCode	   code) {
 	(void)(self);
 	std::string res;
 	LOG(info, "Early fail for request with code: " << code.code());
@@ -41,8 +39,8 @@ static void _send_builtin_err_response(Epoll&		  epoll,
 		Rc<ConnectionCallback<WRITE> > con = new ConnectionCallback<WRITE>(inner);
 		epoll.addCallback(inner->asFd(), WRITE, con.cast<Callback>());
 	}
-	req.setFinished();
-	req = Request();
+	inner->getRequest().setFinished();
+	inner->getRequest() = Request(inner->getSocket()->getPort());
 }
 
 void _ConnCallbackR(Epoll& epoll, Rc<Callback> self, Rc<Connection> inner) {
@@ -50,21 +48,22 @@ void _ConnCallbackR(Epoll& epoll, Rc<Callback> self, Rc<Connection> inner) {
 		self->setFinished();
 		return;
 	}
-	epoll.addCallback(inner->asFd(), READ, self);
-	ssize_t res;
-	if ((res = read(inner->asFd(), &READ_BUF, MAX_READ_BYTES)) < 0) {
-		LOG(warn, "Error when reading...");
-		return;
-	}
-	inner->getInBuffer().insert(inner->getInBuffer().end(), &READ_BUF[0], &READ_BUF[res]);
 	try {
-		req.parseBytes(inner->getInBuffer());
+		epoll.addCallback(inner->asFd(), READ, self);
+		ssize_t res;
+		if ((res = read(inner->asFd(), &READ_BUF, MAX_READ_BYTES)) < 0) {
+			throw Request::PageException(500);
+		}
+		inner->getInBuffer().insert(inner->getInBuffer().end(), &READ_BUF[0], &READ_BUF[res]);
+
+		if (inner->getRequest().parseBytes(inner->getInBuffer()))
+			_send_builtin_code_response(epoll, self, inner, 200);
+
 	} catch (const Request::PageException& e) {
-		return _send_builtin_err_response(epoll, self, inner, e.statusCode());
+		return _send_builtin_code_response(epoll, self, inner, e.statusCode());
 	} catch (const std::exception& e) {
-		return _send_builtin_err_response(epoll, self, inner, 500);
+		return _send_builtin_code_response(epoll, self, inner, 500);
 	}
-	LOG(info, "finished reading...");
 }
 
 void _ConnCallbackW(Epoll& epoll, Rc<Callback> self, Rc<Connection> inner) {

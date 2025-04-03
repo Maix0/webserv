@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/08 16:52:34 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/03 13:38:36 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/03 18:12:13 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,7 @@
 #include <cstddef>
 #include <stdexcept>
 #include "lib/Option.hpp"
+#include "runtime/Logger.hpp"
 
 template <typename T>
 class Rc {
@@ -28,10 +29,7 @@ class Rc {
 		};
 		RcInner* ptr;
 
-		Rc(RcInner* ptr) : ptr(ptr) {
-			if (this->ptr == NULL)
-				throw std::runtime_error("shared.ptr == NULL");
-		};
+		Rc(RcInner* ptr) : ptr(ptr) { this->assert_valid(); };
 
 		inline void assert_valid() const {
 			assert(this->ptr &&
@@ -45,7 +43,7 @@ class Rc {
 			this->ptr		  = new RcInner();
 			this->ptr->strong = 1;
 			this->ptr->weak	  = 0;
-			new (&this->ptr->value) T();
+			this->ptr->value  = new T();
 			this->assert_valid();
 		}
 
@@ -61,10 +59,8 @@ class Rc {
 
 		~Rc() {
 			this->assert_valid();
-			if (this->ptr == NULL)
-				throw std::runtime_error("shared.ptr == NULL");
 			--this->ptr->strong;
-			if (this->ptr->strong == 0) {
+			if (this->ptr->strong == 0 && this->ptr->value != NULL) {
 				delete this->ptr->value;
 				this->ptr->value = NULL;
 			}
@@ -139,10 +135,7 @@ class Rc {
 
 		class Weak {
 				RcInner* ptr;
-				Weak(RcInner* ptr) : ptr(ptr) {
-					if (this->ptr == NULL)
-						throw std::runtime_error("weak.ptr == NULL");
-				};
+				Weak(RcInner* ptr) : ptr(ptr) { this->assert_valid(); };
 
 				inline void assert_valid() const {
 					assert(this->ptr && (this->ptr->strong > 0 ||
@@ -158,10 +151,8 @@ class Rc {
 
 				~Weak() {
 					this->assert_valid();
-					if (this->ptr == NULL)
-						throw std::runtime_error("shared.ptr == NULL");
 					--this->ptr->weak;
-					if (this->ptr->strong == 0) {
+					if (this->ptr->strong == 0 && this->ptr->value != NULL) {
 						delete this->ptr->value;
 						this->ptr->value = NULL;
 					}
@@ -188,6 +179,7 @@ class Rc {
 					rhs.assert_valid();
 					if (this != &rhs) {
 						Weak cpy(*this);
+						--this->ptr->weak;
 						this->ptr = rhs.ptr;
 						++this->ptr->weak;
 						(void)(cpy);
@@ -196,6 +188,7 @@ class Rc {
 				}
 
 				Option<Rc> upgrade() {
+					this->assert_valid();
 					if (this->ptr->strong != 0) {
 						++this->ptr->strong;
 						return Option<Rc>::Some(

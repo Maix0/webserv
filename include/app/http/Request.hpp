@@ -6,12 +6,13 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/24 17:51:48 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/03 13:48:29 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/03 17:47:29 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
+#include <fcntl.h>
 #include <unistd.h>
 #include <cassert>
 #include <cstddef>
@@ -20,9 +21,10 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include "app/net/Socket.hpp"
+#include "config/Config.hpp"
 #include "lib/IndexMap.hpp"
 #include "runtime/Logger.hpp"
-#include "app/http/StatusCode.hpp"
 
 #define CRLF "\r\n"
 
@@ -50,6 +52,10 @@ class Request {
 		size_t	body_size;
 		ssize_t content_length;
 
+		// Weak reference to the server configs
+		Rc<config::Server>::Weak server;
+		Port					 port;
+
 	public:
 		const HeaderMap& getHeaders() const { return this->headers; };
 		const Url&		 getUrl() const { return this->url; };
@@ -60,14 +66,23 @@ class Request {
 		Method&		 getMethod() { return this->method; };
 		ParsingState getState() { return this->state; };
 
-		void parseBytes(std::string& buffer);
+		bool parseBytes(std::string& buffer);
 
-		Request() : state(HEADER), body_fd(-1), body_size(-1) {};
+		Request(Port port)
+			: state(HEADER), body_fd(-1), body_size(0), content_length(-1), port(port) {};
 		~Request() {
 			if (this->body_fd != -1)
 				close(this->body_fd);
 		};
 		void setFinished() { this->state = FINISHED; };
+
+		int copyBodyFd() {
+			if (this->body_fd == -1)
+				return -1;
+			int out = -1;
+			_ERR_RET_THROW(out = dup(this->body_fd));
+			return out;
+		}
 
 		class PageException : public std::exception {
 			private:

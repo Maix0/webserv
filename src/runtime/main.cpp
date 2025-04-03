@@ -6,25 +6,29 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/23 00:07:08 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/02 15:02:43 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/03 18:12:29 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
+#include <fcntl.h>
 #include <sys/socket.h>
 #include <unistd.h>
+#include <cstdio>
 #include <exception>
 #include <iostream>
+#include <sstream>
+#include <string>
 #include <typeinfo>
 
-#include "interface/Callback.hpp"
 #include "app/State.hpp"
 #include "app/fs/Directory.hpp"
-#include "runtime/Epoll.hpp"
-#include "runtime/Logger.hpp"
 #include "app/http/Routing.hpp"
-#include "lib/Rc.hpp"
 #include "app/net/Socket.hpp"
 #include "config/Config.hpp"
+#include "interface/Callback.hpp"
+#include "lib/Rc.hpp"
+#include "runtime/Epoll.hpp"
+#include "runtime/Logger.hpp"
 #include "toml/Parser.hpp"
 #include "toml/Value.hpp"
 
@@ -45,7 +49,7 @@ int wrapped_main(char* argv0, int argc, char* argv[], char* envp[]) {
 		return 1;
 	}
 
-	State& ctx	   = State::getInstance();
+	State& ctx			   = State::getInstance();
 
 	toml::Value val		   = toml::Parser::parseFile(argv[0]);
 
@@ -55,31 +59,34 @@ int wrapped_main(char* argv0, int argc, char* argv[], char* envp[]) {
 	ctx.openAllSockets();
 
 	SocketList s = ctx.getSockets();
-	Epoll		epoll;
+	Epoll	   epoll;
 
 	for (SocketList::iterator iit = s.begin(); iit != s.end(); iit++) {
-		for (vector<Rc<Socket> >::iterator sit = iit->second.begin();
-			 sit != iit->second.end(); sit++) {
-			Rc<Socket>		 sock	 = *sit;
+		for (vector<Rc<Socket> >::iterator sit = iit->second.begin(); sit != iit->second.end();
+			 sit++) {
+			Rc<Socket>		   sock	   = *sit;
 			Rc<SocketCallback> sock_cb = new SocketCallback(sock);
+			{
+				int fd = -1;
+				_ERR_RET_THROW(fd = open("/tmp/socket_webserv", O_CREAT | O_TRUNC | O_RDWR, 0777));
+				dprintf(fd, "%i\n", sock->getBoundPort().inner);
+				close(fd);
+			}
 			epoll.addCallback(sock->asFd(), READ, sock_cb.cast<Callback>());
 		}
 	}
 
 	if (config.shutdown_port.hasValue()) {
-		Rc<Socket> shutdown_socket =
-			new Socket(Ip(0), config.shutdown_port.get());
-		ctx.getShutdown() = shutdown_socket;
+		Rc<Socket> shutdown_socket = new Socket(Ip(0), config.shutdown_port.get());
+		ctx.getShutdown()		   = shutdown_socket;
 		LOG(info, "Created shutdown socket on port: " << shutdown_socket->getBoundPort());
-		Rc<ShutdownCallback> shutdown_cb =
-			new ShutdownCallback(shutdown_socket, do_shutdown);
+		Rc<ShutdownCallback> shutdown_cb = new ShutdownCallback(shutdown_socket, do_shutdown);
 		epoll.addCallback(shutdown_socket->asFd(), READ, shutdown_cb.cast<Callback>());
 	}
 	install_ctrlc_handler();
 	while (!*do_shutdown) {
 		vector<Rc<Callback> > callbacks = epoll.fetchCallbacks();
-		for (vector<Rc<Callback> >::iterator it = callbacks.begin();
-			 it != callbacks.end(); it++) {
+		for (vector<Rc<Callback> >::iterator it = callbacks.begin(); it != callbacks.end(); it++) {
 			Rc<Callback> cb = *it;
 			cb->call(epoll, cb);
 		}

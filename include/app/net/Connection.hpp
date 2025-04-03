@@ -6,13 +6,14 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/12 18:43:37 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/03 13:22:24 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/03 17:51:21 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
 #include <unistd.h>
+#include "app/http/Request.hpp"
 #include "app/net/Socket.hpp"
 #include "interface/AsFd.hpp"
 #include "lib/Rc.hpp"
@@ -21,22 +22,10 @@
 
 class Connection : public AsFd {
 	public:
-		struct State {
-				enum Inner {
-					NoState,
-					NewRequest,
-					Headers,
-					Body,
-					Error,
-				};
-		};
-
-		typedef std::string	 Buffer;
-		typedef State::Inner StateE;
+		typedef std::string Buffer;
 
 	private:
-		StateE state;
-		int	   fd;
+		int fd;
 
 		Buffer inbuffer;
 		Buffer outbuffer;
@@ -45,6 +34,9 @@ class Connection : public AsFd {
 		Ip	 remote_ip;
 		Port remote_port;
 
+		Rc<Socket> socket;
+		Request	   request;
+
 	public:
 		virtual ~Connection() {
 			if (this->fd != -1)
@@ -52,7 +44,7 @@ class Connection : public AsFd {
 			LOG(debug, "closing connection " << fd << " for " << remote_ip << ":" << remote_port);
 		};
 		Connection(int fd, Ip ip, Port port)
-			: fd(fd), closed(false), remote_ip(ip), remote_port(port) {
+			: fd(fd), closed(false), remote_ip(ip), remote_port(port), request(port) {
 			LOG(debug, "new connection " << fd << " for " << ip << ":" << port);
 		};
 
@@ -61,8 +53,8 @@ class Connection : public AsFd {
 		Ip		getIp() { return this->remote_ip; };
 		Port	getPort() { return this->remote_port; };
 
-		StateE getState() { return this->state; };
-		void   setState(StateE state) { this->state = state; };
+		Rc<Socket> getSocket() { return this->socket; };
+		Request&   getRequest() { return this->request; };
 
 		int	 asFd() { return this->fd; };
 		bool isClosed() { return this->closed; };

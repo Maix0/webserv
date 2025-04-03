@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/29 17:16:21 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/03 13:56:56 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/03 18:07:21 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,7 +36,7 @@ static const vector<string> _all_multiheaders() {
 
 const vector<string> Request::ALLOWED_MULTIHEADERS = _all_multiheaders();
 
-void Request::parseBytes(std::string& buffer) {
+bool Request::parseBytes(std::string& buffer) {
 	assert(MAX_HEADERS_SIZE > MAX_URI_SIZE);
 	bool continue_loop = false;
 	do {
@@ -48,7 +48,7 @@ void Request::parseBytes(std::string& buffer) {
 				if (crlf == std::string::npos) {
 					if (buffer.size() >= MAX_URI_SIZE)
 						throw PageException(414);
-					return;
+					return false;
 				}
 				if (crlf + 2 >= MAX_URI_SIZE)
 					throw PageException(414);
@@ -77,8 +77,7 @@ void Request::parseBytes(std::string& buffer) {
 				if (crlf == std::string::npos) {
 					if (this->headers_total_size + buffer.size() >= MAX_HEADERS_SIZE)
 						throw PageException(431);
-					LOG(debug, "ended");
-					return;
+					return false;
 				}
 				if (this->headers_total_size + crlf + 2 >= MAX_HEADERS_SIZE)
 					throw PageException(431);
@@ -86,7 +85,6 @@ void Request::parseBytes(std::string& buffer) {
 
 				std::string header_line(string(buffer.begin(), buffer.begin() + crlf));
 				buffer.erase(buffer.begin(), buffer.begin() + crlf + 2);
-				LOG(debug, "buffer_size = " << buffer.size() << "; '" << buffer << "'");
 
 				string::size_type delim = header_line.find(":");
 				string			  name(header_line.begin(), header_line.begin() + delim);
@@ -103,9 +101,9 @@ void Request::parseBytes(std::string& buffer) {
 						char* end			   = NULL;
 						errno				   = 0;
 						unsigned long long val = std::strtoll(value.c_str(), &end, 10);
-						if (errno != 0)
+						if (errno != 0 || (end != NULL && *end != '\0'))
 							throw PageException(400);
-						this->body_size = val;
+						this->content_length = val;
 					}
 					this->headers.insert(std::make_pair(name, value));
 				} else {
@@ -124,15 +122,20 @@ void Request::parseBytes(std::string& buffer) {
 				LOG(debug, "HttpHeader: " << name << ": " << value);
 
 				if (end == crlf) {
-					this->state = BODY;
+					this->state		= BODY;
+					this->body_size = 0;
 					buffer.erase(buffer.begin(), buffer.begin() + 2);
 					continue_loop = true;
+
+					if (this->headers.count("host")) {
+						std::string host = this->headers.at("host");
+						host.erase(host.begin(), host.begin() + host.find(":"));
+					}
 				}
 				break;
 			};
 			case Request::BODY: {
-				throw PageException(404);
-				if (this->body_fd != -1)
+				if (this->body_fd == -1)
 					_ERR_RET_THROW(this->body_fd = open("/tmp", O_RDWR | O_CLOEXEC | O_TMPFILE, 0));
 				size_t size = buffer.size();
 				if (this->content_length != -1 &&
@@ -144,9 +147,11 @@ void Request::parseBytes(std::string& buffer) {
 				_ERR_RET_THROW(write(this->body_fd, buffer.data(), buffer.size()));
 				buffer.erase(buffer.begin(), buffer.begin() + size);
 
-				if (this->content_length == (ssize_t)this->body_size) {
+				if ((ssize_t)this->body_size >= this->content_length) {
 					this->state = Request::FINISHED;
+					return true;
 				}
+				break;
 			}
 
 			case Request::UNDEFINED: {
@@ -157,4 +162,5 @@ void Request::parseBytes(std::string& buffer) {
 			}
 		}
 	} while (!buffer.empty() || continue_loop);
+	return false;
 }
