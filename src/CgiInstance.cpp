@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/20 16:17:28 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/20 17:03:48 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/03 13:29:06 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,6 @@
 #include <cstring>
 #include <stdexcept>
 #include "app/Context.hpp"
-#include "app/Error.hpp"
 #include "runtime/Logger.hpp"
 
 struct FdWrapper {
@@ -99,7 +98,8 @@ void CgiInstance::spawn(std::vector<char> buf) {
 		dup2(fd.fd, STDIN_FILENO);
 		dup2(pip[1].fd, STDOUT_FILENO);
 		execve(cgi.binary.c_str(), (char* const*)argv, environ);
-		throw ExitError(127);
+		throw std::runtime_error(0);
+		//throw ExitError(127);
 	}
 
 	this->output = pip[0].fd;

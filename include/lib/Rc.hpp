@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/08 16:52:34 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/02 17:56:49 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/03 13:38:36 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,6 @@
 #include <cstddef>
 #include <stdexcept>
 #include "lib/Option.hpp"
-
 
 template <typename T>
 class Rc {
@@ -152,7 +151,7 @@ class Rc {
 
 			public:
 				static Weak make_weak(Rc& shared) {
-					Weak out(static_cast<RcInner*>(shared.getRaw()));
+					Weak out(reinterpret_cast<RcInner*>(shared.getRaw()));
 					out.ptr->weak++;
 					return out;
 				};
@@ -200,7 +199,7 @@ class Rc {
 					if (this->ptr->strong != 0) {
 						++this->ptr->strong;
 						return Option<Rc>::Some(
-							new Rc(Rc::fromRaw(static_cast<RcInner*>(this->ptr))));
+							new Rc(Rc::fromRaw(reinterpret_cast<RcInner*>(this->ptr))));
 					}
 					return Option<Rc>::None();
 				}
