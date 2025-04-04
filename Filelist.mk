@@ -1,5 +1,4 @@
 SRC_FILES =                                                                   \
-CgiInstance                                                                   \
 State                                                                         \
 callback/Connection                                                           \
 callback/File                                                                 \

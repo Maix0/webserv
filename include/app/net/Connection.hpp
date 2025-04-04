@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/12 18:43:37 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/03 20:27:42 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/04 16:33:15 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,7 +55,7 @@ class Connection : public AsFd {
 			  remote_ip(ip),
 			  remote_port(port),
 			  socket(sock),
-			  request(sock->getPort()),
+			  request(sock->getPort(), socket->getServer()),
 			  last_updated(Time::now()) {
 			LOG(debug, "new connection " << fd << " for " << ip << ":" << port);
 		};

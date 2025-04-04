@@ -6,13 +6,14 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/24 17:51:48 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/03 19:24:34 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/04 16:30:17 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
 #include <fcntl.h>
+#include <pthread.h>
 #include <unistd.h>
 #include <cassert>
 #include <cstddef>
@@ -71,13 +72,14 @@ class Request {
 
 		bool parseBytes(std::string& buffer);
 
-		Request(Port port)
+		Request(Port port, const config::Server* default_server)
 			: state(HEADER),
 			  headers_total_size(0),
 			  body_fd(-1),
 			  body_size(0),
 			  content_length(-1),
-			  server(NULL),
+			  server(default_server),
+			  route(NULL),
 			  port(port) {};
 		~Request() {
 			if (this->body_fd != -1)

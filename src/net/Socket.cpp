@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 13:39:20 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/25 22:46:45 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/04 16:28:59 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,10 +28,11 @@ using std::runtime_error;
 
 Socket::Socket() : fd(-1), port(0) {}
 
-Socket::Socket(const Ip& host, Port port) {
+Socket::Socket(const Ip& host, Port port, config::Server* server) {
 	this->fd				= -1;
 	this->host				= host;
 	this->port				= port;
+	this->server			= server;
 
 	struct sockaddr_in addr = {};
 

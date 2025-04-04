@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/12 18:56:10 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/03 19:39:22 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/04 16:30:41 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,7 +40,7 @@ static void _send_builtin_code_response(Epoll&		   epoll,
 		epoll.addCallback(inner->asFd(), WRITE, con.cast<Callback>());
 	}
 	inner->getRequest().setFinished();
-	inner->getRequest() = Request(inner->getSocket()->getPort());
+	inner->getRequest() = Request(inner->getSocket()->getPort(), inner->getSocket()->getServer());
 }
 
 void _ConnCallbackR(Epoll& epoll, Rc<Callback> self, Rc<Connection> inner) {

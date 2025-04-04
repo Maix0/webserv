@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/28 14:33:11 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/18 23:32:50 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/04 16:28:14 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,10 +18,12 @@
 #include <string>
 #include <vector>
 
+#include "app/net/Ip.hpp"
+#include "app/net/Port.hpp"
 #include "lib/IndexMap.hpp"
 #include "lib/Option.hpp"
-#include "app/net/Socket.hpp"
 #include "toml/Value.hpp"
+
 namespace config {
 	struct Cgi {
 			/// @default `false`
@@ -92,9 +94,9 @@ namespace config {
 			/// @implementation detail
 			/// this field is only populated AFTER the config is parsed. it is populated while
 			/// validating stuff
-			Ip		bind;
+			Ip			bind;
 			/// @required
-			Port	port;
+			Port		port;
 
 			IndexMap<std::string, Route> routes;
 
@@ -117,7 +119,7 @@ namespace config {
 			// false -> No shutdown port;
 			// null -> No shutdown port;
 			// 0-65565 -> shutdown port;
-			Option<Port>			  shutdown_port;
+			Option<Port>				  shutdown_port;
 
 			static Config fromTomlValue(const ::toml::Value& toml);
 	};

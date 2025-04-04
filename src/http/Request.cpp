@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/29 17:16:21 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/03 19:25:37 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/04 16:24:49 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -128,17 +128,6 @@ bool Request::parseBytes(std::string& buffer) {
 						host.erase(host.begin() + host.find(":"), host.end());
 
 						ServerMap& servers = State::getInstance().getConfig().server;
-						for (ServerMap::iterator it = servers.begin(); it != servers.end(); it++) {
-							LOG(info, "this->Port = " << this->port << "; Host='" << host
-													  << "'; Server->Port = " << it->second.port
-													  << "; Server->name = '" << it->second.hostname
-													  << "'");
-							if (it->second.port == this->port) {
-								this->server = &it->second;
-								break;
-							}
-						}
-
 						for (ServerMap::iterator it = servers.begin(); it != servers.end(); it++) {
 							if (it->second.port == this->port && it->second.hostname.hasValue() &&
 								it->second.hostname.get() == host) {

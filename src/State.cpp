@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   State.cpp                                        :+:      :+:    :+:   */
+/*   State.cpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/02 22:14:09 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/03 13:40:26 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/04 16:33:30 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,8 +43,8 @@ void State::openAllSockets() {
 			if (this->sockets.count(ip) == 0)
 				this->sockets[ip] = vector<Rc<Socket> >();
 			LOG(trace, "creating socket for " << ip << ":" << port);
-			this->sockets[ip].push_back(new Socket(ip, port));
+			this->sockets[ip].push_back(new Socket(ip, port, this->port_server_map.at(port)[0]));
 		}
 	}
-	LOG(info, "all sockets are opened: " << this->sockets.size() << " sockets");
+	LOG(info, "all sockets are opened: " << this->sockets.size() << "opened sockets");
 };

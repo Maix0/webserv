@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/03 13:48:32 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/03 13:57:32 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/04 16:23:28 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,3 +37,6 @@ std::string Response::createStatusPageFor(StatusCode code) {
 
 	return req.str();
 }
+
+
+//void Response::createResponseFor(Request );
