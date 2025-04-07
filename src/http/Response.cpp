@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/03 13:48:32 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/04 16:23:28 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/07 13:19:08 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,7 @@
 #include "app/http/Request.hpp"
 #include "app/http/Response.hpp"
 
-std::string Response::createStatusPageFor(StatusCode code) {
+static std::string default_status_page(StatusCode code) {
 	std::stringstream req;
 	std::stringstream body;
 
@@ -38,5 +38,15 @@ std::string Response::createStatusPageFor(StatusCode code) {
 	return req.str();
 }
 
+std::string Response::createStatusPageFor(config::Server* server, StatusCode code) {
+	std::stringstream s;
+	s << code.code();
+	std::string c = s.str();
+	if (server == NULL || server->errors.count(c) == 0)
+		return (default_status_page(code));
+	
 
-//void Response::createResponseFor(Request );
+	return (default_status_page(code));
+}
+
+// void Response::createResponseFor(Request );

@@ -14,6 +14,7 @@ config/errors                                                                 \
 config/print                                                                  \
 fs/Directory                                                                  \
 fs/File                                                                       \
+fs/ServerRessources                                                           \
 http/Request                                                                  \
 http/Response                                                                 \
 http/Routing                                                                  \

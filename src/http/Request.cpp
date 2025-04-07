@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/29 17:16:21 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/04 16:24:49 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/07 12:08:13 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -148,6 +148,7 @@ bool Request::parseBytes(std::string& buffer) {
 							throw PageException(400);
 						this->content_length = val;
 					}
+
 					if (this->route && this->content_length != -1 &&
 						(size_t)this->content_length > this->route->max_size)
 						throw PageException(status::PAYLOAD_TOO_LARGE);
