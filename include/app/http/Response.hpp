@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/02 15:39:45 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/07 13:12:48 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/08 16:20:27 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,5 +18,5 @@
 
 class Response {
 	public:
-		static std::string createStatusPageFor(config::Server* server, StatusCode code);
+		static std::string createStatusPageFor(const config::Server* server, StatusCode code);
 };

@@ -6,7 +6,7 @@
 #    By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/11/03 13:20:01 by maiboyer          #+#    #+#              #
-#    Updated: 2025/03/31 13:11:25 by maiboyer         ###   ########.fr        #
+#    Updated: 2025/04/08 16:41:50 by maiboyer         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -55,7 +55,7 @@ all:
 
 $(TARGET): $(OBJ)
 	@$(ECHO) -e '$(COL_GRAY) Linking \t $(COL_GOLD)$(TARGET)$(COL_RESET)'
-	@$(CXX) $(INCLUDES) $(OBJ) $(CXXFLAGS) -o $(NAME)
+	@$(CXX) $(INCLUDES) $(OBJ) $(CXXFLAGS)  -o $(NAME)
 
 $(BUILD_DIR)/.flags.o: $(BUILD_DIR)/.flags.txt
 	@mkdir -p $(dir $@)
@@ -74,7 +74,7 @@ $(BUILD_DIR)/.flags.o: $(BUILD_DIR)/.flags.txt
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp $(BUILD_DIR)/.flags.txt
 	@mkdir -p $(dir $@)
 	@$(ECHO) -e '$(COL_GRAY) Building\t $(COL_GREEN)$<$(COL_RESET)'
-	@$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
+	@$(CXX) $(CXXFLAGS) $(INCLUDES) -DBASE_PATH=\"$(BASE_PATH)\" -c $< -o $@
 
 clean:
 	@$(ECHO) -e '$(COL_GRAY) Removing\t $(COL_RED)$(BUILD_DIR)$(COL_RESET)'

@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/12 18:56:10 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/04 16:30:41 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/08 16:20:13 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,7 +33,7 @@ static void _send_builtin_code_response(Epoll&		   epoll,
 	(void)(self);
 	std::string res;
 	LOG(info, "Early fail for request with code: " << code.code());
-	res = Response::createStatusPageFor(code.code());
+	res = Response::createStatusPageFor(inner->getRequest().getServer(), code.code());
 	inner->getOutBuffer().insert(inner->getOutBuffer().end(), res.begin(), res.end());
 	{
 		Rc<ConnectionCallback<WRITE> > con = new ConnectionCallback<WRITE>(inner);

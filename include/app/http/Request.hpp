@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/24 17:51:48 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/04 16:30:17 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/08 16:19:57 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,15 +60,17 @@ class Request {
 		Port				  port;
 
 	public:
-		const HeaderMap& getHeaders() const { return this->headers; };
-		const Url&		 getUrl() const { return this->url; };
-		const Method&	 getMethod() const { return this->method; };
-		ParsingState	 getState() const { return this->state; };
+		ParsingState		  getState() const { return this->state; };
+		const HeaderMap&	  getHeaders() const { return this->headers; };
+		const Method&		  getMethod() const { return this->method; };
+		const Url&			  getUrl() const { return this->url; };
+		const config::Route*  getRoute() const { return this->route; };
+		const config::Server* getServer() const { return this->server; };
 
 		HeaderMap&	 getHeaders() { return this->headers; };
-		Url&		 getUrl() { return this->url; };
 		Method&		 getMethod() { return this->method; };
 		ParsingState getState() { return this->state; };
+		Url&		 getUrl() { return this->url; };
 
 		bool parseBytes(std::string& buffer);
 

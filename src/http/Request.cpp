@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/29 17:16:21 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/07 12:08:13 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/08 17:06:30 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -139,11 +139,11 @@ bool Request::parseBytes(std::string& buffer) {
 						assert(this->server != NULL);
 						this->route = getRouteFor(*this->server, this->url);
 					}
-					if (this->headers.count("host")) {
+					if (this->headers.count("content-length")) {
 						char* end = NULL;
 						errno	  = 0;
 						unsigned long long val =
-							std::strtoull(this->headers.at("host").c_str(), &end, 10);
+							std::strtoull(this->headers.at("content-length").c_str(), &end, 10);
 						if (errno != 0 || (end != NULL && *end != '\0'))
 							throw PageException(400);
 						this->content_length = val;

@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   State.hpp                                        :+:      :+:    :+:   */
+/*   State.hpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/02 22:07:07 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/03 13:40:13 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/08 16:57:16 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,7 +50,7 @@ class State {
 		PortMap&			 getPortMap() { return this->port_map; };
 		ConnectionList&		 getConnections() { return this->conns; };
 		Option<Rc<Socket> >& getShutdown() { return this->shutdown; };
-		PortServerMap		 getPortServerMap() { return this->port_server_map; };
+		PortServerMap&		 getPortServerMap() { return this->port_server_map; };
 
 		void openAllSockets();
 };

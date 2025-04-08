@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/02 22:14:09 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/04 16:33:30 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/08 16:50:41 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,7 +36,6 @@ void State::openAllSockets() {
 	for (PortMap::const_iterator pit = this->port_map.begin(); pit != this->port_map.end(); pit++) {
 		const Port&	   port = pit->first;
 		const set<Ip>& ips	= pit->second;
-
 		for (set<Ip>::const_iterator iit = ips.begin(); iit != ips.end(); iit++) {
 			const Ip& ip = *iit;
 

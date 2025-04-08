@@ -6,7 +6,7 @@
 #    By: rparodi <rparodi@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/11/12 11:05:05 by rparodi           #+#    #+#              #
-#    Updated: 2025/03/19 16:22:22 by maiboyer         ###   ########.fr        #
+#    Updated: 2025/04/08 17:09:46 by maiboyer         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -51,12 +51,22 @@ endif
 endif
 
 ifeq ($(MAKECMDGOALS), bonus)
-    CFLAGS_ADDITIONAL += -DBONUS=1
+    CXXFLAGS_ADDITIONAL += -DBONUS=1
     BUILD_DIR := $(BUILD_DIR)/bonus
 endif
 
 ifeq ($(CXX), g++)
-	CXXFLAGS_ADDITIONAL += -Wno-c++11-compat
+    CXXFLAGS_ADDITIONAL += -Wno-c++11-compat -Wno-type-limits
+endif
+
+
+ENABLE_BACKTRACE=yes
+ifeq ($(ENABLE_BACKTRACE), yes)
+    CXXFLAGS_ADDITIONAL += -rdynamic
+    CXXFLAGS_ADDITIONAL += -DTERMINATE_BACKTRACE
+    ifeq ($(MAKECMDGOALS), header)
+        MSG += "$(WSTART)using $(GOLD)custom terminate func$(WEND)"
+    endif
 endif
 
 CXXFLAGS_ADDITIONAL	+= -gcolumn-info -g3 -fno-builtin
@@ -77,12 +87,15 @@ ifdef MSG_BONUS
     MSG += "$(MSG_BONUS)"
 endif
 
+BASE_PATH=$(shell realpath .)
+
 export BUILD_DIR
 export CXX
 export CXXFLAGS_ADDITIONAL
 export INCLUDE_DIR
 export SRC_DIR
 export NAME
+export BASE_PATH
 
 ECHO = /usr/bin/env echo
 export ECHO

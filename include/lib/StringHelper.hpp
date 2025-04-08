@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/31 13:44:53 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/01 15:04:52 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/08 16:21:23 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,7 @@
 #include <string>
 
 // stolen from stack overflow: https://stackoverflow.com/a/25385766
-const char* ws = " \t\n\r\f\v";
+static const char* ws = " \t\n\r\f\v";
 
 // trim from end of string (right)
 static inline std::string& string_rtrim(std::string& s, const char* t = ws) {
@@ -42,3 +42,32 @@ static inline bool string_start_with(const std::string& self, const std::string&
 
 	return pit == prefix.end();
 }
+
+#define _HTML_ESCAPE(raw, code) \
+	case raw: {                 \
+		out += "&#" #code ";";  \
+		break;                  \
+	}
+
+static inline std::string string_escape_html(const std::string& self) {
+	std::string out;
+	out.reserve(self.capacity());
+	for (std::string::const_iterator chr = self.begin(); chr != self.end(); chr++) {
+		switch (*chr) {
+			_HTML_ESCAPE('\t', 9);
+			_HTML_ESCAPE('\n', 10);
+			_HTML_ESCAPE(' ', 32);
+			_HTML_ESCAPE('"', 34);
+			_HTML_ESCAPE('&', 38);
+			_HTML_ESCAPE('<', 60);
+			_HTML_ESCAPE('>', 62);
+			default: {
+				out.push_back(*chr);
+				break;
+			}
+		}
+	}
+	return out;
+}
+
+#undef _HTML_ESCAPE

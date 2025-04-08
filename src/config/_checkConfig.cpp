@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/07 21:50:04 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/18 23:38:24 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/08 16:58:01 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,11 +23,11 @@
 #include <stdexcept>
 #include <string>
 #include "app/State.hpp"
-#include "lib/IndexMap.hpp"
-#include "runtime/Logger.hpp"
 #include "app/http/Routing.hpp"
 #include "config/Config.hpp"
 #include "config/_ConfigHelper.hpp"
+#include "lib/IndexMap.hpp"
+#include "runtime/Logger.hpp"
 #include "toml/Value.hpp"
 
 using std::map;
@@ -155,7 +155,7 @@ namespace config {
 			for (p = res; p != NULL; p = p->ai_next) {
 				if (res->ai_family == AF_INET) {
 					struct sockaddr_in* ipv4 = (struct sockaddr_in*)p->ai_addr;
-					Ip				ip	 = ipv4->sin_addr.s_addr;
+					Ip					ip	 = ipv4->sin_addr.s_addr;
 					LOG(trace, "addrinfo: '" << hostname << "' = " << ip);
 					sit->second.bind = ip;
 					bound			 = true;
@@ -178,15 +178,14 @@ namespace config {
 			port_map[sit->second.port].insert(sit->second.bind);
 		}
 
-		for (map<Port, set<Ip> /**/>::iterator it = port_map.begin();
-			 it != port_map.end(); it++) {
+		for (map<Port, set<Ip> /**/>::iterator it = port_map.begin(); it != port_map.end(); it++) {
 			if (it->second.size() > 1) {
 				LOG(err, "Too many different ips tries to bind onto the port " << it->first);
 				throw std::runtime_error("duplicate port for different ips");
 			}
 		}
-		State& ctx = State::getInstance();
-		ctx.getPortMap()  = port_map;
+		State& ctx		 = State::getInstance();
+		ctx.getPortMap() = port_map;
 	}
 
 	static void _checkUnknownCgi(const Config& config) {
@@ -258,10 +257,10 @@ namespace config {
 	}
 
 	void checkConfig(Config& config, char** envp) {
+		_buildPortServerMap(config);
 		_checkUnknownCgi(config);
 		_checkInvalidCgi(config, envp);
 		_checkInvalidIpPorts(config);
-		_buildPortServerMap(config);
 		_setupRoutes(config);
 	}
 }  // namespace config
