@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/23 00:07:08 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/03 20:16:26 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/14 00:22:23 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -112,11 +112,8 @@ int wrapped_main(char* argv0, int argc, char* argv[], char* envp[]) {
 	LOG(info, "shutting down now...");
 	return 0;
 }
-#define BONUS
-#ifndef BONUS
-static void install_ctrlc_handler(void) {};
-#else
-#	include <csignal>
+
+#include <csignal>
 
 static void _ctrlc_handler(int sig) {
 	(void)(sig);
@@ -127,5 +124,3 @@ static void _ctrlc_handler(int sig) {
 static void install_ctrlc_handler(void) {
 	signal(SIGINT, _ctrlc_handler);
 };
-
-#endif

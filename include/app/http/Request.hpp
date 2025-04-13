@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/24 17:51:48 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/08 16:19:57 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/09 17:12:16 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,6 @@
 #include <string>
 #include <vector>
 #include "app/http/StatusCode.hpp"
-#include "app/net/Socket.hpp"
 #include "config/Config.hpp"
 #include "lib/IndexMap.hpp"
 #include "runtime/Logger.hpp"

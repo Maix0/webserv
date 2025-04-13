@@ -6,20 +6,23 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/07 13:23:58 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/08 16:16:46 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/13 23:52:35 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
+#include <istream>
 #include <stdexcept>
 #include <string>
 #include "config/Config.hpp"
+#include "lib/Rc.hpp"
 
-std::string getFileAt(const std::string& path,
-					  config::Server*	 server,
-					  config::Route*	 route = NULL,
-					  std::string* extension   = NULL);
+// this returns a filedescriptor that contains the file data
+Rc<std::istream> getFileAt(const std::string& path,
+						   config::Server*	  server,
+						   config::Route*	  route = NULL,
+						   std::string* extension	= NULL);
 
 namespace fs {
 	namespace error {

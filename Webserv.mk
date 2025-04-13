@@ -6,7 +6,7 @@
 #    By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/11/03 13:20:01 by maiboyer          #+#    #+#              #
-#    Updated: 2025/04/08 16:41:50 by maiboyer         ###   ########.fr        #
+#    Updated: 2025/04/14 00:16:39 by maiboyer         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -42,7 +42,7 @@ COL_WHITE		=	\033[37m
 
 ECHO			?=	/usr/bin/env echo
 
-.PHONY = all bonus clean re subject filelist .clangd archive _flags
+.PHONY = all bonus clean re subject filelist .clangd archive _flags _archive_inner
 
 export CXX
 export CXXFLAGS
@@ -86,7 +86,10 @@ fclean: clean
 
 re: fclean all
 
-archive: $(OBJ) 
+_archive_inner: $(OBJ)
+archive: 
+	@$(MAKE) -f Webserv.mk _flags
+	@$(MAKE) -f Webserv.mk _archive_inner
 	@echo -e '$(COL_GRAY) Bundle\t $(COL_GREEN)$(BUILD_DIR)/webserv.a$(COL_RESET)'
 	@ar rcs $(BUILD_DIR)/webserv.a $(OBJ)
 

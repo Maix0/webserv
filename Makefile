@@ -6,7 +6,7 @@
 #    By: rparodi <rparodi@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/11/12 11:05:05 by rparodi           #+#    #+#              #
-#    Updated: 2025/04/08 17:09:46 by maiboyer         ###   ########.fr        #
+#    Updated: 2025/04/14 00:54:34 by maiboyer         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -60,7 +60,7 @@ ifeq ($(CXX), g++)
 endif
 
 
-ENABLE_BACKTRACE=yes
+ENABLE_BACKTRACE ?= yes
 ifeq ($(ENABLE_BACKTRACE), yes)
     CXXFLAGS_ADDITIONAL += -rdynamic
     CXXFLAGS_ADDITIONAL += -DTERMINATE_BACKTRACE
@@ -69,16 +69,19 @@ ifeq ($(ENABLE_BACKTRACE), yes)
     endif
 endif
 
-CXXFLAGS_ADDITIONAL	+= -gcolumn-info -g3 -fno-builtin
-CXXFLAGS_ADDITIONAL += -fdiagnostics-color=always
-CXXFLAGS_ADDITIONAL	+= -DLOG_LEVEL=debug
+#CXXFLAGS_ADDITIONAL	+= -gcolumn-info -g3 -fno-builtin
+#CXXFLAGS_ADDITIONAL += -fdiagnostics-color=always
+#CXXFLAGS_ADDITIONAL	+= -DLOG_LEVEL=debug
 
+ENABLE_LLD ?= yes
 LLD := $(shell command -v lld 2> /dev/null)
 ifdef LLD
-    ifeq ($(MAKECMDGOALS), header)
-        MSG += "$(WSTART)using $(GOLD)lld$(WEND)"
+    ifeq ($(ENABLE_LLD),yes)
+        ifeq ($(MAKECMDGOALS), header)
+            MSG += "$(WSTART)using $(GOLD)lld$(WEND)"
+        endif
+        CXXFLAGS_ADDITIONAL += -fuse-ld=lld -Wno-unused-command-line-argument
     endif
-    CXXFLAGS_ADDITIONAL += -fuse-ld=lld -Wno-unused-command-line-argument
 endif
 
 #CXXFLAGS_ADDITIONAL	+= -fsanitize=address
@@ -188,6 +191,7 @@ filelist:
 
 
 archive:
+	$(eval CXXFLAGS_ADDITIONAL += -Werror)
 	@$(MAKE) --no-print-directory -f ./Webserv.mk archive $(PMAKE)
 
 .clangd:

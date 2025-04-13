@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/12 18:56:10 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/08 16:20:13 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/09 17:32:46 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,14 +31,10 @@ static void _send_builtin_code_response(Epoll&		   epoll,
 										Rc<Connection> inner,
 										StatusCode	   code) {
 	(void)(self);
-	std::string res;
-	LOG(info, "Early fail for request with code: " << code.code());
-	res = Response::createStatusPageFor(inner->getRequest().getServer(), code.code());
-	inner->getOutBuffer().insert(inner->getOutBuffer().end(), res.begin(), res.end());
-	{
-		Rc<ConnectionCallback<WRITE> > con = new ConnectionCallback<WRITE>(inner);
-		epoll.addCallback(inner->asFd(), WRITE, con.cast<Callback>());
-	}
+	Rc<Response> res;
+	LOG(info, "Returning page for code: " << code.code() << " - " << code.canonical());
+	res = Response::createStatusPageFor(epoll, inner, inner->getRequest().getServer(), code.code());
+
 	inner->getRequest().setFinished();
 	inner->getRequest() = Request(inner->getSocket()->getPort(), inner->getSocket()->getServer());
 }
@@ -59,11 +55,14 @@ void _ConnCallbackR(Epoll& epoll, Rc<Callback> self, Rc<Connection> inner) {
 		inner->getInBuffer().insert(inner->getInBuffer().end(), &READ_BUF[0], &READ_BUF[res]);
 
 		if (inner->getRequest().parseBytes(inner->getInBuffer()))
-			_send_builtin_code_response(epoll, self, inner, 200);
-
+			return (void)Response::createResponseFor(epoll, inner);
 	} catch (const Request::PageException& e) {
 		return _send_builtin_code_response(epoll, self, inner, e.statusCode());
 	} catch (const std::exception& e) {
+		LOG(warn, "parsing request: " << e.what());
+		return _send_builtin_code_response(epoll, self, inner, 500);
+	} catch (...) {
+		LOG(warn, "parsing request: <unknown exception>");
 		return _send_builtin_code_response(epoll, self, inner, 500);
 	}
 }

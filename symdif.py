@@ -26,6 +26,18 @@ def print_col_cond(msg: str, col: str, cond: bool = True):
         print(msg)
 
 
+print("Making archive and binary...", file=sys.stderr)
+make = subprocess.run(
+    ["/usr/bin/env", "make", "all", "archive", "ENABLE_LLD=no", "ENABLE_BACKTRACE=no"],
+    capture_output=True,
+    text=True,
+)
+if make.returncode != 0:
+    print("Error when making archive and binary")
+    print(f"{make.stderr}")
+    exit(1)
+print("Finished !\n", file=sys.stderr)
+
 dump_archive = subprocess.run(
     ["/usr/bin/env", "readelf", "--symbols", "--wide"]
     + [f"{build_dir}/{name}" for name in archive_files],
@@ -77,14 +89,15 @@ except FileNotFoundError:
 
 # add known built in functions
 built_in = {
-    "deregister_tm_clones",
-    "frame_dummy",
-    "memcmp",
-    "memcpy",
-    "memmove",
-    "memset",
-    "register_tm_clones",
-    "strlen",
+    "bcmp",  # used to compare byte sequence
+    "deregister_tm_clones",  # thread locals
+    "frame_dummy",  # yes ?
+    "memcmp",  # compiler likes to insert those
+    "memcpy",  # compiler likes to insert those
+    "memmove",  # compiler likes to insert those
+    "memset",  # compiler likes to insert those
+    "register_tm_clones",  # tread locals I think
+    "strlen",  # used by printing stuff
 }
 
 skip_none = False

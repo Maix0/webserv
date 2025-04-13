@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/07 13:21:07 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/08 16:02:56 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/13 23:54:39 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 #include <sys/stat.h>
 #include <fstream>
 #include <ios>
+#include <istream>
 #include <sstream>
 #include <string>
 
@@ -21,14 +22,15 @@
 #include "app/fs/ServerRessources.hpp"
 #include "app/http/Request.hpp"
 #include "config/Config.hpp"
+#include "lib/Rc.hpp"
 #include "lib/StringHelper.hpp"
 
 using std::string;
 
-std::string getFileAt(const std::string& path,
-					  config::Server*	 server,
-					  config::Route*	 route,
-					  std::string*		 extension) {
+Rc<std::istream> getFileAt(const std::string& path,
+						   config::Server*	  server,
+						   config::Route*	  route,
+						   std::string*		  extension) {
 	std::string dummy;
 	if (extension == NULL)
 		extension = &dummy;
@@ -60,29 +62,29 @@ std::string getFileAt(const std::string& path,
 					throw fs::error::NotAllowed(real_path);
 				Directory dir(real_path);
 				*extension = "txt";
-				std::stringstream out;
-				out << "<html>" CRLF;
+				Rc<std::stringstream> out;
+				(*out) << "<html>" CRLF;
 
-				out << "<head>" CRLF;
-				out << "\t<title>" << "Directory listing - " << string_escape_html(dir.getPath())
-					<< "</title>" << CRLF;
-				out << "</head>" CRLF;
+				(*out) << "<head>" CRLF;
+				(*out) << "\t<title>" << "Directory listing - " << string_escape_html(dir.getPath())
+					   << "</title>" << CRLF;
+				(*out) << "</head>" CRLF;
 
-				out << "<body>" CRLF;
-				out << "\t<h1>" << "Directory listing - " << string_escape_html(dir.getPath())
-					<< "</h1>" << CRLF;
-				out << "\t<ul>" << CRLF;
+				(*out) << "<body>" CRLF;
+				(*out) << "\t<h1>" << "Directory listing - " << string_escape_html(dir.getPath())
+					   << "</h1>" << CRLF;
+				(*out) << "\t<ul>" << CRLF;
 				const std::vector<Directory::Entry>& entries = dir.getEntries();
 				for (std::vector<Directory::Entry>::const_iterator it = entries.begin();
 					 it != entries.end(); it++) {
-					out << "\t\t<li><a href=\"" << string_escape_html(it->name) << "\">"
-						<< string_escape_html(it->name) << "</a></li>" << CRLF;
+					(*out) << "\t\t<li><a href=\"" << string_escape_html(it->name) << "\">"
+						   << string_escape_html(it->name) << "</a></li>" << CRLF;
 				}
-				out << "\t</ul>" << CRLF;
-				out << "</body>" CRLF;
+				(*out) << "\t</ul>" << CRLF;
+				(*out) << "</body>" CRLF;
 
-				out << "</html>" CRLF;
-				return out.str();
+				(*out) << "</html>" CRLF;
+				return out.cast<std::istream>();
 			}
 			throw fs::error::IsADirectory(real_path);
 		} else if (S_ISREG(s.st_mode)) {
@@ -94,20 +96,18 @@ std::string getFileAt(const std::string& path,
 			if (s.st_size > (1 << 30)) {
 				throw fs::error::TooBig(real_path);
 			}
-			std::ifstream file;
-			std::string	  out;
-			file.open(real_path.c_str());
-			if (file.fail())
+			Rc<std::ifstream> file;
+			file->open(real_path.c_str());
+			if (file->fail())
 				throw fs::error::Failure(real_path);
-			file >> std::noskipws;
-			file >> out;
-			file.close();
+			(*file) >> std::noskipws;
+			file->close();
 
 			std::string::size_type last_slash		   = real_path.find_last_of('/');
 			std::string::size_type first_dot_last_part = real_path.find_first_of('.', last_slash);
 			std::string ext(real_path.begin() + first_dot_last_part + 1, real_path.end());
 			*extension = ext;
-			return out;
+			return file.cast<std::istream>();
 		}
 	}
 	throw fs::error::NotFound(real_path);

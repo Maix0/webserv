@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/02 18:23:58 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/08 16:48:59 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/14 00:20:05 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,9 +39,7 @@ int main(int argc, char* argv[], char* envp[]) {
 	return wrapped_main(argv0, argc, argv, envp);
 }
 
-#define TERMINATE_BONUS
-
-#ifdef TERMINATE_BONUS
+#ifdef TERMINATE_BACKTRACE
 
 #	include <execinfo.h>
 #	include <string.h>
