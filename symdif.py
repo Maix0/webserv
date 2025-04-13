@@ -2,10 +2,28 @@
 
 import subprocess
 import os
+import sys
 
 archive_files = ["webserv.a"]
 build_dir = "./build/"
 binary_file = "./webserv"
+
+TTY = sys.stdout.isatty()
+COL_CYAN = "\x1b[36m"
+COL_GOLD = "\x1b[93m"
+COL_GRAY = "\x1b[90m"
+COL_GREEN = "\x1b[32m"
+COL_RED = "\x1b[31m"
+COL_WHITE = "\x1b[37m"
+
+
+def print_col_cond(msg: str, col: str, cond: bool = True):
+    if not cond:
+        return
+    if TTY:
+        print(f"{col}{msg}\x1b[0m")
+    else:
+        print(msg)
 
 
 dump_archive = subprocess.run(
@@ -48,5 +66,37 @@ for line in dump_binary.stdout.split("\n"):
 # diff = list(symbols_archive - symbols_binary)
 diff = list(symbols_binary - symbols_archive)
 diff.sort()
+
+funcs = set()
+try:
+    with open("./authorized_functions") as f:
+        s = f.read()
+        funcs = set(s.split("\n"))
+except FileNotFoundError:
+    pass
+
+# add known built in functions
+built_in = {
+    "deregister_tm_clones",
+    "frame_dummy",
+    "memcmp",
+    "memcpy",
+    "memmove",
+    "memset",
+    "register_tm_clones",
+    "strlen",
+}
+
+skip_none = False
+if len(sys.argv) >= 2 and sys.argv[1].lower() == "all":
+    skip_none = True
+
 for sym in diff:
-    print(f"{sym}")
+    if sym in funcs:
+        print_col_cond(sym, COL_GREEN, skip_none)
+    elif sym.startswith("_Z"):
+        print_col_cond(sym, COL_CYAN, skip_none)
+    elif sym.startswith("_") or sym in built_in:
+        print_col_cond(sym, COL_GRAY, skip_none)
+    else:
+        print_col_cond(sym, COL_RED)
