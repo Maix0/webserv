@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/02 15:39:45 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/14 00:12:58 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/14 14:07:01 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,9 +16,13 @@
 #include <istream>
 #include <sstream>
 #include <string>
+
 #include "app/http/StatusCode.hpp"
-#include "app/net/Connection.hpp"
 #include "config/Config.hpp"
+#include "lib/Rc.hpp"
+#include "runtime/Epoll.hpp"
+
+class Connection;
 
 class Response {
 	public:
@@ -31,6 +35,8 @@ class Response {
 		// POST DATA FOR BODIES
 		Rc<std::istream>  body;
 		std::vector<char> inner_buffer;
+
+		bool sent_headers;
 
 	public:
 		Response()

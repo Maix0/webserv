@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/08 16:52:34 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/03 20:21:17 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/15 21:44:00 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,6 +41,7 @@ class Rc {
 			this->ptr		  = new RcInner();
 			this->ptr->strong = 1;
 			this->ptr->weak	  = 0;
+			// new (this->ptr->value.buffer()) T();
 			this->ptr->value  = new T();
 			assert_valid(*this);
 		}

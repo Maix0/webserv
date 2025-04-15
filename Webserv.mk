@@ -6,7 +6,7 @@
 #    By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/11/03 13:20:01 by maiboyer          #+#    #+#              #
-#    Updated: 2025/04/14 00:16:39 by maiboyer         ###   ########.fr        #
+#    Updated: 2025/04/15 20:37:44 by maiboyer         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -106,5 +106,24 @@ _flags:
 		mkdir -p $(BUILD_DIR);                                     \
 		$(ECHO) -e $(BUILD_FINGERPRINT) > $(BUILD_DIR)/.flags.txt;       \
 	fi
+
+
+# change $(OBJ) with the name of all objects
+# change $(TARGET) with the name of the executables
+# you can modify this to change the default "classes" of symbols showed
+SYMDIFF_CLASSES = other builtin allowed
+# this can be overriten to add flags (-D to demangle, -A to unconditionnally add all classes)
+SYMDIFF_FLAGS = -D
+SYMDIFF_ALLOWED = accept access bind chdir close closedir connect dup dup2    \
+				  epoll_create epoll_ctl epoll_wait errno execve fcntl fork   \
+				  freeaddrinfo gai_strerror getaddrinfo getprotobyname        \
+				  getsockname htonl htons kevent kill kqueue listen ntohl     \
+				  ntohs open opendir pipe poll read readdir recv select send  \
+				  setsockopt signal socket socketpair stat strerror waitpid   \
+				  write
+
+symdiff:
+	@$(MAKE) -f ./Webserv.mk --no-print-directory all "CXXFLAGS=-g3 -Wall -Wextra -MMD -std=c++98" "CFLAGS=-g3 -Wall -Wextra -MMD"
+	@./symdiff.py -C $(SYMDIFF_CLASSES) -o $(OBJ) -b $(TARGET) $(SYMDIFF_FLAGS) -a $(SYMDIFF_ALLOWED)
 
 -include $(DEPS)

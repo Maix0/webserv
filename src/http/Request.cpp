@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/29 17:16:21 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/08 17:06:30 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/15 21:53:01 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -97,19 +97,17 @@ bool Request::parseBytes(std::string& buffer) {
 
 				string_trim(name);
 				string_trim(value);
-
-				for (string::iterator it = name.begin(); it != name.end(); it++)
-					*it = std::tolower(*it);
+				string_tolower(name);
 
 				if (this->headers.count(name) == 0) {
 					this->headers.insert(std::make_pair(name, value));
 				} else {
 					/// we check that it is a valid header to be concatenated.
 					/// either it is in a premade list, or it is a Vendor-specific header (start
-					/// with `X-`)
+					/// with `x-`)
 					/// if either condition is true, then proceed to concat. otherwise just throw
 					/// 400
-					if (!(string_start_with(name, "X-") ||
+					if (!(string_start_with(name, "x-") ||
 						  std::find(ALLOWED_MULTIHEADERS.begin(), ALLOWED_MULTIHEADERS.end(),
 									name) != ALLOWED_MULTIHEADERS.end())) {
 						throw PageException(status::BAD_REQUEST);
@@ -156,8 +154,6 @@ bool Request::parseBytes(std::string& buffer) {
 				break;
 			};
 			case Request::BODY: {
-				if (this->body_fd == -1)
-					_ERR_RET_THROW(this->body_fd = open("/tmp", O_RDWR | O_CLOEXEC | O_TMPFILE, 0));
 				size_t size = buffer.size();
 				if (this->content_length != -1 &&
 					(ssize_t)(this->body_size + buffer.size()) > this->content_length) {
@@ -165,7 +161,7 @@ bool Request::parseBytes(std::string& buffer) {
 				}
 
 				this->body_size += size;
-				_ERR_RET_THROW(write(this->body_fd, buffer.data(), buffer.size()));
+				this->body->write(buffer.data(), size);
 				buffer.erase(buffer.begin(), buffer.begin() + size);
 
 				if ((ssize_t)this->body_size >= this->content_length) {

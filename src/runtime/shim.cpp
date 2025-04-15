@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/02 18:23:58 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/14 00:20:05 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/15 14:48:02 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,12 +20,19 @@
 
 int wrapped_main(char* argv0, int argc, char* argv[], char* envp[]);
 
+bool ft_strncmp(const char* s1, const char* s2, size_t n) {
+	for (size_t i = 0; i < n; i++)
+		if (s1[i] != s2[i])
+			return false;
+	return true;
+}
+
 extern char __flags_start[];
 extern char __flags_end[];
 extern char __flags_size[];
 
 int main(int argc, char* argv[], char* envp[]) {
-	if (argc >= 2 && strncmp(argv[1], "--print-flags", 15) == 0) {
+	if (argc >= 2 && ft_strncmp(argv[1], "--print-flags", 15)) {
 		try {
 			std::string msg(__flags_start, __flags_end);
 			std::cout << msg;
@@ -104,7 +111,7 @@ void print_trace(void) {};
 #endif
 
 void my_terminate() {
-	static int tried_throw = 0;
+	static unsigned char tried_throw = 0;
 
 	try {
 		// try once to re-throw currently active exception

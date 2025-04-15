@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/31 13:44:53 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/08 16:21:23 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/15 14:50:36 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -68,6 +68,20 @@ static inline std::string string_escape_html(const std::string& self) {
 		}
 	}
 	return out;
+}
+
+static inline std::string& string_tolower(std::string& s) {
+	for (std::string::iterator it = s.begin(); it != s.end(); it++)
+		if ('A' <= *it && *it <= 'Z')
+			*it -= 'a' - 'A';
+	return s;
+}
+
+static inline std::string& string_toupper(std::string& s) {
+	for (std::string::iterator it = s.begin(); it != s.end(); it++)
+		if ('a' <= *it && *it <= 'z')
+			*it += 'a' - 'A';
+	return s;
 }
 
 #undef _HTML_ESCAPE

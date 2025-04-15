@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/24 17:51:48 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/09 17:12:16 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/15 21:51:52 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,9 +22,12 @@
 #include <sstream>
 #include <string>
 #include <vector>
+
 #include "app/http/StatusCode.hpp"
 #include "config/Config.hpp"
 #include "lib/IndexMap.hpp"
+#include "lib/Rc.hpp"
+#include "lib/TempFile.hpp"
 #include "runtime/Logger.hpp"
 
 #define CRLF "\r\n"
@@ -49,9 +52,9 @@ class Request {
 		size_t		 headers_total_size;
 
 		// POST DATA FOR BODIES
-		int		body_fd;
-		size_t	body_size;
-		ssize_t content_length;
+		Rc<tiostream> body;
+		size_t		  body_size;
+		ssize_t		  content_length;
 
 		// Weak reference to the server configs
 		const config::Server* server;

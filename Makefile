@@ -6,7 +6,7 @@
 #    By: rparodi <rparodi@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/11/12 11:05:05 by rparodi           #+#    #+#              #
-#    Updated: 2025/04/14 13:16:39 by maiboyer         ###   ########.fr        #
+#    Updated: 2025/04/15 20:39:24 by maiboyer         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -72,6 +72,7 @@ endif
 CXXFLAGS_ADDITIONAL	+= -gcolumn-info -g3 -fno-builtin
 CXXFLAGS_ADDITIONAL	+= -fdiagnostics-color=always
 CXXFLAGS_ADDITIONAL	+= -DLOG_LEVEL=debug
+CXXFLAGS_ADDITIONAL += -Wno-delete-incomplete
 
 ENABLE_LLD ?= yes
 LLD := $(shell command -v lld 2> /dev/null)
@@ -112,7 +113,9 @@ all:
 
 
 scan-build:
-	@scan-build $(MAKE) --no-print-directory -k re LOG_DISABLE=-DLOG_DISABLE ENABLE_BACKTRACE=no ENABLE_LLD=no "MSG_BONUS=$(WSTART)$(RED)SCAN BUILD IS RUNNING$(WEND)"
+	@scan-build $(MAKE) --no-print-directory -k re                  \
+		LOG_DISABLE=-DLOG_DISABLE ENABLE_BACKTRACE=no ENABLE_LLD=no \
+		"MSG_BONUS=$(WSTART)$(RED)SCAN BUILD IS RUNNING$(WEND)"
 
 release:
 	$(eval CXXFLAGS_ADDITIONAL += -Werror)
@@ -231,7 +234,11 @@ $(DOWNLOAD_DIR)/tester: $(DOWNLOAD_DIR)
 $(DOWNLOAD_DIR):
 	@mkdir -p $(DOWNLOAD_DIR)
 
-
+SYMDIFF_CLASSES = 
+# this can be overriten to add flags (-D to demangle, -A to unconditionnally add all classes)
+SYMDIFF_FLAGS = 
+symdiff:
+	@$(MAKE) --no-print-directory -f ./Webserv.mk symdiff $(PMAKE)
 
 #	phony
 .PHONY: all bonus clean fclean re header footer filelist .clangd .clang-format subject archive

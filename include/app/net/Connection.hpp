@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/12 18:43:37 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/04 16:33:15 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/14 14:06:44 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 
 #include <unistd.h>
 #include <cstddef>
+#include "app/http/Response.hpp"
 #include "app/http/Request.hpp"
 #include "app/net/Socket.hpp"
 #include "interface/AsFd.hpp"
@@ -38,8 +39,9 @@ class Connection : public AsFd {
 		Ip	 remote_ip;
 		Port remote_port;
 
-		Rc<Socket> socket;
-		Request	   request;
+		Rc<Socket>	 socket;
+		Request		 request;
+		Rc<Response> response;
 
 		Time last_updated;
 

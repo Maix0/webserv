@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/02 18:29:43 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/29 18:13:51 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/15 14:51:28 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@
 #include <exception>
 #include <iostream>
 #include <string>
+#include "lib/StringHelper.hpp"
 
 #define RESET		   "\x1b[0m"
 #define BOLD		   "\x1b[1m"
@@ -113,10 +114,7 @@ namespace log {
 					};
 
 					std::string val = env.substr(eq + 1);
-
-					// poor man's string.toLowercase()...
-					for (std::string::iterator it = val.begin(); it != val.end(); it++)
-						*it = std::tolower(*it);
+					string_tolower(val);
 
 					for (std::size_t i = 0; i < sizeof(levels) / sizeof(levels[0]); i++) {
 						if (levels[i].first == val) {
