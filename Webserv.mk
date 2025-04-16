@@ -6,11 +6,12 @@
 #    By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/11/03 13:20:01 by maiboyer          #+#    #+#              #
-#    Updated: 2025/04/15 20:37:44 by maiboyer         ###   ########.fr        #
+#    Updated: 2025/04/16 16:55:16 by maiboyer         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 CXXFLAGS_ADDITIONAL ?=
+LDFLAGS_ADDITIONAL ?=
 
 SUBJECT_URL		=	https://cdn.intra.42.fr/pdf/pdf/141614/en.subject.pdf
 
@@ -22,7 +23,7 @@ TARGET			=	./$(NAME)
 CXX				?=	c++
 CXXFLAGS		=	-Wall -Wextra -MMD -std=c++98
 CXXFLAGS		+=	$(CXXFLAGS_ADDITIONAL)
-
+LDFLAGS			=  $(LDFLAGS_ADDITIONAL)
 # sorting + removing useless args
 CXXFLAGS		:=	$(shell sh -c 'for arg in $(CXXFLAGS); do echo $$arg; done | sort -u')
 
@@ -55,7 +56,7 @@ all:
 
 $(TARGET): $(OBJ)
 	@$(ECHO) -e '$(COL_GRAY) Linking \t $(COL_GOLD)$(TARGET)$(COL_RESET)'
-	@$(CXX) $(INCLUDES) $(OBJ) $(CXXFLAGS)  -o $(NAME)
+	@$(CXX) $(INCLUDES) $(OBJ) $(LDFLAGS) $(CXXFLAGS) -o $(NAME)
 
 $(BUILD_DIR)/.flags.o: $(BUILD_DIR)/.flags.txt
 	@mkdir -p $(dir $@)

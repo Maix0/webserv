@@ -6,7 +6,7 @@
 #    By: rparodi <rparodi@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/11/12 11:05:05 by rparodi           #+#    #+#              #
-#    Updated: 2025/04/15 20:39:24 by maiboyer         ###   ########.fr        #
+#    Updated: 2025/04/16 16:54:20 by maiboyer         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -40,6 +40,7 @@ WEND = \n$(END)
 
 LOG_DISABLE=
 CXXFLAGS_ADDITIONAL= $(LOG_DISABLE)
+LDFLAGS_ADDITIONAL=
 PMAKE =
 ifndef PMAKE_DISABLE
 ifeq ($(shell uname), Linux)
@@ -62,7 +63,7 @@ endif
 
 ENABLE_BACKTRACE ?= yes
 ifeq ($(ENABLE_BACKTRACE), yes)
-    CXXFLAGS_ADDITIONAL += -rdynamic
+    LDFLAGS_ADDITIONAL += -rdynamic
     CXXFLAGS_ADDITIONAL += -DTERMINATE_BACKTRACE
     ifeq ($(MAKECMDGOALS), header)
         MSG += "$(WSTART)using $(GOLD)custom terminate func$(WEND)"
@@ -72,7 +73,6 @@ endif
 CXXFLAGS_ADDITIONAL	+= -gcolumn-info -g3 -fno-builtin
 CXXFLAGS_ADDITIONAL	+= -fdiagnostics-color=always
 CXXFLAGS_ADDITIONAL	+= -DLOG_LEVEL=debug
-CXXFLAGS_ADDITIONAL += -Wno-delete-incomplete
 
 ENABLE_LLD ?= yes
 LLD := $(shell command -v lld 2> /dev/null)
@@ -81,7 +81,7 @@ ifdef LLD
         ifeq ($(MAKECMDGOALS), header)
             MSG += "$(WSTART)using $(GOLD)lld$(WEND)"
         endif
-        CXXFLAGS_ADDITIONAL += -fuse-ld=lld -Wno-unused-command-line-argument
+        LDFLAGS_ADDITIONAL += -fuse-ld=lld -Wno-unused-command-line-argument
     endif
 endif
 
@@ -96,6 +96,7 @@ BASE_PATH=$(shell realpath .)
 export BUILD_DIR
 export CXX
 export CXXFLAGS_ADDITIONAL
+export LDFLAGS_ADDITIONAL
 export INCLUDE_DIR
 export SRC_DIR
 export NAME
