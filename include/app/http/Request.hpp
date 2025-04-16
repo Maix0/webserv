@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/24 17:51:48 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/15 21:51:52 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/16 18:11:36 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,9 +52,9 @@ class Request {
 		size_t		 headers_total_size;
 
 		// POST DATA FOR BODIES
-		Rc<tiostream> body;
-		size_t		  body_size;
-		ssize_t		  content_length;
+		Option<Rc<tiostream> > body;
+		size_t				   body_size;
+		ssize_t				   content_length;
 
 		// Weak reference to the server configs
 		const config::Server* server;
@@ -62,12 +62,13 @@ class Request {
 		Port				  port;
 
 	public:
-		ParsingState		  getState() const { return this->state; };
-		const HeaderMap&	  getHeaders() const { return this->headers; };
-		const Method&		  getMethod() const { return this->method; };
-		const Url&			  getUrl() const { return this->url; };
-		const config::Route*  getRoute() const { return this->route; };
-		const config::Server* getServer() const { return this->server; };
+		Option<Rc<tiostream> > getBody() const { return this->body; };
+		ParsingState		   getState() const { return this->state; };
+		const HeaderMap&	   getHeaders() const { return this->headers; };
+		const Method&		   getMethod() const { return this->method; };
+		const Url&			   getUrl() const { return this->url; };
+		const config::Route*   getRoute() const { return this->route; };
+		const config::Server*  getServer() const { return this->server; };
 
 		HeaderMap&	 getHeaders() { return this->headers; };
 		Method&		 getMethod() { return this->method; };
@@ -79,25 +80,13 @@ class Request {
 		Request(Port port, const config::Server* default_server)
 			: state(HEADER),
 			  headers_total_size(0),
-			  body_fd(-1),
 			  body_size(0),
 			  content_length(-1),
 			  server(default_server),
 			  route(NULL),
 			  port(port) {};
-		~Request() {
-			if (this->body_fd != -1)
-				close(this->body_fd);
-		};
+		~Request() {};
 		void setFinished() { this->state = FINISHED; };
-
-		int copyBodyFd() {
-			if (this->body_fd == -1)
-				return -1;
-			int out = -1;
-			_ERR_RET_THROW(out = dup(this->body_fd));
-			return out;
-		}
 
 		class PageException : public std::exception {
 			private:

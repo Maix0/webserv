@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/29 17:16:21 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/15 21:53:01 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/16 19:00:46 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -116,7 +116,10 @@ bool Request::parseBytes(std::string& buffer) {
 				}
 
 				if (end == crlf) {
-					this->state		= BODY;
+					if (this->method == "POST" || this->method == "PUT")
+						this->state = BODY;
+					else
+						this->state = FINISHED;
 					this->body_size = 0;
 					buffer.erase(buffer.begin(), buffer.begin() + 2);
 					continue_loop = true;
@@ -154,6 +157,7 @@ bool Request::parseBytes(std::string& buffer) {
 				break;
 			};
 			case Request::BODY: {
+				LOG(trace, "body for a request");
 				size_t size = buffer.size();
 				if (this->content_length != -1 &&
 					(ssize_t)(this->body_size + buffer.size()) > this->content_length) {
@@ -161,7 +165,7 @@ bool Request::parseBytes(std::string& buffer) {
 				}
 
 				this->body_size += size;
-				this->body->write(buffer.data(), size);
+				this->body.get_or_insert()->write(buffer.data(), size);
 				buffer.erase(buffer.begin(), buffer.begin() + size);
 
 				if ((ssize_t)this->body_size >= this->content_length) {
@@ -175,7 +179,7 @@ bool Request::parseBytes(std::string& buffer) {
 				_UNREACHABLE;
 			}
 			case Request::FINISHED: {
-				_UNREACHABLE;
+				return true;
 			}
 		}
 	} while (!buffer.empty() || continue_loop);

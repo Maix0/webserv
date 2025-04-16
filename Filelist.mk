@@ -19,6 +19,7 @@ http/Request                                                                  \
 http/Response                                                                 \
 http/Routing                                                                  \
 http/StatusCode                                                               \
+lib/TempFile                                                                  \
 lib/Time                                                                      \
 net/Socket                                                                    \
 runtime/Epoll                                                                 \
