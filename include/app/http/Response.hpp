@@ -6,13 +6,14 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/02 15:39:45 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/14 14:07:01 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/17 18:05:56 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
 #include <cstddef>
+#include <deque>
 #include <istream>
 #include <sstream>
 #include <string>
@@ -33,19 +34,28 @@ class Response {
 		StatusCode code;
 
 		// POST DATA FOR BODIES
-		Rc<std::istream>  body;
-		std::vector<char> inner_buffer;
+		std::size_t		 body_size;
+		Rc<std::istream> body;
+		std::deque<char> inner_buffer;
 
 		bool sent_headers;
+		bool is_finished;
 
 	public:
 		Response()
 			: code(StatusCode(200)),
-			  body(Rc<std::stringstream>(new std::stringstream()).cast<std::istream>()) {};
+			  body(Rc<std::istream>(new std::stringstream())),
+			  sent_headers(false),
+			  is_finished(false) {};
 		~Response() {};
 
-		void			 setBody(Rc<std::istream> body) { this->body = body; };
-		Rc<std::istream> getBodyFd() { return this->body; };
+		void setBody(Rc<std::istream> body, size_t size) {
+			this->body		= body;
+			this->body_size = size;
+		};
+		void			 setFinished() { this->is_finished = true; };
+		bool			 isFinished() { return this->is_finished; };
+		Rc<std::istream> getBody() { return this->body; };
 
 		void	   setStatus(StatusCode code) { this->code = code; };
 		StatusCode getStatus() { return this->code; };
@@ -65,5 +75,6 @@ class Response {
 												StatusCode			  code);
 		static Rc<Response> createResponseFor(Epoll& epoll, Rc<Connection> conn);
 
-		std::string toBytes();
+		std::size_t fill_buffer(char buf[], std::size_t len);
+		void		sent_bytes(std::size_t len);
 };

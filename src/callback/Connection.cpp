@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/12 18:56:10 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/09 17:32:46 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/17 18:19:03 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -72,14 +72,33 @@ void _ConnCallbackW(Epoll& epoll, Rc<Callback> self, Rc<Connection> inner) {
 		self->setFinished();
 		return;
 	}
-	Connection::Buffer& buf = inner->getOutBuffer();
-	ssize_t				res = 0;
+	if (inner->getResponse()->isFinished())
+		return;
+	Connection::OBuffer& buf = inner->getOutBuffer();
+	if (buf.size() < 4096) {
+		std::size_t before = buf.size();
+		LOG(info, "buffer.size() = " << before);
+		buf.resize(4096);
+		std::size_t asking = 4096 - before;
+		std::size_t got	   = inner->getResponse()->fill_buffer(&*buf.end() - 1, asking);
+		LOG(info, "got = " << got << "; asked = " << asking);
+		if (got < asking)
+			inner->getResponse()->setFinished();
+		buf.resize(before + got);
+	}
+	if (buf.size() > 0)
+		LOG(info, "buffer.size() = " << buf.size());
+	ssize_t res = 0;
 	if ((res = write(inner->asFd(), &buf[0], buf.size())) < 0) {
-		LOG(warn, "Error when reading...");
+		int serr = errno;
+		(void)(serr);
+		LOG(warn, "Error when reading...: " << strerror(serr));
 		return;
 	}
-	if (res > 0)
+	if (res > 0) {
 		inner->updateTime();
+		LOG(info, "wrote = " << res);
+	}
 	buf.erase(buf.begin(), buf.begin() + res);
 	epoll.addCallback(inner->asFd(), WRITE, self);
 }

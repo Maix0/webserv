@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/08 16:52:34 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/15 21:44:00 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/17 14:36:11 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,9 +80,9 @@ class Rc {
 			assert_valid(*this);
 			if (this != &rhs) {
 				{
-					this->ptr->strong--;
 					Rc cpy = *this;
 					// hello yes run the destructor pls
+					this->ptr->strong--;
 					(void)(cpy);
 				}
 				this->ptr = rhs.ptr;

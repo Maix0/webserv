@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/24 17:51:48 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/16 18:11:36 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/17 14:39:55 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,6 +80,7 @@ class Request {
 		Request(Port port, const config::Server* default_server)
 			: state(HEADER),
 			  headers_total_size(0),
+			  body(new tiostream()),
 			  body_size(0),
 			  content_length(-1),
 			  server(default_server),

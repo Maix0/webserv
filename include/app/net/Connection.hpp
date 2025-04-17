@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/12 18:43:37 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/14 14:06:44 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/17 17:42:43 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,8 +14,8 @@
 
 #include <unistd.h>
 #include <cstddef>
-#include "app/http/Response.hpp"
 #include "app/http/Request.hpp"
+#include "app/http/Response.hpp"
 #include "app/net/Socket.hpp"
 #include "interface/AsFd.hpp"
 #include "lib/Rc.hpp"
@@ -25,15 +25,16 @@
 
 class Connection : public AsFd {
 	public:
-		typedef std::string Buffer;
+		typedef std::string		  IBuffer;
+		typedef std::vector<char> OBuffer;
 
 		static const std::size_t KEEP_ALIVE_TIMEOUT = 5;
 
 	private:
 		int fd;
 
-		Buffer inbuffer;
-		Buffer outbuffer;
+		IBuffer inbuffer;
+		OBuffer outbuffer;
 
 		bool closed;
 		Ip	 remote_ip;
@@ -60,15 +61,17 @@ class Connection : public AsFd {
 			  request(sock->getPort(), socket->getServer()),
 			  last_updated(Time::now()) {
 			LOG(debug, "new connection " << fd << " for " << ip << ":" << port);
+			this->response->setFinished();
 		};
 
-		Buffer& getInBuffer() { return this->inbuffer; };
-		Buffer& getOutBuffer() { return this->outbuffer; };
-		Ip		getIp() { return this->remote_ip; };
-		Port	getPort() { return this->remote_port; };
+		IBuffer& getInBuffer() { return this->inbuffer; };
+		OBuffer& getOutBuffer() { return this->outbuffer; };
+		Ip		 getIp() { return this->remote_ip; };
+		Port	 getPort() { return this->remote_port; };
 
-		Rc<Socket> getSocket() { return this->socket; };
-		Request&   getRequest() { return this->request; };
+		Rc<Socket>	  getSocket() { return this->socket; };
+		Request&	  getRequest() { return this->request; };
+		Rc<Response>& getResponse() { return this->response; };
 
 		int	 asFd() { return this->fd; };
 		bool isClosed() { return this->closed; };
