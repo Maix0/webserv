@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/12 18:43:37 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/18 11:22:28 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/18 14:48:01 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,7 +70,7 @@ class Connection : public AsFd {
 		Port	 getPort() { return this->remote_port; };
 
 		Rc<Socket>	  getSocket() { return this->socket; };
-		Rc<Request>	  getRequest() { return this->request; };
+		Rc<Request>&  getRequest() { return this->request; };
 		Rc<Response>& getResponse() { return this->response; };
 
 		int	 asFd() { return this->fd; };

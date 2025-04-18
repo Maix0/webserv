@@ -10,11 +10,6 @@ bind = "0.0.0.0"
 port = 0
 errors = { 404 = "404.html" }
 root = "./src"
-routes."/something" = {}
-routes."/something2" = {}
-routes."/a/b/" = {}
-routes."/a/b/c/d/e/f" = {}
-routes."/a/b/C/d/e/f" = {}
 
 #[server.example2]
 #host = "local.maix.me"
@@ -25,9 +20,9 @@ routes."/a/b/C/d/e/f" = {}
 
 [server.example.routes."/"]
 allowed = ["GET", "POST", "OPTION", "HEAD"]
-root = "./data/contents"
-index = "index.html"
-listing = false
+root = "./src"
+#index = "index.html"
+listing = true
 max_size = 16_000_000
 post_directory = "./data/uploads"
 

@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/03 13:48:32 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/18 12:14:10 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/18 14:40:04 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,7 +41,7 @@ void add_common_header(Response& res) {
 
 	strftime(buffer, sizeof(buffer), "%a, %d %b %Y %H:%M:%S GMT", tm_info);
 	res.setHeader("Date", buffer);
-	res.setHeader("Server", "Maixserv");
+	res.setHeader("Server", SERVER_NAME);
 }
 
 static Rc<Response> default_status_page(StatusCode code) {
@@ -50,15 +50,16 @@ static Rc<Response> default_status_page(StatusCode code) {
 	Rc<std::stringstream> body;
 
 	(*body) << "<html>" CRLF;
-	(*body) << "<head><title> " << code.code() << " - " << canonical << " "
-			<< "</title></head>" CRLF;
+	(*body) << "<head><title> " << code.code() << " - " << canonical << "</title></head>" CRLF;
 	(*body) << "<body>" CRLF;
-	(*body) << "<center><h1>" << code.code() << " - " << canonical << " "
-			<< "</h1></center>" CRLF;
+	(*body) << "<center><h1>" << code.code() << " - " << canonical << "</h1></center>" CRLF;
+	(*body) << "<center><small>" << "Server: " << SERVER_NAME << "</small></center>" CRLF;
+	(*body) << "</body>" CRLF;
+	(*body) << "</html>" CRLF;
 
 	res->setStatus(code);
 	res->setBody(body.cast<std::istream>(), body->str().size());
-	res->setMimeType("txt");
+	res->setMimeType("html");
 	return res;
 }
 
@@ -72,12 +73,23 @@ void handle_head_get(Epoll& epoll, Rc<Connection> connection, Rc<Request> req, R
 		res->setBody(body, body_size);
 		res->setMimeType(ext);
 		res->setStatus(200);
+	} catch (const fs::error::NotAllowed& e) {
+		connection->getResponse() =
+			Response::createStatusPageFor(epoll, connection, req->getServer(), status::FORBIDDEN);
+	} catch (const fs::error::NotFound& e) {
+		connection->getResponse() =
+			Response::createStatusPageFor(epoll, connection, req->getServer(), status::NOT_FOUND);
+	} catch (const fs::error::IsADirectory& e) {
+		connection->getResponse() =
+			Response::createStatusPageFor(epoll, connection, req->getServer(), status::NOT_FOUND);
 	} catch (const std::exception& e) {
 		LOG(warn, "got error: " << e.what());
-		connection->getResponse() = default_status_page(status::INTERNAL_SERVER_ERROR);
+		connection->getResponse() = Response::createStatusPageFor(
+			epoll, connection, req->getServer(), status::INTERNAL_SERVER_ERROR);
 	} catch (...) {
-		LOG(warn, "got unknown error");
-		connection->getResponse() = default_status_page(status::INTERNAL_SERVER_ERROR);
+		LOG(warn, "got unknown error: ");
+		connection->getResponse() = Response::createStatusPageFor(
+			epoll, connection, req->getServer(), status::INTERNAL_SERVER_ERROR);
 	}
 
 	if (req->getMethod() == "HEAD")
@@ -116,7 +128,6 @@ Rc<Response> Response::createStatusPageFor(Epoll&				 epoll,
 	std::string c = s.str();
 	if (server == NULL || server->errors.count(c) == 0)
 		return (default_status_page(code));
-
 	return (default_status_page(code));
 }
 
@@ -127,14 +138,11 @@ Rc<Response> Response::createResponseFor(Epoll& epoll, Rc<Connection> connection
 		new Request(connection->getSocket()->getPort(), connection->getSocket()->getServer());
 	Rc<Response> res = (connection->getResponse() = new Response());
 
-	// connection->getResponse() = default_status_page(status::OK);
 	LOG(info, "req->method == " << req->getMethod());
 	if (req->getMethod() == "HEAD" || req->getMethod() == "GET") {
 		handle_head_get(epoll, connection, req, res);
 	} else if (req->getMethod() == "POST" || req->getMethod() == "PUT")
 		;
-	// connection->getOutBuffer().insert(connection->getOutBuffer().end(), res.begin(),
-	// res.end());
 	{
 		Rc<ConnectionCallback<WRITE> > con = new ConnectionCallback<WRITE>(connection);
 		epoll.addCallback(connection->asFd(), WRITE, con.cast<Callback>());
@@ -146,26 +154,24 @@ Rc<Response> Response::createResponseFor(Epoll& epoll, Rc<Connection> connection
 #define READ_BUF 2048
 
 std::size_t Response::fill_buffer(char buf[], std::size_t len) {
-	LOG(info, "filling buffer");
 	if (!this->sent_headers) {
 		std::stringstream ss;
-		ss << "HTTP/1.1 " << this->code.code() << " " << this->code.canonical() << CRLF;
+		ss << "HTTP/1.1 " << this->code.code() << " "
+		   << this->code.canonical().get_or("Unknown Code") << CRLF;
 		for (HeaderMap::iterator it = this->headers.begin(); it != this->headers.end(); it++)
 			ss << it->first << ": " << it->second << CRLF;
-		ss << "content-length: " << this->body_size;
+		ss << "Content-Length: " << this->body_size;
 		ss << CRLF	CRLF;
 		std::string out = ss.str();
 		this->inner_buffer.insert(this->inner_buffer.end(), out.begin(), out.end());
 		this->sent_headers = true;
 	}
 	while (this->inner_buffer.size() <= len) {
-		LOG(info, "trying to fill inner_buffer for " << len - this->inner_buffer.size());
 		char buffer[READ_BUF] = {};
 		this->body->read(buffer, READ_BUF);
 		size_t l = READ_BUF;
 		if (this->body->eof() || this->body->fail())
 			l = this->body->gcount();
-		LOG(info, "got " << l << " new bytes");
 		this->inner_buffer.insert(this->inner_buffer.end(), &buffer[0], &buffer[l]);
 		if (l < READ_BUF)
 			break;
@@ -174,7 +180,6 @@ std::size_t Response::fill_buffer(char buf[], std::size_t len) {
 	for (std::deque<char>::iterator it = this->inner_buffer.begin();
 		 it != this->inner_buffer.end() && i < len; it++, i++)
 		buf[i] = *it;
-	LOG(info, "filled buffer with " << i << "bytes when asked for " << len << "max");
 	this->inner_buffer.erase(this->inner_buffer.begin(), this->inner_buffer.begin() + i);
 	return i;
 }

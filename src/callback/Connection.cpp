@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/12 18:56:10 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/18 12:12:00 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/18 14:46:19 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,8 +56,11 @@ void _ConnCallbackR(Epoll& epoll, Rc<Callback> self, Rc<Connection> inner) {
 			inner->updateTime();
 		inner->getInBuffer().insert(inner->getInBuffer().end(), &READ_BUF[0], &READ_BUF[res]);
 
-		if (inner->getRequest()->parseBytes(inner->getInBuffer()))
+		if (inner->getRequest()->parseBytes(inner->getInBuffer())) {
+			LOG(info, inner->getInBuffer().size());
 			return (void)Response::createResponseFor(epoll, inner);
+		};
+		LOG(info, inner->getInBuffer().size());
 	} catch (const Request::PageException& e) {
 		return _send_builtin_code_response(epoll, self, inner, e.statusCode());
 	} catch (const std::exception& e) {

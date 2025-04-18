@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/14 13:42:06 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/17 17:06:49 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/18 14:00:56 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,4 +32,5 @@ tiostream::tiostream() : fd(-1) {
 
 tiostream::~tiostream() {
 	::close(this->fd);
+	::remove(this->filename.c_str());
 }

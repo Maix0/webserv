@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/02 15:39:45 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/18 11:39:05 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/18 13:46:57 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,6 +22,10 @@
 #include "config/Config.hpp"
 #include "lib/Rc.hpp"
 #include "runtime/Epoll.hpp"
+
+#ifndef SERVER_NAME
+#	define SERVER_NAME "Maixserv"
+#endif
 
 class Connection;
 

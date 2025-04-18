@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/07 13:21:07 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/18 11:56:52 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/18 14:59:09 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,6 +33,14 @@ using std::string;
 std::string get_last_modified(struct stat& s) {
 	char	   buffer[1024]	 = {};
 	struct tm* last_modified = localtime(&s.st_mtim.tv_sec);
+
+	strftime(buffer, sizeof(buffer), "%a, %d %b %Y %H:%M:%S GMT", last_modified);
+	return buffer;
+}
+
+std::string get_created_at_modified(struct stat& s) {
+	char	   buffer[1024]	 = {};
+	struct tm* last_modified = localtime(&s.st_ctim.tv_sec);
 
 	strftime(buffer, sizeof(buffer), "%a, %d %b %Y %H:%M:%S GMT", last_modified);
 	return buffer;
@@ -65,6 +73,10 @@ Rc<std::istream> getFileAt(const std::string&	 path,
 		real_path = root + "/" + path;
 	}
 
+	for (std::string::size_type pos = real_path.find("//"); pos != std::string::npos;
+		 pos						= real_path.find("//"))
+		   real_path.replace(pos, 2, "/");
+
 	struct stat s;
 	if (stat(real_path.c_str(), &s) == 0) {
 		if (S_ISDIR(s.st_mode)) {
@@ -77,10 +89,11 @@ Rc<std::istream> getFileAt(const std::string&	 path,
 			} catch (const fs::error::IsADirectory& _e) {
 			}
 			if (route != NULL && route->listing) {
-				if (s.st_mode & (S_IXUSR | S_IXGRP | S_IXOTH))
+				if (!(s.st_mode & (S_IXUSR | S_IXGRP | S_IXOTH)))
 					throw fs::error::NotAllowed(real_path);
+				LOG(info, "Directory listing for " << real_path);
 				Directory dir(real_path);
-				*extension = "txt";
+				*extension = "html";
 				Rc<std::stringstream> out;
 				(*out) << "<html>" CRLF;
 
@@ -92,14 +105,51 @@ Rc<std::istream> getFileAt(const std::string&	 path,
 				(*out) << "<body>" CRLF;
 				(*out) << "\t<h1>" << "Directory listing - " << string_escape_html(dir.getPath())
 					   << "</h1>" << CRLF;
-				(*out) << "\t<ul>" << CRLF;
+				(*out) << "<hr>" << CRLF;
+				(*out) << "\t<table style=\"border-spacing: 10px 0; font-familly: monospace\">"
+					   << CRLF;
+				(*out)
+					<< "\t\t<tr><td>Dir</td><td>Name</td><td>Size</td><td>Created at</td><td>Last "
+					   "Modified</td></tr>";
 				const std::vector<Directory::Entry>& entries = dir.getEntries();
 				for (std::vector<Directory::Entry>::const_iterator it = entries.begin();
 					 it != entries.end(); it++) {
-					(*out) << "\t\t<li><a href=\"" << string_escape_html(it->name) << "\">"
-						   << string_escape_html(it->name) << "</a></li>" << CRLF;
+					bool		has_size  = false;
+					bool		has_times = false;
+					bool		is_dir	  = false;
+					std::size_t size	  = 0;
+					std::string created_at;
+					std::string f_realpath = real_path + "/" + it->name;
+					std::string fullname   = it->name;
+					std::string last_modified;
+					struct stat s2;
+					if (stat(f_realpath.c_str(), &s2) == 0) {
+						if (S_ISDIR(s2.st_mode)) {
+							is_dir	  = true;
+							fullname += "/";
+						} else {
+							has_size = true;
+							size	 = s2.st_size;
+						}
+						has_times	  = true;
+						created_at	  = get_created_at_modified(s2);
+						last_modified = get_last_modified(s2);
+					}
+					(*out) << "\t\t<tr><td>" << (is_dir ? "X" : "") << " </td><td><a href =\""
+						   << string_escape_html(fullname) << "\">" << string_escape_html(fullname)
+						   << "</a></td>";
+					if (has_size)
+						(*out) << "<td>" << size << "</td>";
+					else
+						(*out) << "<td></td>";
+					if (has_times)
+						(*out) << "<td>" << created_at << "</td><td>" << last_modified << "</td>";
+					else
+						(*out) << "<td></td>";
+					(*out) << "</tr>" << CRLF;
 				}
-				(*out) << "\t</ul>" << CRLF;
+				(*out) << "\t</table>" << CRLF;
+				(*out) << "<hr>" << CRLF;
 				(*out) << "</body>" CRLF;
 
 				(*out) << "</html>" CRLF;
