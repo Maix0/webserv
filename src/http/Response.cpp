@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/03 13:48:32 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/18 14:40:04 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/18 17:06:03 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,12 +23,15 @@
 #include <stdexcept>
 #include <string>
 
+#include "app/State.hpp"
 #include "app/fs/ServerRessources.hpp"
 #include "app/http/MimesTypes.hpp"
 #include "app/http/Request.hpp"
 #include "app/http/Response.hpp"
 #include "app/http/StatusCode.hpp"
 #include "app/net/Connection.hpp"
+#include "config/Config.hpp"
+#include "lib/StringHelper.hpp"
 #include "runtime/Logger.hpp"
 
 void add_common_header(Response& res) {
@@ -63,7 +66,35 @@ static Rc<Response> default_status_page(StatusCode code) {
 	return res;
 }
 
-void handle_head_get(Epoll& epoll, Rc<Connection> connection, Rc<Request> req, Rc<Response> res) {
+void handle_redirect(Epoll& epoll, Rc<Connection> connection, Rc<Request> req, Rc<Response> res) {
+	(void)(epoll);
+	(void)(connection);
+
+	static const StatusCode CODE	  = status::MOVED_PERMANENTLY;
+	const std::string		canonical = CODE.canonical().get_or("Unknown code");
+	Rc<std::stringstream>	body;
+
+	LOG(info, "handle request !");
+	(*body) << "<html>" CRLF;
+	(*body) << "<head><title> Redirection - " << string_escape_html(req->getRoute()->redirect.get())
+			<< "</title></head>" CRLF;
+	(*body) << "<body>" CRLF;
+	(*body) << "<center><h1>" << "you are being redirected to "
+			<< string_escape_html(req->getRoute()->redirect.get()) << "</h1></center>" CRLF;
+	(*body) << "<center><small>" << "Server: " << SERVER_NAME << "</small></center>" CRLF;
+	(*body) << "</body>" CRLF;
+	(*body) << "</html>" CRLF;
+
+	res->setStatus(CODE);
+	res->setBody(body.cast<std::istream>(), body->str().size());
+	res->setMimeType("html");
+	res->setHeader("Location", req->getRoute()->redirect.get());
+}
+
+void handle_static_file(Epoll&		   epoll,
+						Rc<Connection> connection,
+						Rc<Request>	   req,
+						Rc<Response>   res) {
 	(void)(epoll);
 	try {
 		std::size_t		 body_size;
@@ -95,6 +126,19 @@ void handle_head_get(Epoll& epoll, Rc<Connection> connection, Rc<Request> req, R
 	if (req->getMethod() == "HEAD")
 		connection->getResponse()->setBody(new std::stringstream(),
 										   connection->getResponse()->getBodySize());
+}
+
+void handle_cgi_request(Epoll&			   epoll,
+						Rc<Connection>	   connection,
+						Rc<Request>		   req,
+						Rc<Response>	   res,
+						const config::Cgi& cgi) {
+	(void)(epoll);
+	(void)(connection);
+	(void)(req);
+	(void)(res);
+	(void)(cgi);
+	throw Request::PageException(status::NOT_IMPLEMENTED);
 }
 
 bool Response::setHeader(std::pair<std::string, std::string> pair) {
@@ -136,13 +180,44 @@ Rc<Response> Response::createResponseFor(Epoll& epoll, Rc<Connection> connection
 	req->setFinished();
 	connection->getRequest() =
 		new Request(connection->getSocket()->getPort(), connection->getSocket()->getServer());
-	Rc<Response> res = (connection->getResponse() = new Response());
+	Rc<Response>						res	 = (connection->getResponse() = new Response());
+	std::map<std::string, config::Cgi>& cgis = State::getInstance().getConfig().cgi;
 
-	LOG(info, "req->method == " << req->getMethod());
-	if (req->getMethod() == "HEAD" || req->getMethod() == "GET") {
-		handle_head_get(epoll, connection, req, res);
-	} else if (req->getMethod() == "POST" || req->getMethod() == "PUT")
-		;
+	if (req->getRoute() == NULL) {
+		handle_static_file(epoll, connection, req, res);
+		LOG(info, "handle static file");
+	} else {
+		LOG(debug, *req->getRoute());
+		if (req->getRoute()->redirect.hasValue()) {
+			handle_redirect(epoll, connection, req, res);
+			LOG(info, "handle redirect");
+		} else {
+			const config::Cgi* cgi = NULL;
+			(void)(cgi);
+			std::string::size_type slash_pos = req->getUrl().find('/');
+			std::string			   last_part;
+			{
+				std::string::iterator start = req->getUrl().begin();
+				if (slash_pos != std::string::npos)
+					start += slash_pos + 1;
+				last_part = std::string(start, req->getUrl().end());
+			}
+			for (std::map<std::string, std::string>::const_iterator it =
+					 req->getRoute()->cgi.begin();
+				 it != req->getRoute()->cgi.end(); it++) {
+				if (string_ends_with(last_part, it->second)) {
+					cgi = &cgis[it->second];
+					break;
+				}
+			}
+			if (cgi) {
+				handle_cgi_request(epoll, connection, req, res, *cgi);
+				LOG(info, "handle cgi");
+			} else {
+				LOG(info, "handle fallback");
+			}
+		}
+	}
 	{
 		Rc<ConnectionCallback<WRITE> > con = new ConnectionCallback<WRITE>(connection);
 		epoll.addCallback(connection->asFd(), WRITE, con.cast<Callback>());

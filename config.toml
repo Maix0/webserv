@@ -26,6 +26,10 @@ listing = true
 max_size = 16_000_000
 post_directory = "./data/uploads"
 
+[server.example.routes."/redirect"]
+allowed = ["GET", "POST", "OPTION", "HEAD"]
+redirect = "https://google.com/"
+
 
 [server.example.routes."/xX_des_grosses_boules_de_glace_Xx"]
 allowed = ["GET", "POST", "OPTION", "HEAD"]

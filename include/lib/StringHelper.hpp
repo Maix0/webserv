@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/31 13:44:53 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/18 13:57:34 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/18 16:51:39 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,6 +41,15 @@ static inline bool string_start_with(const std::string& self, const std::string&
 			return false;
 
 	return pit == prefix.end();
+}
+
+static inline bool string_ends_with(const std::string& self, const std::string& suffix) {
+	std::string::const_reverse_iterator sit = self.rbegin(), pit = suffix.rbegin();
+	for (; sit != self.rend() && pit != suffix.rend(); sit++, pit++)
+		if (*sit != *pit)
+			return false;
+
+	return pit == suffix.rbegin();
 }
 
 #define _HTML_ESCAPE(raw, code) \
