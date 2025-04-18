@@ -19,22 +19,29 @@ root = "./src"
 #root = "/var/empty"
 
 [server.example.routes."/"]
-allowed = ["GET", "POST", "OPTION", "HEAD"]
+allowed = ["GET", "POST", "HEAD"]
 root = "./src"
 #index = "index.html"
 listing = true
 max_size = 16_000_000
-post_directory = "./data/uploads"
+post_directory = "./data/upload"
 
 [server.example.routes."/redirect"]
-allowed = ["GET", "POST", "OPTION", "HEAD"]
+allowed = ["GET", "HEAD"]
 redirect = "https://google.com/"
 
 
+[server.example.routes."/upload"]
+allowed = ["GET", "HEAD", "POST", "DELETE"]
+max_size = 16_000_000
+root = "./data/upload"
+post_directory = "./data/upload"
+
+
 [server.example.routes."/xX_des_grosses_boules_de_glace_Xx"]
-allowed = ["GET", "POST", "OPTION", "HEAD"]
+allowed = ["GET", "POST", "HEAD"]
 root = "./data/contents"
 redirect = "https://google.com"
 max_size = 16_000_000
-post_directory = "./data/uploads"
+post_directory = "./data/upload"
 #cgi = { php = "php_cgi1" }

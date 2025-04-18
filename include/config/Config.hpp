@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/28 14:33:11 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/04 16:28:14 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/18 18:35:47 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -123,9 +123,12 @@ namespace config {
 
 			static Config fromTomlValue(const ::toml::Value& toml);
 	};
-	typedef IndexMap<std::string, config::Route>::const_iterator  RouteIterator;
-	typedef IndexMap<std::string, config::Server>::const_iterator ServerIterator;
-	typedef std::map<std::string, config::Cgi>::const_iterator	  CgiIterator;
+	typedef IndexMap<std::string, config::Route>::iterator	RouteIterator;
+	typedef IndexMap<std::string, config::Route>::const_iterator	RouteConstIterator;
+	typedef IndexMap<std::string, config::Server>::iterator ServerIterator;
+	typedef IndexMap<std::string, config::Server>::const_iterator ServerConstIterator;
+	typedef std::map<std::string, config::Cgi>::iterator	CgiIterator;
+	typedef std::map<std::string, config::Cgi>::const_iterator	CgiConstIterator;
 
 	std::ostream& operator<<(std::ostream&, const Config&);
 	std::ostream& operator<<(std::ostream&, const Server&);

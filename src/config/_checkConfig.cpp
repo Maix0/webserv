@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/07 21:50:04 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/08 16:58:01 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/18 18:34:20 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -188,18 +188,39 @@ namespace config {
 		ctx.getPortMap() = port_map;
 	}
 
-	static void _checkUnknownCgi(const Config& config) {
+	static void _checkUnknownCgi(Config& config) {
 		for (ServerIterator sit = config.server.begin(); sit != config.server.end(); sit++) {
 			for (RouteIterator rit = sit->second.routes.begin(); rit != sit->second.routes.end();
 				 rit++) {
-				for (map<string, string>::const_iterator cit = rit->second.cgi.begin();
+				for (map<string, string>::iterator cit = rit->second.cgi.begin();
 					 cit != rit->second.cgi.end(); cit++) {
+					if (cit->first.empty()) {
+						LOG(err, "cgi '" << cit->second
+										 << "' is matching an empty extension (server '"
+										 << sit->first << "' route '" << rit->first << "')");
+						throw std::runtime_error("Invalid CGI");
+					}
 					if (config.cgi.count(cit->second) == 0) {
 						LOG(err, "cgi '" << cit->second << "' isn't known (server '" << sit->first
 										 << "' route '" << rit->first << "')");
 						throw std::runtime_error("Unknown CGI");
 					}
 				}
+			}
+		}
+
+		for (ServerIterator sit = config.server.begin(); sit != config.server.end(); sit++) {
+			for (RouteIterator rit = sit->second.routes.begin(); rit != sit->second.routes.end();
+				 rit++) {
+				std::vector<std::pair<std::string, std::string> > v(rit->second.cgi.begin(),
+																	rit->second.cgi.end());
+				for (std::vector<std::pair<std::string, std::string> >::iterator it = v.begin();
+					 it != v.end(); it++) {
+					if (it->second[0] != '.')
+						it->second.insert(it->second.begin(), 1, '.');
+				}
+
+				rit->second.cgi = std::map<std::string, std::string>(v.begin(), v.end());
 			}
 		}
 	}

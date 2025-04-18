@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/24 17:51:48 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/17 14:39:55 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/18 19:55:41 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -97,6 +97,8 @@ class Request {
 			public:
 				virtual ~PageException() throw() {}
 				PageException(StatusCode code) : code(code) {
+					void print_trace();
+					print_trace();
 					std::stringstream ss;
 					ss << "requested Page for status code " << code.code();
 					this->str = ss.str();
