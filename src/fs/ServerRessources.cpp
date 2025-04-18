@@ -6,12 +6,14 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/07 13:21:07 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/13 23:54:39 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/18 11:56:52 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <fcntl.h>
 #include <sys/stat.h>
+#include <cstddef>
+#include <ctime>
 #include <fstream>
 #include <ios>
 #include <istream>
@@ -21,19 +23,36 @@
 #include "app/fs/Directory.hpp"
 #include "app/fs/ServerRessources.hpp"
 #include "app/http/Request.hpp"
+#include "app/http/Response.hpp"
 #include "config/Config.hpp"
 #include "lib/Rc.hpp"
 #include "lib/StringHelper.hpp"
 
 using std::string;
 
-Rc<std::istream> getFileAt(const std::string& path,
-						   config::Server*	  server,
-						   config::Route*	  route,
-						   std::string*		  extension) {
-	std::string dummy;
+std::string get_last_modified(struct stat& s) {
+	char	   buffer[1024]	 = {};
+	struct tm* last_modified = localtime(&s.st_mtim.tv_sec);
+
+	strftime(buffer, sizeof(buffer), "%a, %d %b %Y %H:%M:%S GMT", last_modified);
+	return buffer;
+}
+
+Rc<std::istream> getFileAt(const std::string&	 path,
+						   const config::Server* server,
+						   const config::Route*	 route,
+						   std::string*			 extension,
+						   std::size_t*			 body_size,
+						   Response::HeaderMap*	 extraHeader) {
+	std::string			dummy;
+	std::size_t			dummy2;
+	Response::HeaderMap dummy3;
 	if (extension == NULL)
 		extension = &dummy;
+	if (body_size == NULL)
+		body_size = &dummy2;
+	if (extraHeader == NULL)
+		extraHeader = &dummy3;
 
 	std::string real_path = "/";
 	if (server == NULL) {
@@ -84,11 +103,13 @@ Rc<std::istream> getFileAt(const std::string& path,
 				(*out) << "</body>" CRLF;
 
 				(*out) << "</html>" CRLF;
+				*body_size						= out->str().size();
+				(*extraHeader)["Last-Modified"] = get_last_modified(s);
 				return out.cast<std::istream>();
 			}
 			throw fs::error::IsADirectory(real_path);
 		} else if (S_ISREG(s.st_mode)) {
-			if (s.st_mode & (S_IRUSR | S_IRGRP | S_IROTH))
+			if (!(s.st_mode & (S_IRUSR | S_IRGRP | S_IROTH)))
 				throw fs::error::NotAllowed(real_path);
 			/// TODO: fix this ?
 			/// this limits the files to 1GiB max, since it needs to read them from disk AT ONCE,
@@ -97,11 +118,12 @@ Rc<std::istream> getFileAt(const std::string& path,
 				throw fs::error::TooBig(real_path);
 			}
 			Rc<std::ifstream> file;
+			LOG(info, "trying to open a file" << real_path);
 			file->open(real_path.c_str());
 			if (file->fail())
 				throw fs::error::Failure(real_path);
 			(*file) >> std::noskipws;
-			file->close();
+			*body_size								   = s.st_size;
 
 			std::string::size_type last_slash		   = real_path.find_last_of('/');
 			std::string::size_type first_dot_last_part = real_path.find_first_of('.', last_slash);

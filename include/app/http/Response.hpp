@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/02 15:39:45 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/17 18:05:56 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/18 11:39:05 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,6 +44,7 @@ class Response {
 	public:
 		Response()
 			: code(StatusCode(200)),
+			  body_size(0),
 			  body(Rc<std::istream>(new std::stringstream())),
 			  sent_headers(false),
 			  is_finished(false) {};
@@ -52,7 +53,11 @@ class Response {
 		void setBody(Rc<std::istream> body, size_t size) {
 			this->body		= body;
 			this->body_size = size;
+			LOG(debug, "new body of size: " << size);
 		};
+
+		std::size_t getBodySize() { return this->body_size; };
+
 		void			 setFinished() { this->is_finished = true; };
 		bool			 isFinished() { return this->is_finished; };
 		Rc<std::istream> getBody() { return this->body; };

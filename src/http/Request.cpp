@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/29 17:16:21 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/16 19:00:46 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/18 11:40:37 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -72,7 +72,11 @@ bool Request::parseBytes(std::string& buffer) {
 				if (method.empty() || path.empty() || version.empty()) {
 					throw PageException(status::BAD_REQUEST);
 				}
-				this->state = Request::USERHEADERS;
+				if (version != "HTTP/1.1")
+					throw PageException(status::BAD_REQUEST);
+				this->method = method;
+				this->url	 = path;
+				this->state	 = Request::USERHEADERS;
 
 				break;
 			};

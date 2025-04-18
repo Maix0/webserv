@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/12 18:43:37 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/17 17:42:43 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/18 11:22:28 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,7 +41,7 @@ class Connection : public AsFd {
 		Port remote_port;
 
 		Rc<Socket>	 socket;
-		Request		 request;
+		Rc<Request>	 request;
 		Rc<Response> response;
 
 		Time last_updated;
@@ -58,7 +58,7 @@ class Connection : public AsFd {
 			  remote_ip(ip),
 			  remote_port(port),
 			  socket(sock),
-			  request(sock->getPort(), socket->getServer()),
+			  request(new Request(sock->getPort(), socket->getServer())),
 			  last_updated(Time::now()) {
 			LOG(debug, "new connection " << fd << " for " << ip << ":" << port);
 			this->response->setFinished();
@@ -70,7 +70,7 @@ class Connection : public AsFd {
 		Port	 getPort() { return this->remote_port; };
 
 		Rc<Socket>	  getSocket() { return this->socket; };
-		Request&	  getRequest() { return this->request; };
+		Rc<Request>	  getRequest() { return this->request; };
 		Rc<Response>& getResponse() { return this->response; };
 
 		int	 asFd() { return this->fd; };

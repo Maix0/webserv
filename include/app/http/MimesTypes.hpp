@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/09 15:13:14 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/09 16:17:12 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/18 12:03:30 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -114,7 +114,14 @@
 	_MIME(TY, "text/html", "shtml")                                                                \
 	_MIME(TY, "text/mathml", "mml")                                                                \
 	_MIME(TY, "text/plain", "txt")                                                                 \
-	_MIME(TY, "text/plain", "txt")                                                                 \
+	_MIME(TY, "text/plain", "cpp")                                                                 \
+	_MIME(TY, "text/plain", "hpp")                                                                 \
+	_MIME(TY, "text/plain", "c")                                                                   \
+	_MIME(TY, "text/plain", "h")                                                                   \
+	_MIME(TY, "text/plain", "mk")                                                                  \
+	_MIME(TY, "text/plain", "py")                                                                  \
+	_MIME(TY, "text/plain", "md")                                                                  \
+	_MIME(TY, "text/plain", "toml")                                                                \
 	_MIME(TY, "text/vnd.sun.j2me.app-descriptor", "jad")                                           \
 	_MIME(TY, "text/vnd.wap.wml", "wml")                                                           \
 	_MIME(TY, "text/x-component", "htc")                                                           \

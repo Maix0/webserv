@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/07 13:23:58 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/13 23:52:35 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/18 11:50:01 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,14 +15,17 @@
 #include <istream>
 #include <stdexcept>
 #include <string>
+#include "app/http/Response.hpp"
 #include "config/Config.hpp"
 #include "lib/Rc.hpp"
 
 // this returns a filedescriptor that contains the file data
-Rc<std::istream> getFileAt(const std::string& path,
-						   config::Server*	  server,
-						   config::Route*	  route = NULL,
-						   std::string* extension	= NULL);
+Rc<std::istream> getFileAt(const std::string&	 path,
+						   const config::Server* server,
+						   const config::Route*	 route		= NULL,
+						   std::string* extension			= NULL,
+						   std::size_t* body_size			= NULL,
+						   Response::HeaderMap* extraHeader = NULL);
 
 namespace fs {
 	namespace error {

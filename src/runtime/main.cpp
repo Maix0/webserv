@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/23 00:07:08 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/14 00:22:23 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/18 12:15:10 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -84,6 +84,7 @@ int wrapped_main(char* argv0, int argc, char* argv[], char* envp[]) {
 		Rc<ShutdownCallback> shutdown_cb = new ShutdownCallback(shutdown_socket, do_shutdown);
 		epoll.addCallback(shutdown_socket->asFd(), READ, shutdown_cb.cast<Callback>());
 	}
+	//if (false)
 	install_ctrlc_handler();
 	vector<size_t>			 to_indexes;
 	size_t					 idx = 0;

@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/12 18:56:10 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/17 18:19:03 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/18 12:12:00 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,10 +33,12 @@ static void _send_builtin_code_response(Epoll&		   epoll,
 	(void)(self);
 	Rc<Response> res;
 	LOG(info, "Returning page for code: " << code.code() << " - " << code.canonical());
-	res = Response::createStatusPageFor(epoll, inner, inner->getRequest().getServer(), code.code());
+	res =
+		Response::createStatusPageFor(epoll, inner, inner->getRequest()->getServer(), code.code());
 
-	inner->getRequest().setFinished();
-	inner->getRequest() = Request(inner->getSocket()->getPort(), inner->getSocket()->getServer());
+	inner->getRequest()->setFinished();
+	inner->getRequest() =
+		new Request(inner->getSocket()->getPort(), inner->getSocket()->getServer());
 }
 
 void _ConnCallbackR(Epoll& epoll, Rc<Callback> self, Rc<Connection> inner) {
@@ -54,7 +56,7 @@ void _ConnCallbackR(Epoll& epoll, Rc<Callback> self, Rc<Connection> inner) {
 			inner->updateTime();
 		inner->getInBuffer().insert(inner->getInBuffer().end(), &READ_BUF[0], &READ_BUF[res]);
 
-		if (inner->getRequest().parseBytes(inner->getInBuffer()))
+		if (inner->getRequest()->parseBytes(inner->getInBuffer()))
 			return (void)Response::createResponseFor(epoll, inner);
 	} catch (const Request::PageException& e) {
 		return _send_builtin_code_response(epoll, self, inner, e.statusCode());
@@ -77,17 +79,13 @@ void _ConnCallbackW(Epoll& epoll, Rc<Callback> self, Rc<Connection> inner) {
 	Connection::OBuffer& buf = inner->getOutBuffer();
 	if (buf.size() < 4096) {
 		std::size_t before = buf.size();
-		LOG(info, "buffer.size() = " << before);
 		buf.resize(4096);
-		std::size_t asking = 4096 - before;
-		std::size_t got	   = inner->getResponse()->fill_buffer(&*buf.end() - 1, asking);
-		LOG(info, "got = " << got << "; asked = " << asking);
+		std::size_t asking = 4096 - before - 1;
+		std::size_t got	   = inner->getResponse()->fill_buffer(&buf[before], asking);
 		if (got < asking)
 			inner->getResponse()->setFinished();
 		buf.resize(before + got);
 	}
-	if (buf.size() > 0)
-		LOG(info, "buffer.size() = " << buf.size());
 	ssize_t res = 0;
 	if ((res = write(inner->asFd(), &buf[0], buf.size())) < 0) {
 		int serr = errno;
@@ -95,12 +93,12 @@ void _ConnCallbackW(Epoll& epoll, Rc<Callback> self, Rc<Connection> inner) {
 		LOG(warn, "Error when reading...: " << strerror(serr));
 		return;
 	}
+	LOG(debug, "adding back");
+	epoll.addCallback(inner->asFd(), WRITE, self);
 	if (res > 0) {
 		inner->updateTime();
-		LOG(info, "wrote = " << res);
 	}
 	buf.erase(buf.begin(), buf.begin() + res);
-	epoll.addCallback(inner->asFd(), WRITE, self);
 }
 
 void _ConnCallbackH(Epoll& epoll, Rc<Callback> self, Rc<Connection> inner) {
