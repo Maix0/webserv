@@ -6,7 +6,7 @@
 #    By: rparodi <rparodi@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/11/12 11:05:05 by rparodi           #+#    #+#              #
-#    Updated: 2025/04/16 16:54:20 by maiboyer         ###   ########.fr        #
+#    Updated: 2025/04/22 10:01:48 by maiboyer         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -91,6 +91,12 @@ ifdef MSG_BONUS
     MSG += "$(MSG_BONUS)"
 endif
 
+
+SCAN_BUILD := $(shell command -v scan-build 2> /dev/null)
+ifndef SCAN_BUILD
+	SCAN_BUILD := $(shell command -v scan-build-12 2> /dev/null)
+endif
+
 BASE_PATH=$(shell realpath .)
 
 export BUILD_DIR
@@ -112,9 +118,8 @@ all:
 	@$(MAKE) --no-print-directory -f ./Webserv.mk $(PMAKE)
 	@$(MAKE) --no-print-directory footer
 
-
 scan-build:
-	@scan-build $(MAKE) --no-print-directory -k re                  \
+	@$(SCAN_BUILD) $(MAKE) --no-print-directory -k re                  \
 		LOG_DISABLE=-DLOG_DISABLE ENABLE_BACKTRACE=no ENABLE_LLD=no \
 		"MSG_BONUS=$(WSTART)$(RED)SCAN BUILD IS RUNNING$(WEND)"
 
@@ -227,7 +232,6 @@ download:  $(DOWNLOAD_DIR)/cgi_tester $(DOWNLOAD_DIR)/tester
 
 $(DOWNLOAD_DIR)/cgi_tester: $(DOWNLOAD_DIR)
 	curl $(SUBJECT_URL_UBUNTU_CGI_TESTER) -o $@
-	
 	
 $(DOWNLOAD_DIR)/tester: $(DOWNLOAD_DIR)
 	curl $(SUBJECT_URL_UBUNTU_TESTER) -o $@

@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/03 13:48:32 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/18 20:02:24 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/22 11:01:09 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -250,6 +250,8 @@ void handle_cgi_request(Epoll&			   epoll,
 	(void)(req);
 	(void)(res);
 	(void)(cgi);
+	
+
 	throw Request::PageException(status::NOT_IMPLEMENTED);
 }
 
@@ -365,9 +367,10 @@ std::size_t Response::fill_buffer(char buf[], std::size_t len) {
 	while (this->inner_buffer.size() <= len) {
 		char buffer[READ_BUF] = {};
 		this->body->read(buffer, READ_BUF);
-		size_t l = READ_BUF;
-		if (this->body->eof() || this->body->fail())
-			l = this->body->gcount();
+		size_t l = this->body->gcount();
+		if (this->body->eof() || this->body->fail()) {
+			this->is_stream_eof = true;
+		}
 		this->inner_buffer.insert(this->inner_buffer.end(), &buffer[0], &buffer[l]);
 		if (l < READ_BUF)
 			break;

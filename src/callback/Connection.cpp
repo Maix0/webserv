@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/12 18:56:10 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/18 14:46:19 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/22 10:15:37 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -85,7 +85,7 @@ void _ConnCallbackW(Epoll& epoll, Rc<Callback> self, Rc<Connection> inner) {
 		buf.resize(4096);
 		std::size_t asking = 4096 - before - 1;
 		std::size_t got	   = inner->getResponse()->fill_buffer(&buf[before], asking);
-		if (got < asking)
+		if (inner->getResponse()->isEof())
 			inner->getResponse()->setFinished();
 		buf.resize(before + got);
 	}

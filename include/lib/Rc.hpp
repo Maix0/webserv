@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/08 16:52:34 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/17 14:36:11 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/22 10:08:20 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,8 @@
 
 #define assert_valid(OBJ) \
 	assert((OBJ).ptr && ((OBJ).ptr->strong > 0 || ((OBJ).ptr->strong == 0 && (OBJ).ptr->weak > 0)))
+
+#define assert_valid_strong(OBJ) assert((OBJ).ptr && ((OBJ).ptr->strong > 0))
 
 template <typename T>
 class Rc {
@@ -43,7 +45,7 @@ class Rc {
 			this->ptr->weak	  = 0;
 			// new (this->ptr->value.buffer()) T();
 			this->ptr->value  = new T();
-			assert_valid(*this);
+			assert_valid_strong(*this);
 		}
 
 		Rc(T* val) {
@@ -53,11 +55,11 @@ class Rc {
 			this->ptr->strong = 1;
 			this->ptr->weak	  = 0;
 			this->ptr->value  = val;
-			assert_valid(*this);
+			assert_valid_strong(*this);
 		}
 
 		~Rc() {
-			assert_valid(*this);
+			assert_valid_strong(*this);
 			--this->ptr->strong;
 			if (this->ptr->strong == 0 && this->ptr->value != NULL) {
 				delete this->ptr->value;
@@ -69,15 +71,15 @@ class Rc {
 		}
 
 		Rc(const Rc& rhs) {
-			assert_valid(rhs);
+			assert_valid_strong(rhs);
 			this->ptr = rhs.ptr;
 			if (this->ptr == NULL)
 				throw std::runtime_error("shared.ptr == NULL");
 			this->ptr->strong++;
 		}
 		Rc& operator=(const Rc& rhs) {
-			assert_valid(rhs);
-			assert_valid(*this);
+			assert_valid_strong(rhs);
+			assert_valid_strong(*this);
 			if (this != &rhs) {
 				{
 					Rc cpy = *this;
@@ -91,14 +93,14 @@ class Rc {
 			return (*this);
 		}
 
-		T&		 operator*() { return (assert_valid(*this), *this->ptr->value); }
-		const T& operator*() const { return (assert_valid(*this), *this->ptr->value); }
-		T*		 operator->() { return (assert_valid(*this), this->ptr->value); }
-		const T* operator->() const { return (assert_valid(*this), this->ptr->value); }
+		T&		 operator*() { return (assert_valid_strong(*this), *this->ptr->value); }
+		const T& operator*() const { return (assert_valid_strong(*this), *this->ptr->value); }
+		T*		 operator->() { return (assert_valid_strong(*this), this->ptr->value); }
+		const T* operator->() const { return (assert_valid_strong(*this), this->ptr->value); }
 
 		// GetRaw
 		RawRc* getRaw() {
-			assert_valid(*this);
+			assert_valid_strong(*this);
 			return ((RawRc*)this->ptr);
 		}
 
@@ -113,7 +115,7 @@ class Rc {
 
 		template <typename U>
 		Rc<U> cast() {
-			assert_valid(*this);
+			assert_valid_strong(*this);
 			U* ptr = (this->ptr->value);
 			assert((void*)ptr == (void*)this->ptr->value);
 			this->ptr->strong++;
@@ -123,7 +125,7 @@ class Rc {
 
 		template <typename U>
 		Rc<U> try_cast() {
-			assert_valid(*this);
+			assert_valid_strong(*this);
 			T& val		= *this->ptr->value;
 			U& val_cast = dynamic_cast<U&>(val);
 			assert(&val == &val_cast);
