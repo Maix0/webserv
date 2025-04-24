@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/24 17:51:48 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/18 19:55:41 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/24 15:50:19 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,7 @@
 #include <exception>
 #include <sstream>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "app/http/StatusCode.hpp"
@@ -42,7 +43,30 @@ class Request {
 		static const std::size_t			  MAX_URI_SIZE	   = 1 << 10;
 		static const std::size_t			  MAX_HEADERS_SIZE = 1 << 16;
 
-		enum ParsingState { UNDEFINED, HEADER, USERHEADERS, BODY, FINISHED };
+		enum ParsingState {
+			UNDEFINED,
+			HEADER,
+			USERHEADERS,
+			PREBODY,
+			BODY,
+
+			CHUNKED_BODY_HEADER,
+			CHUNKED_BODY_NEW_CHUNK,
+			CHUNKED_BODY_READ_CHUNK,
+			CHUNKED_BODY_END_CHUNK,
+			CHUNKED_BODY_DONE,
+
+			FINISHED
+
+		};
+
+		const static std::map<Request::ParsingState, std::string> STATE_TO_STR;
+		static std::string										  state_to_str(ParsingState state) {
+			   if (STATE_TO_STR.count(state))
+				   return STATE_TO_STR.at(state);
+			   else
+				   return "Unknown";
+		}
 
 	private:
 		HeaderMap	 headers;
@@ -50,6 +74,8 @@ class Request {
 		Method		 method;
 		ParsingState state;
 		size_t		 headers_total_size;
+
+		Ip ip;
 
 		// POST DATA FOR BODIES
 		Option<Rc<tiostream> > body;
@@ -60,6 +86,9 @@ class Request {
 		const config::Server* server;
 		const config::Route*  route;
 		Port				  port;
+
+		size_t current_chunk_size;
+		size_t remaining_chunk_size;
 
 	public:
 		Option<Rc<tiostream> > getBody() const { return this->body; };
@@ -74,12 +103,17 @@ class Request {
 		Method&		 getMethod() { return this->method; };
 		ParsingState getState() { return this->state; };
 		Url&		 getUrl() { return this->url; };
+		std::size_t	 getBodySize() { return this->body_size; };
+
+		Port getPort() { return this->port; };
+		Ip	 getIp() { return this->ip; };
 
 		bool parseBytes(std::string& buffer);
 
-		Request(Port port, const config::Server* default_server)
+		Request(Ip ip, Port port, const config::Server* default_server)
 			: state(HEADER),
 			  headers_total_size(0),
+			  ip(ip),
 			  body(new tiostream()),
 			  body_size(0),
 			  content_length(-1),
@@ -97,11 +131,10 @@ class Request {
 			public:
 				virtual ~PageException() throw() {}
 				PageException(StatusCode code) : code(code) {
-					void print_trace();
-					print_trace();
 					std::stringstream ss;
 					ss << "requested Page for status code " << code.code();
 					this->str = ss.str();
+					LOG(warn, this->str);
 				}
 				virtual const char* what(void) const throw() { return this->str.c_str(); }
 				StatusCode			statusCode() const { return this->code; };

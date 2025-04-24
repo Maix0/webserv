@@ -1,47 +1,36 @@
 shutdown = false
 
 [cgi]
+cgi_tester = { binary = "./dl/cgi_tester" }
 #php_cgi = { binary = "php_cgi", from_env = false }
 #env_php_cgi = { binary = "PHP_CGI", from_env = true }
 
 [server.example]
-host = "www.example.com"
+host = "localhost"
 bind = "0.0.0.0"
 port = 0
-errors = { 404 = "404.html" }
-root = "./src"
-
-#[server.example2]
-#host = "local.maix.me"
-#bind = "0.0.0.0"
-#port = 4444
-#errors = { 404 = "404.html" }
-#root = "/var/empty"
+root = "./YoupiBanane/"
 
 [server.example.routes."/"]
-allowed = ["GET", "POST", "HEAD"]
-root = "./src"
-#index = "index.html"
-listing = true
-max_size = 16_000_000
-post_directory = "./data/upload"
+allowed = ["GET"]
+cgi = { "bla" = "cgi_tester" }
 
-[server.example.routes."/redirect"]
-allowed = ["GET", "HEAD"]
-redirect = "https://google.com/"
+[server.example.routes."/put_test/"]
+allowed = ["PUT"]
+cgi = { "bla" = "cgi_tester" }
+post_directory = "./put_dir"
 
-
-[server.example.routes."/upload"]
-allowed = ["GET", "HEAD", "POST", "DELETE"]
-max_size = 16_000_000
-root = "./data/upload"
-post_directory = "./data/upload"
+[server.example.routes."/post_directory"]
+allowed = ["POST"]
+cgi = { "bla" = "cgi_tester" }
+max_size = 100
+post_directory = "./post_dir"
 
 
-[server.example.routes."/xX_des_grosses_boules_de_glace_Xx"]
-allowed = ["GET", "POST", "HEAD"]
-root = "./data/contents"
-redirect = "https://google.com"
-max_size = 16_000_000
-post_directory = "./data/upload"
+[server.example.routes."/directory/"]
+allowed = ["GET", "POST"]
+cgi = { "bla" = "cgi_tester" }
+index = "youpi.bad_extension"
+post_directory = "./post_dir"
+
 #cgi = { php = "php_cgi1" }

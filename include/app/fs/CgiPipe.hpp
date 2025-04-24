@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/22 11:04:41 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/22 11:22:23 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/23 12:19:56 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,30 +16,36 @@
 #include "app/http/Response.hpp"
 #include "interface/AsFd.hpp"
 #include "interface/Callback.hpp"
-#include "lib/StreamDeque.hpp"
+#include "lib/PassthruDeque.hpp"
 #include "runtime/Epoll.hpp"
 #include "runtime/EpollType.hpp"
 
 class PipeCgi : public AsFd {
 	private:
-		int				   rfd;
-		Rc<Request>		   req;
-		Rc<Response>	   res;
-		Rc<DequeStreamBuf> output;
+		int				  pid;
+		int				  rfd;
+		Rc<Request>		  req;
+		Rc<Response>	  res;
+		Rc<PassthruDeque> output;
+		std::string		  bin;
+
+		char* const* setup_env(char** envp);
 
 	public:
-		PipeCgi(Rc<Request> req, Rc<Response> res);
+		virtual int asFd() { return this->rfd; };
+		PipeCgi(std::string bin, Rc<Request> req, Rc<Response> res);
+		~PipeCgi();
 
 		class CallbackRead : public AsFd, public Callback {
 			private:
-				Rc<Request>		   req;
-				Rc<Response>	   res;
-				Rc<DequeStreamBuf> output;
-				int				   rfd;
+				Rc<Request>		  req;
+				Rc<Response>	  res;
+				Rc<PassthruDeque> output;
+				int				  rfd;
 
 			public:
 				CallbackRead(const PipeCgi& cgi)
-					: req(cgi.req), res(cgi.res), rfd(cgi.rfd), output(cgi.output) {}
+					: req(cgi.req), res(cgi.res), output(cgi.output), rfd(cgi.rfd) {}
 
 				virtual int		  asFd() { return this->rfd; };
 				virtual int		  getFd() { return this->asFd(); };
@@ -49,14 +55,14 @@ class PipeCgi : public AsFd {
 
 		class CallbackHangup : public AsFd, public Callback {
 			private:
-				Rc<Request>		   req;
-				Rc<Response>	   res;
-				Rc<DequeStreamBuf> output;
-				int				   rfd;
+				Rc<Request>		  req;
+				Rc<Response>	  res;
+				Rc<PassthruDeque> output;
+				int				  rfd;
 
 			public:
 				CallbackHangup(const PipeCgi& cgi)
-					: req(cgi.req), res(cgi.res), rfd(cgi.rfd), output(cgi.output) {}
+					: req(cgi.req), res(cgi.res), output(cgi.output), rfd(cgi.rfd) {}
 
 				virtual int		  asFd() { return this->rfd; };
 				virtual int		  getFd() { return this->asFd(); };

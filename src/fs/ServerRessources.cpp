@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/07 13:21:07 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/18 14:59:09 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/23 15:02:49 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -174,6 +174,7 @@ Rc<std::istream> getFileAt(const std::string&	 path,
 				throw fs::error::Failure(real_path);
 			(*file) >> std::noskipws;
 			*body_size								   = s.st_size;
+			LOG(info, "we set the size tp" << *body_size);
 
 			std::string::size_type last_slash		   = real_path.find_last_of('/');
 			std::string::size_type first_dot_last_part = real_path.find_first_of('.', last_slash);

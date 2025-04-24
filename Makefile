@@ -6,7 +6,7 @@
 #    By: rparodi <rparodi@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/11/12 11:05:05 by rparodi           #+#    #+#              #
-#    Updated: 2025/04/22 10:01:48 by maiboyer         ###   ########.fr        #
+#    Updated: 2025/04/24 16:03:17 by maiboyer         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -69,6 +69,7 @@ ifeq ($(ENABLE_BACKTRACE), yes)
         MSG += "$(WSTART)using $(GOLD)custom terminate func$(WEND)"
     endif
 endif
+
 
 CXXFLAGS_ADDITIONAL	+= -gcolumn-info -g3 -fno-builtin
 CXXFLAGS_ADDITIONAL	+= -fdiagnostics-color=always
@@ -143,6 +144,13 @@ bonus:
 	$(eval CXXFLAGS_ADDITIONAL += -Werror -DBONUS=1)
 	@$(MAKE) --no-print-directory header 'MSG_BONUS=\n\x1b[D$(GOLD)         compiling with bonus          $(WEND)\n'
 	@$(MAKE) --no-print-directory -f ./Webserv.mk $(PMAKE) NAME=$(NAME)_bonus
+	@$(MAKE) --no-print-directory footer
+
+asan: 
+	$(eval CXXFLAGS_ADDITIONAL = "")
+	$(eval CXXFLAGS_ADDITIONAL = -fsanitize=address -fno-omit-frame-pointer)
+	@$(MAKE) --no-print-directory header 'MSG_BONUS=\n\x1b[D$(GOLD)         ASAN          $(WEND)\n'
+	@$(MAKE) --no-print-directory all $(PMAKE)
 	@$(MAKE) --no-print-directory footer
 
 #	Header

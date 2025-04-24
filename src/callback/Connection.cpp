@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/12 18:56:10 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/22 10:15:37 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/23 15:28:45 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,7 @@
 #include "interface/Callback.hpp"
 #include "runtime/EpollType.hpp"
 #include "runtime/Logger.hpp"
-
+extern int req_dump;
 // 4 MiB
 #define MAX_READ_BYTES (1 << 22)
 
@@ -35,10 +35,12 @@ static void _send_builtin_code_response(Epoll&		   epoll,
 	LOG(info, "Returning page for code: " << code.code() << " - " << code.canonical());
 	res =
 		Response::createStatusPageFor(epoll, inner, inner->getRequest()->getServer(), code.code());
-
+	res->setMethod(inner->getRequest()->getMethod());
 	inner->getRequest()->setFinished();
 	inner->getRequest() =
-		new Request(inner->getSocket()->getPort(), inner->getSocket()->getServer());
+		new Request(inner->getIp(), inner->getSocket()->getPort(), inner->getSocket()->getServer());
+	inner->getResponse() = res;
+	epoll.addCallback(self->getFd(), WRITE, new ConnectionCallback<WRITE>(inner));
 }
 
 void _ConnCallbackR(Epoll& epoll, Rc<Callback> self, Rc<Connection> inner) {
@@ -49,18 +51,17 @@ void _ConnCallbackR(Epoll& epoll, Rc<Callback> self, Rc<Connection> inner) {
 	try {
 		epoll.addCallback(inner->asFd(), READ, self);
 		ssize_t res;
-		if ((res = read(inner->asFd(), &READ_BUF, MAX_READ_BYTES)) < 0) {
+		if ((res = read(inner->asFd(), READ_BUF, MAX_READ_BYTES)) < 0) {
 			throw Request::PageException(500);
 		}
+		(void)!write(req_dump, READ_BUF, res);
 		if (res > 0)
 			inner->updateTime();
 		inner->getInBuffer().insert(inner->getInBuffer().end(), &READ_BUF[0], &READ_BUF[res]);
 
 		if (inner->getRequest()->parseBytes(inner->getInBuffer())) {
-			LOG(info, inner->getInBuffer().size());
 			return (void)Response::createResponseFor(epoll, inner);
 		};
-		LOG(info, inner->getInBuffer().size());
 	} catch (const Request::PageException& e) {
 		return _send_builtin_code_response(epoll, self, inner, e.statusCode());
 	} catch (const std::exception& e) {
@@ -96,11 +97,10 @@ void _ConnCallbackW(Epoll& epoll, Rc<Callback> self, Rc<Connection> inner) {
 		LOG(warn, "Error when reading...: " << strerror(serr));
 		return;
 	}
-	LOG(debug, "adding back");
 	epoll.addCallback(inner->asFd(), WRITE, self);
-	if (res > 0) {
+	if (res > 0)
 		inner->updateTime();
-	}
+
 	buf.erase(buf.begin(), buf.begin() + res);
 }
 

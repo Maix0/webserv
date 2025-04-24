@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/12 18:43:37 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/18 14:48:01 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/23 12:37:35 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,7 +58,7 @@ class Connection : public AsFd {
 			  remote_ip(ip),
 			  remote_port(port),
 			  socket(sock),
-			  request(new Request(sock->getPort(), socket->getServer())),
+			  request(new Request(ip, port, socket->getServer())),
 			  last_updated(Time::now()) {
 			LOG(debug, "new connection " << fd << " for " << ip << ":" << port);
 			this->response->setFinished();
@@ -77,8 +77,6 @@ class Connection : public AsFd {
 		bool isClosed() { return this->closed; };
 		void setClosed() { this->closed = true; };
 		void updateTime() {
-			LOG(trace, "Updating keep_alive for " << this->fd);
-
 			this->last_updated = Time::now();
 		};
 		bool timeout() const {

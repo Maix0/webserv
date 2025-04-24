@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/23 00:07:08 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/18 12:15:10 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/23 15:30:39 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,6 +36,7 @@
 using std::string;
 using std::vector;
 
+int		 req_dump	 = -1;
 Rc<bool> do_shutdown = new bool(false);
 
 static void install_ctrlc_handler(void);
@@ -58,9 +59,12 @@ int wrapped_main(char* argv0, int argc, char* argv[], char* envp[]) {
 
 	config::checkConfig(config, envp);
 	ctx.openAllSockets();
+	ctx.setEnv(envp);
 
 	SocketList s = ctx.getSockets();
 	Epoll	   epoll;
+	req_dump = open("./req_dump", O_RDWR | O_TRUNC | O_CREAT, 0777);
+	assert(req_dump != -1);
 
 	for (SocketList::iterator iit = s.begin(); iit != s.end(); iit++) {
 		for (vector<Rc<Socket> >::iterator sit = iit->second.begin(); sit != iit->second.end();
@@ -84,7 +88,7 @@ int wrapped_main(char* argv0, int argc, char* argv[], char* envp[]) {
 		Rc<ShutdownCallback> shutdown_cb = new ShutdownCallback(shutdown_socket, do_shutdown);
 		epoll.addCallback(shutdown_socket->asFd(), READ, shutdown_cb.cast<Callback>());
 	}
-	//if (false)
+	// if (false)
 	install_ctrlc_handler();
 	vector<size_t>			 to_indexes;
 	size_t					 idx = 0;

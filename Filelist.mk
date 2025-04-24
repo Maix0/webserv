@@ -2,6 +2,7 @@ SRC_FILES =                                                                   \
 State                                                                         \
 callback/Connection                                                           \
 callback/File                                                                 \
+callback/Pipe                                                                 \
 callback/Shutdown                                                             \
 callback/Socket                                                               \
 callback/_Callback                                                            \
@@ -14,6 +15,7 @@ config/errors                                                                 \
 config/print                                                                  \
 fs/Directory                                                                  \
 fs/File                                                                       \
+fs/Pipe                                                                       \
 fs/ServerRessources                                                           \
 http/Request                                                                  \
 http/Response                                                                 \
