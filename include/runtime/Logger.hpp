@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/02 18:29:43 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/24 23:33:32 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/24 23:42:59 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -91,13 +91,7 @@ namespace log {
 	};
 
 	extern LogLevel	 logLevel;
-	extern int		 logInChildPid;
 	extern Semaphore logSemaphore;
-
-	inline void setInChild(int pid) {
-		assert(pid > 0);
-		logInChildPid = pid;
-	}
 
 	inline bool _setEnvLogLevel(char** envp) {
 		try {
@@ -244,7 +238,7 @@ namespace log {
 #define SLINE		  STRINGIFY(__LINE__)
 
 #ifdef ENABLE_PRINT_PID
-#	define PRINT_PID "[" << getpid() << "] "
+#	define PRINT_PID "[" COL_CYAN << getpid() << RESET "] "
 #else
 #	define PRINT_PID ""
 #endif

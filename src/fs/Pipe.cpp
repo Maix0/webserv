@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/22 17:48:13 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/24 23:34:53 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/24 23:42:37 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -103,8 +103,7 @@ PipeCgi::PipeCgi(std::string bin, Rc<Request> req, Rc<Response> res)
 
 	_ERR_RET_THROW(this->pid = fork());
 
-	if (this->pid != 0) {
-		::log::setInChild(this->pid);
+	if (this->pid == 0) {
 		LOG(info, COL_YELLOW "I AM THE CHILD" RESET);
 		int reserve;
 		_ERR_RET_THROW(reserve = dup(STDOUT_FILENO));
