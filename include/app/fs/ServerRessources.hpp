@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/07 13:23:58 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/18 11:50:01 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/24 21:37:02 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,10 +22,10 @@
 // this returns a filedescriptor that contains the file data
 Rc<std::istream> getFileAt(const std::string&	 path,
 						   const config::Server* server,
-						   const config::Route*	 route		= NULL,
-						   std::string* extension			= NULL,
-						   std::size_t* body_size			= NULL,
-						   Response::HeaderMap* extraHeader = NULL);
+						   const config::Route*	 route,
+						   std::string*			 extension,
+						   std::size_t*			 body_size,
+						   Response::HeaderMap*	 extraHeader);
 
 namespace fs {
 	namespace error {

@@ -21,6 +21,7 @@ http/Request                                                                  \
 http/Response                                                                 \
 http/Routing                                                                  \
 http/StatusCode                                                               \
+lib/Semaphore                                                                 \
 lib/TempFile                                                                  \
 lib/Time                                                                      \
 net/Socket                                                                    \

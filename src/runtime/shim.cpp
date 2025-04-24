@@ -6,12 +6,13 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/02 18:23:58 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/22 11:01:54 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/24 23:16:49 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 /// YOU SHOULD ALMOST NEVER TOUCH THIS FILE !
 
+#include <sys/wait.h>
 #include <cstdlib>
 #include <cstring>
 #include <exception>
@@ -128,6 +129,8 @@ void my_terminate() {
 		LOG(fatal, " caught unknown/unhandled exception");
 	}
 	print_trace();
+	while (waitpid(-1, NULL, 0) != -1)
+		;
 	std::exit(EXIT_FAILURE);
 }
 

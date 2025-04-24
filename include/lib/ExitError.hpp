@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/22 10:52:12 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/22 17:52:30 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/24 22:43:19 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,11 +15,7 @@
 #include <sstream>
 #include <stdexcept>
 
-struct ExitError : public std::runtime_error {
+struct ExitError {
 		const int code;
-		ExitError(int code)
-			: std::runtime_error(dynamic_cast<std::stringstream&>(
-									 std::stringstream("Requested exit with code:") << code)
-									 .str()),
-			  code(code) {}
+		ExitError(int code) : code(code) {}
 };

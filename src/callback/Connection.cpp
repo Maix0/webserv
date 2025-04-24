@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/12 18:56:10 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/23 15:28:45 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/24 22:15:10 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,12 +29,13 @@ static char READ_BUF[MAX_READ_BYTES];
 static void _send_builtin_code_response(Epoll&		   epoll,
 										Rc<Callback>   self,
 										Rc<Connection> inner,
-										StatusCode	   code) {
+										StatusCode	   code,
+										bool		   with_body = true) {
 	(void)(self);
 	Rc<Response> res;
 	LOG(info, "Returning page for code: " << code.code() << " - " << code.canonical());
-	res =
-		Response::createStatusPageFor(epoll, inner, inner->getRequest()->getServer(), code.code());
+	res = Response::createStatusPageFor(epoll, inner, inner->getRequest()->getServer(), code.code(),
+										with_body);
 	res->setMethod(inner->getRequest()->getMethod());
 	inner->getRequest()->setFinished();
 	inner->getRequest() =
@@ -52,7 +53,8 @@ void _ConnCallbackR(Epoll& epoll, Rc<Callback> self, Rc<Connection> inner) {
 		epoll.addCallback(inner->asFd(), READ, self);
 		ssize_t res;
 		if ((res = read(inner->asFd(), READ_BUF, MAX_READ_BYTES)) < 0) {
-			throw Request::PageException(500);
+			throw Request::PageException(status::INTERNAL_SERVER_ERROR,
+										 inner->getRequest()->getMethod() != "HEAD");
 		}
 		(void)!write(req_dump, READ_BUF, res);
 		if (res > 0)
@@ -63,13 +65,10 @@ void _ConnCallbackR(Epoll& epoll, Rc<Callback> self, Rc<Connection> inner) {
 			return (void)Response::createResponseFor(epoll, inner);
 		};
 	} catch (const Request::PageException& e) {
-		return _send_builtin_code_response(epoll, self, inner, e.statusCode());
+		return _send_builtin_code_response(epoll, self, inner, e.statusCode(), e.withBody());
 	} catch (const std::exception& e) {
 		LOG(warn, "parsing request: " << e.what());
-		return _send_builtin_code_response(epoll, self, inner, 500);
-	} catch (...) {
-		LOG(warn, "parsing request: <unknown exception>");
-		return _send_builtin_code_response(epoll, self, inner, 500);
+		return _send_builtin_code_response(epoll, self, inner, status::INTERNAL_SERVER_ERROR);
 	}
 }
 

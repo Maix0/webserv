@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/24 17:51:48 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/24 15:50:19 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/24 20:17:21 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -127,10 +127,19 @@ class Request {
 			private:
 				std::string str;
 				StatusCode	code;
+				bool		with_body;
 
 			public:
 				virtual ~PageException() throw() {}
-				PageException(StatusCode code) : code(code) {
+				/*
+				PageException(StatusCode code) : code(code), with_body(true) {
+					std::stringstream ss;
+					ss << "requested Page for status code " << code.code();
+					this->str = ss.str();
+					LOG(warn, this->str);
+				}
+				*/
+				PageException(StatusCode code, bool with_body) : code(code), with_body(with_body) {
 					std::stringstream ss;
 					ss << "requested Page for status code " << code.code();
 					this->str = ss.str();
@@ -138,5 +147,6 @@ class Request {
 				}
 				virtual const char* what(void) const throw() { return this->str.c_str(); }
 				StatusCode			statusCode() const { return this->code; };
+				bool				withBody() const { return this->with_body; };
 		};
 };

@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/22 17:48:13 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/24 16:18:13 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/24 23:34:53 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,7 @@
 #include "app/http/Request.hpp"
 #include "app/http/Response.hpp"
 #include "lib/ExitError.hpp"
+#include "runtime/Logger.hpp"
 
 #define ADD_HEADER(name, val)       \
 	do {                            \
@@ -72,9 +73,11 @@ char* const* PipeCgi::setup_env(char** envp) {
 	char** out = new char*[env.size() + 1];
 
 	for (i = 0; i < env.size(); i++) {
-		out[i] = new char[env[i].size()];
-		for (std::size_t j = 0; j < env[i].size(); j++)
+		out[i]		  = new char[env[i].size() + 1];
+		std::size_t j = 0;
+		for (j = 0; j < env[i].size(); j++)
 			out[i][j] = env[i].c_str()[j];
+		out[i][j] = '\0';
 	}
 
 	out[i] = NULL;
@@ -99,25 +102,36 @@ PipeCgi::PipeCgi(std::string bin, Rc<Request> req, Rc<Response> res)
 	_ERR_RET_THROW(fcntl(pip[1], FD_CLOEXEC));
 
 	_ERR_RET_THROW(this->pid = fork());
+
 	if (this->pid != 0) {
+		::log::setInChild(this->pid);
+		LOG(info, COL_YELLOW "I AM THE CHILD" RESET);
+		int reserve;
+		_ERR_RET_THROW(reserve = dup(STDOUT_FILENO));
+		_ERR_RET_THROW(fcntl(reserve, FD_CLOEXEC));
+
 		try {
-			_ERR_RET_THROW(dup2(this->rfd, STDIN_FILENO));
-			_ERR_RET_THROW(dup2(pip[1], STDOUT_FILENO));
+			LOG(info, this->bin);
 
 			char* const* envp = setup_env(State::getInstance().getEnv());
 			char*		 argv[2];
-
 			argv[0] = (char*)(this->bin.c_str());
 			argv[1] = NULL;
 
+			_ERR_RET_THROW(dup2(this->rfd, STDIN_FILENO));
+			_ERR_RET_THROW(dup2(pip[1], STDOUT_FILENO));
 			_ERR_RET_THROW(execve(this->bin.c_str(), argv, envp));
 		} catch (const std::exception& e) {
+			dup2(reserve, STDOUT_FILENO);
 			LOG(fatal, "Child threw: " << e.what());
 		} catch (...) {
+			dup2(reserve, STDOUT_FILENO);
 			LOG(fatal, "Child threw unknown exception");
 		}
+		close(reserve);
 		throw ExitError(127);
 	}
+	LOG(info, COL_RED "I AM THE PARENT" RESET);
 	close(pip[1]);
 	close(rfd);
 	this->rfd = pip[0];

@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/02 15:39:45 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/23 15:06:45 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/24 21:38:48 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -90,7 +90,8 @@ class Response {
 		static Rc<Response> createStatusPageFor(Epoll&				  epoll,
 												Rc<Connection>		  conn,
 												const config::Server* server,
-												StatusCode			  code);
+												StatusCode			  code,
+												bool				  with_body = true);
 		static Rc<Response> createResponseFor(Epoll& epoll, Rc<Connection> conn);
 
 		std::size_t fill_buffer(char buf[], std::size_t len);

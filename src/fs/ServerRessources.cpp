@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/07 13:21:07 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/23 15:02:49 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/24 22:17:55 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -83,7 +83,7 @@ Rc<std::istream> getFileAt(const std::string&	 path,
 			try {
 				if (route != NULL && route->index.hasValue()) {
 					real_path += "/" + route->index.get();
-					return getFileAt(real_path, NULL, NULL, extension);
+					return getFileAt(real_path, NULL, NULL, extension, body_size, extraHeader);
 				}
 			} catch (const fs::error::NotFound& _e) {
 			} catch (const fs::error::IsADirectory& _e) {
@@ -161,20 +161,14 @@ Rc<std::istream> getFileAt(const std::string&	 path,
 		} else if (S_ISREG(s.st_mode)) {
 			if (!(s.st_mode & (S_IRUSR | S_IRGRP | S_IROTH)))
 				throw fs::error::NotAllowed(real_path);
-			/// TODO: fix this ?
-			/// this limits the files to 1GiB max, since it needs to read them from disk AT ONCE,
-			/// stalling the entire process while reading...
-			if (s.st_size > (1 << 30)) {
-				throw fs::error::TooBig(real_path);
-			}
 			Rc<std::ifstream> file;
-			LOG(info, "trying to open a file" << real_path);
+			LOG(trace, "trying to open a file" << real_path);
 			file->open(real_path.c_str());
 			if (file->fail())
 				throw fs::error::Failure(real_path);
 			(*file) >> std::noskipws;
-			*body_size								   = s.st_size;
-			LOG(info, "we set the size tp" << *body_size);
+			*body_size = s.st_size;
+			LOG(trace, "we set the size to " << *body_size);
 
 			std::string::size_type last_slash		   = real_path.find_last_of('/');
 			std::string::size_type first_dot_last_part = real_path.find_first_of('.', last_slash);

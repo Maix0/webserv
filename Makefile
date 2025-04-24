@@ -6,7 +6,7 @@
 #    By: rparodi <rparodi@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/11/12 11:05:05 by rparodi           #+#    #+#              #
-#    Updated: 2025/04/24 16:03:17 by maiboyer         ###   ########.fr        #
+#    Updated: 2025/04/24 23:32:41 by maiboyer         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -67,6 +67,22 @@ ifeq ($(ENABLE_BACKTRACE), yes)
     CXXFLAGS_ADDITIONAL += -DTERMINATE_BACKTRACE
     ifeq ($(MAKECMDGOALS), header)
         MSG += "$(WSTART)using $(GOLD)custom terminate func$(WEND)"
+    endif
+endif
+
+ENABLE_PRINT_PID ?= yes
+ifeq ($(ENABLE_PRINT_PID), yes)
+    CXXFLAGS_ADDITIONAL += -DENABLE_PRINT_PID
+    ifeq ($(MAKECMDGOALS), header)
+        MSG += "$(WSTART)using $(GOLD)priting pids$(WEND)"
+    endif
+endif
+
+ENABLE_TRUE_SEMAPHORE ?= yes
+ifeq ($(ENABLE_PRINT_PID), yes)
+    CXXFLAGS_ADDITIONAL += -DENABLE_TRUE_SEMAPHORE
+    ifeq ($(MAKECMDGOALS), header)
+        MSG += "$(WSTART)using $(GOLD)using true semaphores$(WEND)"
     endif
 endif
 

@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/29 17:16:21 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/24 16:15:11 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/24 21:57:30 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,22 +47,23 @@ bool Request::parseBytes(std::string& buffer) {
 	bool continue_loop = false;
 	do {
 		continue_loop = false;
-		LOG(debug, "Request state: " << Request::state_to_str(this->state));
+		LOG(trace, "Request state: " COL_GREEN << Request::state_to_str(this->state)
+											   << RESET " with buffer size = " << buffer.size());
 		switch (this->state) {
 			case Request::HEADER: {
 				std::string::size_type crlf = buffer.find(CRLF);
 
 				if (crlf == std::string::npos) {
 					if (buffer.size() >= MAX_URI_SIZE)
-						throw PageException(status::URI_TOO_LONG);
+						throw PageException(status::URI_TOO_LONG, true);
 					return false;
 				}
 				if (crlf + 2 >= MAX_URI_SIZE)
-					throw PageException(status::URI_TOO_LONG);
+					throw PageException(status::URI_TOO_LONG, true);
 				this->headers_total_size += crlf + 2;
 
 				std::stringstream first_line(string(buffer.begin(), buffer.begin() + crlf));
-				LOG(debug, "first_line = '" << first_line.str() << "'");
+				LOG(trace, COL_CYAN << first_line.str() << RESET);
 				buffer.erase(buffer.begin(), buffer.begin() + crlf + 2);
 
 				string method, path, version;
@@ -71,12 +72,14 @@ bool Request::parseBytes(std::string& buffer) {
 				std::getline(first_line, path, ' ');
 				std::getline(first_line, version, ' ');
 
-				if (method.empty() || path.empty() || version.empty()) {
-					LOG(fatal, "hello ?????");
-					throw PageException(status::BAD_REQUEST);
-				}
+				if (method.empty() || path.empty() || version.empty())
+					throw PageException(status::BAD_REQUEST, true);
+
+				assert(!method.empty());
+				assert(!path.empty());
+				assert(!version.empty());
 				if (version != "HTTP/1.1")
-					throw PageException(status::BAD_REQUEST);
+					throw PageException(status::BAD_REQUEST, method != "HEAD");
 				this->method = method;
 				this->url	 = path;
 				this->state	 = Request::USERHEADERS;
@@ -84,22 +87,23 @@ bool Request::parseBytes(std::string& buffer) {
 				break;
 			};
 			case Request::USERHEADERS: {
-				std::string::size_type end	= buffer.find(CRLF CRLF);
 				std::string::size_type crlf = buffer.find(CRLF);
 				if (crlf == std::string::npos) {
 					if (this->headers_total_size + buffer.size() >= MAX_HEADERS_SIZE)
-						throw PageException(status::REQUEST_HEADER_FIELDS_TOO_LARGE);
+						throw PageException(status::REQUEST_HEADER_FIELDS_TOO_LARGE,
+											this->method != "HEAD");
 					return false;
 				}
 				if (this->headers_total_size + crlf + 2 >= MAX_HEADERS_SIZE)
-					throw PageException(status::REQUEST_HEADER_FIELDS_TOO_LARGE);
+					throw PageException(status::REQUEST_HEADER_FIELDS_TOO_LARGE,
+										this->method != "HEAD");
 				this->headers_total_size += crlf + 2;
 
 				std::string header_line(string(buffer.begin(), buffer.begin() + crlf));
-				LOG(debug, "headerline = '" << header_line << "'");
 				buffer.erase(buffer.begin(), buffer.begin() + crlf + 2);
 
 				if (!header_line.empty()) {
+					LOG(trace, COL_YELLOW << header_line << RESET);
 					string::size_type delim = header_line.find(":");
 					string			  name(header_line.begin(), header_line.begin() + delim);
 					string			  value(header_line.begin() + delim + 1, header_line.end());
@@ -108,9 +112,12 @@ bool Request::parseBytes(std::string& buffer) {
 					string_trim(value);
 					string_tolower(name);
 
-					if (this->headers.count(name) == 0) {
+					if (name.empty())
+						throw PageException(status::BAD_REQUEST, this->method != "HEAD");
+
+					if (this->headers.count(name) == 0)
 						this->headers.insert(std::make_pair(name, value));
-					} else {
+					else {
 						/// we check that it is a valid header to be concatenated.
 						/// either it is in a premade list, or it is a Vendor-specific header (start
 						/// with `x-`)
@@ -119,13 +126,11 @@ bool Request::parseBytes(std::string& buffer) {
 						if (!(string_start_with(name, "x-") ||
 							  std::find(ALLOWED_MULTIHEADERS.begin(), ALLOWED_MULTIHEADERS.end(),
 										name) != ALLOWED_MULTIHEADERS.end())) {
-							throw PageException(status::BAD_REQUEST);
+							throw PageException(status::BAD_REQUEST, this->method != "HEAD");
 						}
 						this->headers.at(name) += string(",") + value;
 					}
-				}
-
-				if (header_line.empty() || end == crlf) {
+				} else {
 					this->state		= PREBODY;
 					this->body_size = 0;
 					continue_loop	= true;
@@ -133,14 +138,6 @@ bool Request::parseBytes(std::string& buffer) {
 				break;
 			};
 			case Request::PREBODY: {
-				// we need to remove the first CRLF
-				if (buffer.size() < 2) {
-					LOG(info, "we need more data... ;" << buffer.size() << " '" << buffer << "'");
-					return false;
-				}
-				// we remove the first CRLF
-				buffer.erase(buffer.begin(), buffer.begin() + 2);
-
 				if (!(this->method == "POST" || this->method == "PUT")) {
 					continue_loop = true;
 					this->state	  = FINISHED;
@@ -176,19 +173,19 @@ bool Request::parseBytes(std::string& buffer) {
 				if (this->headers.count("content-length")) {
 					// content-length can't be used with chunked body...
 					if (this->state == Request::CHUNKED_BODY_HEADER)
-						throw PageException(status::BAD_REQUEST);
+						throw PageException(status::BAD_REQUEST, this->method != "HEAD");
 					char* end = NULL;
 					errno	  = 0;
 					unsigned long long val =
 						std::strtoull(this->headers.at("content-length").c_str(), &end, 10);
 					if (errno != 0 || (end != NULL && *end != '\0'))
-						throw PageException(400);
+						throw PageException(status::BAD_REQUEST, this->method != "HEAD");
 					this->content_length = val;
 				}
 
 				if (this->route && this->content_length != -1 &&
 					(size_t)this->content_length > this->route->max_size)
-					throw PageException(status::PAYLOAD_TOO_LARGE);
+					throw PageException(status::PAYLOAD_TOO_LARGE, this->method != "HEAD");
 				break;
 			}
 
@@ -203,7 +200,7 @@ bool Request::parseBytes(std::string& buffer) {
 				errno				   = 0;
 				unsigned long long val = std::strtoull(header.c_str(), &end, 16);
 				if (errno != 0 || (end != NULL && *end != '\0'))
-					throw PageException(400);
+					throw PageException(status::BAD_REQUEST, this->method != "HEAD");
 				this->current_chunk_size   = val;
 				this->remaining_chunk_size = val;
 				this->state				   = Request::CHUNKED_BODY_NEW_CHUNK;
@@ -242,9 +239,7 @@ bool Request::parseBytes(std::string& buffer) {
 				break;
 			};
 			case Request::CHUNKED_BODY_DONE: {
-				LOG(info, "buf='" << buffer << "'");
 				if (buffer.size() < 2) {
-					LOG(debug, "need more data...");
 					return false;
 				}
 				assert(buffer.find(CRLF) == 0);
@@ -278,7 +273,6 @@ bool Request::parseBytes(std::string& buffer) {
 				_UNREACHABLE;
 			}
 			case Request::FINISHED: {
-				LOG(debug, "finished with body_size = " << this->body_size);
 				return true;
 			}
 		}

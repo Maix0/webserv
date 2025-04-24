@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/03 13:48:32 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/24 16:21:56 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/24 22:16:32 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,7 +40,7 @@
 
 #define COPY_BUFFER_SIZE (1 << 22)
 
-static Rc<Response> default_status_page(StatusCode code) {
+static Rc<Response> default_status_page(StatusCode code, bool with_body) {
 	Rc<Response>		  res		= new Response();
 	const std::string	  canonical = code.canonical().get_or("Unknown code");
 	Rc<std::stringstream> body;
@@ -54,7 +54,7 @@ static Rc<Response> default_status_page(StatusCode code) {
 	(*body) << "</html>" CRLF;
 
 	res->setStatus(code);
-	res->setBody(body.cast<std::istream>(), body->str().size());
+	res->setBody(with_body ? body.cast<std::istream>() : new std::stringstream, body->str().size());
 	res->setMimeType("html");
 	return res;
 }
@@ -106,14 +106,14 @@ void handle_post_delete(Epoll&		   epoll,
 	/// if no route, we CAN'T process those request since we don't have a post/upload dir
 	if (!req->getRoute()) {
 		LOG(debug, "no route...");
-		throw Request::PageException(status::METHOD_NOT_ALLOWED);
+		throw Request::PageException(status::METHOD_NOT_ALLOWED, req->getMethod() != "HEAD");
 	}
 	const config::Route& route = *req->getRoute();
 	/// Well we have a route, but it doesn't have a post_dir. this shoul de caught before, but we
 	/// don't know yet;
 	if (!route.post_dir.hasValue()) {
 		LOG(debug, "no post dir");
-		throw Request::PageException(status::METHOD_NOT_ALLOWED);
+		throw Request::PageException(status::METHOD_NOT_ALLOWED, req->getMethod() != "HEAD");
 	}
 	std::string file				   = route.post_dir.get();
 	file							  += "/";
@@ -124,13 +124,13 @@ void handle_post_delete(Epoll&		   epoll,
 		if (route.index.hasValue())
 			url_parts.push_back(route.index.get());
 		else
-			throw Request::PageException(status::NOT_FOUND);
+			throw Request::PageException(status::NOT_FOUND, req->getMethod() != "HEAD");
 	}
 
 	for (std::vector<std::string>::iterator it = url_parts.begin(); it != url_parts.end(); it++) {
 		// no directory traversal for you :)
 		if (*it == ".." || *it == ".")
-			throw Request::PageException(status::SERVICE_UNAVAILABLE);
+			throw Request::PageException(status::SERVICE_UNAVAILABLE, req->getMethod() != "HEAD");
 		file += "/";
 		file += *it;
 	}
@@ -146,7 +146,7 @@ void handle_post_delete(Epoll&		   epoll,
 		std::ofstream file_out;
 		file_out.open(file.c_str(), std::ios_base::out | std::ios_base::binary);
 		if (file_out.fail())
-			throw Request::PageException(status::INTERNAL_SERVER_ERROR);
+			throw Request::PageException(status::INTERNAL_SERVER_ERROR, req->getMethod() != "HEAD");
 		char*		  buffer = new char[COPY_BUFFER_SIZE];
 		Rc<tiostream> body	 = req->getBody().get();
 		body->seekg(0, std::ios_base::beg);
@@ -162,21 +162,21 @@ void handle_post_delete(Epoll&		   epoll,
 		}
 		delete[] buffer;
 		if ((body->bad() || file_out.bad()))
-			throw Request::PageException(status::INTERNAL_SERVER_ERROR);
+			throw Request::PageException(status::INTERNAL_SERVER_ERROR, req->getMethod() != "HEAD");
 		res->setStatus(status::NO_CONTENT);
 	} else if (req->getMethod() == "DELETE") {
 		// no file
 		if (sres == -1 && serr == ENOENT)
-			throw Request::PageException(status::NOT_FOUND);
+			throw Request::PageException(status::NOT_FOUND, req->getMethod() != "HEAD");
 		// can't write to it == can't delete it
 		if (!(s.st_mode & (S_IWUSR | S_IWGRP | S_IWOTH)))
-			throw Request::PageException(status::FORBIDDEN);
+			throw Request::PageException(status::FORBIDDEN, req->getMethod() != "HEAD");
 		// trying to remove the file/directory :)
 		if (unlink(file.c_str())) {
 			int serr2 = errno;
 			(void)(serr2);
 			LOG(warn, "failed to unlink file '" << file << "': " << strerror(serr2));
-			throw Request::PageException(status::INTERNAL_SERVER_ERROR);
+			throw Request::PageException(status::INTERNAL_SERVER_ERROR, req->getMethod() != "HEAD");
 		}
 		res->setStatus(status::NO_CONTENT);
 	}
@@ -211,7 +211,8 @@ void handle_static_file(Epoll&		   epoll,
 				if (it->empty())
 					continue;
 				if (*it == ".." || *it == ".")
-					throw Request::PageException(status::SERVICE_UNAVAILABLE);
+					throw Request::PageException(status::SERVICE_UNAVAILABLE,
+												 req->getMethod() != "HEAD");
 				file_path += "/";
 				file_path += *it;
 			}
@@ -220,11 +221,18 @@ void handle_static_file(Epoll&		   epoll,
 				 pos						= file_path.find("//"))
 				   file_path.replace(pos, 2, "/");
 		}
+		std::size_t* bptr = &body_size;
+		assert(bptr != NULL);
+		*bptr = 1;
+		assert(body_size == 1);
+		body_size = 0;
+		assert(*bptr == 0);
 		Rc<std::istream> body =
-			getFileAt(file_path, req->getServer(), req->getRoute(), &ext, &body_size);
+			getFileAt(file_path, req->getServer(), req->getRoute(), &ext, bptr, NULL);
 		res->setBody(body, body_size);
 		res->setMimeType(ext);
 		res->setStatus(200);
+		connection->getResponse() = res;
 	} catch (const fs::error::NotAllowed& e) {
 		connection->getResponse() =
 			Response::createStatusPageFor(epoll, connection, req->getServer(), status::FORBIDDEN);
@@ -238,10 +246,6 @@ void handle_static_file(Epoll&		   epoll,
 		LOG(warn, "got error: " << e.what());
 		connection->getResponse() =
 			Response::createStatusPageFor(epoll, connection, req->getServer(), status::NOT_FOUND);
-	} catch (...) {
-		LOG(warn, "got unknown error: ");
-		connection->getResponse() = Response::createStatusPageFor(
-			epoll, connection, req->getServer(), status::INTERNAL_SERVER_ERROR);
 	}
 }
 
@@ -255,7 +259,8 @@ void handle_cgi_request(Epoll&			   epoll,
 	(void)(req);
 	(void)(res);
 	(void)(cgi);
-	
+
+	LOG(info, "new CGI ?");
 	CgiList&	cgi_list = State::getInstance().getCgis();
 	Rc<PipeCgi> c		 = new PipeCgi(cgi.binary, req, res);
 	cgi_list.push_back(c);
@@ -284,22 +289,23 @@ void Response::setMimeTypeRaw(const std::string& raw) {
 Rc<Response> Response::createStatusPageFor(Epoll&				 epoll,
 										   Rc<Connection>		 conn,
 										   const config::Server* server,
-										   StatusCode			 code) {
+										   StatusCode			 code,
+										   bool					 with_body) {
 	(void)(epoll);
 	(void)(conn);
 	std::stringstream s;
 	s << code.code();
 	std::string c = s.str();
 	if (server == NULL || server->errors.count(c) == 0)
-		return (default_status_page(code));
-	return (default_status_page(code));
+		return (default_status_page(code, with_body));
+	return (default_status_page(code, with_body));
 }
 
 const config::Cgi* find_cgi_for(const std::string& url, const config::Route& route) {
-	std::map<std::string, config::Cgi>& cgis	  = State::getInstance().getConfig().cgi;
-	const config::Cgi*					cgi		  = NULL;
-	std::string::size_type				slash_pos = url.find('/');
-	std::string::size_type				qs_pos	  = url.find('?');
+	std::map<std::string, config::Cgi>& route_cgis = State::getInstance().getConfig().cgi;
+	const config::Cgi*					cgi		   = NULL;
+	std::string::size_type				slash_pos  = url.find('/');
+	std::string::size_type				qs_pos	   = url.find('?');
 	std::string							last_part;
 
 	{
@@ -311,11 +317,13 @@ const config::Cgi* find_cgi_for(const std::string& url, const config::Route& rou
 			start += slash_pos + 1;
 		last_part = std::string(start, url.end());
 	}
+	LOG(info, "last_part = " << last_part);
 
 	for (std::map<std::string, std::string>::const_iterator it = route.cgi.begin();
 		 it != route.cgi.end(); it++) {
-		if (!last_part.empty() && string_ends_with(last_part, it->second)) {
-			cgi = &cgis[it->second];
+		LOG(trace, "checking for match'" << last_part << "' with suffix '" << it->first << "'");
+		if (!last_part.empty() && string_ends_with(last_part, it->first)) {
+			cgi = &route_cgis[it->second];
 			LOG(debug, "FOUND CGI: " << cgi->binary);
 			break;
 		}
@@ -335,7 +343,7 @@ Rc<Response> Response::createResponseFor(Epoll& epoll, Rc<Connection> connection
 		std::find(req->getRoute()->allowed.get().begin(), req->getRoute()->allowed.get().end(),
 				  method) == req->getRoute()->allowed.get().end()) {
 		LOG(debug, "not allowed in route...");
-		throw Request::PageException(status::METHOD_NOT_ALLOWED);
+		throw Request::PageException(status::METHOD_NOT_ALLOWED, req->getMethod() != "HEAD");
 	}
 
 	// the poor man block-breaking capability...

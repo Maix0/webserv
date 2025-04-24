@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/31 13:44:53 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/18 16:51:39 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/24 22:04:56 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,23 +35,18 @@ static inline std::string& string_trim(std::string& s, const char* t = ws) {
 }
 
 static inline bool string_start_with(const std::string& self, const std::string& prefix) {
-	std::string::const_iterator sit = self.begin(), pit = prefix.begin();
-	for (; sit != self.end() && pit != prefix.end(); sit++, pit++)
-		if (*sit != *pit)
-			return false;
-
-	return pit == prefix.end();
+	if (prefix.size() > self.size()) {
+		return false;
+	}
+	return self.compare(0, prefix.size(), prefix) == 0;
 }
 
 static inline bool string_ends_with(const std::string& self, const std::string& suffix) {
-	std::string::const_reverse_iterator sit = self.rbegin(), pit = suffix.rbegin();
-	for (; sit != self.rend() && pit != suffix.rend(); sit++, pit++)
-		if (*sit != *pit)
-			return false;
-
-	return pit == suffix.rbegin();
+	if (suffix.size() > self.size()) {
+		return false;
+	}
+	return self.compare(self.size() - suffix.size(), suffix.size(), suffix) == 0;
 }
-
 #define _HTML_ESCAPE(raw, code) \
 	case raw: {                 \
 		out += "&#" #code ";";  \

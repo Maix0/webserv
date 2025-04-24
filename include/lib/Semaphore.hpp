@@ -1,19 +1,31 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Logger.cpp                                         :+:      :+:    :+:   */
+/*   Semaphore.hpp                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/04/03 19:35:46 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/24 22:53:54 by maiboyer         ###   ########.fr       */
+/*   Created: 2025/04/24 22:25:22 by maiboyer          #+#    #+#             */
+/*   Updated: 2025/04/24 22:35:37 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "runtime/Logger.hpp"
+#include <string>
+class Semaphore {
+	private:
+		std::string name;
+		void*		inner;
 
-namespace log {
-	LogLevel  logLevel	 = ::log::_compileTimeLogLevel();
-	int		  logInChildPid = -1;
-	Semaphore logSemaphore("/webserv-log", 1);
-}  // namespace log
+	public:
+		Semaphore(const std::string& name, std::size_t count = 1);
+		~Semaphore();
+
+		class Ticket {
+			private:
+				Semaphore& parent;
+
+			public:
+				Ticket(Semaphore& parent);
+				~Ticket();
+		};
+};
