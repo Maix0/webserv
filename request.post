@@ -1,8 +1,0 @@
-POST /some/path HTTP/1.1
-Host: 127.0.0.1:8888
-User-Agent: curl/8.12.1
-Content-Type: application/json
-Accept: application/json
-Content-Length: 28
-
-{"this is a key": [1, 2, 3]}
