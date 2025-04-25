@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/03 13:48:32 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/25 18:04:08 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/25 18:23:30 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -384,41 +384,8 @@ Rc<Response> Response::createResponseFor(Epoll& epoll, Rc<Connection> connection
 
 std::size_t Response::fill_buffer(char buf[], std::size_t len) {
 	if (this->passthru.hasValue()) {
-		if (!this->passthru.get()->canRead())
+		if (!this->passthru.get()->isFinished())
 			return 0;
-		PassthruDeque* pdq = &*this->passthru.get()->getBuffer();
-		LOG(info, "output=>" << pdq);
-		if (!this->sent_headers) {
-			LOG(info, "sent_headers for CGI");
-			if (this->method == "HEAD") {
-				this->body = new std::stringstream();
-			}
-			std::stringstream ss;
-			{
-				Option<std::string> status_header = this->getHeader("status");
-				if (status_header.hasValue()) {
-					std::stringstream ss(status_header.get());
-					unsigned short	  i = 200;
-					ss >> i;
-					this->code = StatusCode(i);
-				} else
-					this->code = status::OK;
-			}
-			ss << "HTTP/1.1 " << this->code.code() << " "
-			   << this->code.canonical().get_or("Unknown Code") << CRLF;
-			for (HeaderMap::iterator it = this->headers.begin(); it != this->headers.end(); it++)
-				ss << it->first << ": " << it->second << CRLF;
-			ss << CRLF	CRLF;
-			std::string out = ss.str();
-			this->inner_buffer.insert(this->inner_buffer.end(), out.begin(), out.end());
-			this->sent_headers = true;
-		}
-		this->inner_buffer.insert(this->inner_buffer.end(),
-								  this->passthru.get()->getBuffer()->begin(),
-								  this->passthru.get()->getBuffer()->end());
-		this->passthru.get()->getBuffer()->clear();
-		if (this->passthru.get()->getBuffer()->getEofOnEmpty())
-			this->is_stream_eof = true;
 	} else {
 		if (!this->sent_headers) {
 			if (this->method == "HEAD") {

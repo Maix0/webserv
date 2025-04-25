@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/25 15:01:23 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/25 17:58:02 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/25 18:31:12 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,17 +21,22 @@ class Response;
 
 class CgiOutput {
 	private:
-		Rc<Response> res;
-		Rc<PipeCgi>		   cgi;
-		Rc<PassthruDeque>  buf;
-		bool			   can_read;
+		Rc<Response>	  res;
+		Rc<PipeCgi>		  cgi;
+		Rc<PassthruDeque> buf;
+		Rc<tiostream>	  body;
+		size_t			  body_size;
+		bool			  finished;
+		bool			  finished_headers;
 
 	public:
 		CgiOutput(Rc<PipeCgi> cgi, Rc<Response>& s);
 		~CgiOutput();
 
 		Rc<PassthruDeque>& getBuffer() { return this->buf; };
-		bool			   canRead();
+		void			   parseBytes();
+		bool			   isFinished() { return this->finished; };
+		void			   setFinished();
 
 		int getPipeFd() { return this->cgi->asFd(); };
 };

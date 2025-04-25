@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/22 11:02:42 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/25 18:12:36 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/25 18:29:45 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,6 +41,7 @@ void PipeCgi::CallbackHangup::call(Epoll& epoll, Rc<Callback> self) {
 	this->setFinished();
 	Option<Rc<Connection> > a;
 	this->parent->updateTime();
+	this->setFinished();
 	remove_self(this->asFd());
 }
 
