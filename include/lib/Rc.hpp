@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/08 16:52:34 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/22 10:08:20 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/25 14:50:20 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -188,7 +188,7 @@ class Rc {
 					if (this->ptr->strong != 0) {
 						++this->ptr->strong;
 						return Option<Rc>::Some(
-							new Rc(Rc::fromRaw(reinterpret_cast<RcInner*>(this->ptr))));
+							Rc(Rc::fromRaw(reinterpret_cast<RawRc*>(this->ptr))));
 					}
 					return Option<Rc>::None();
 				}

@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/07 21:50:04 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/18 18:34:20 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/25 14:40:52 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -216,8 +216,8 @@ namespace config {
 																	rit->second.cgi.end());
 				for (std::vector<std::pair<std::string, std::string> >::iterator it = v.begin();
 					 it != v.end(); it++) {
-					if (it->second[0] != '.')
-						it->second.insert(it->second.begin(), 1, '.');
+					if (it->first[0] != '.')
+						it->first.insert(it->first.begin(), 1, '.');
 				}
 
 				rit->second.cgi = std::map<std::string, std::string>(v.begin(), v.end());

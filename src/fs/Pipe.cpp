@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/22 17:48:13 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/24 23:42:37 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/25 17:58:53 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -84,15 +84,13 @@ char* const* PipeCgi::setup_env(char** envp) {
 	return const_cast<char* const*>(out);
 }
 
-PipeCgi::PipeCgi(std::string bin, Rc<Request> req, Rc<Response> res)
-	: rfd(-1), req(req), res(res), output(), bin(bin) {
+PipeCgi::PipeCgi(std::string bin, Rc<Request> req, Rc<Connection>& parent)
+	: rfd(-1), req(req), output(), bin(bin), parent(parent) {
 	LOG(info, "new CGI");
 	if (this->req->getBody().hasValue())
 		this->rfd = this->req->getBody().get()->getFd();
 	else
 		this->rfd = open("/dev/null", O_RDONLY | O_CLOEXEC);
-
-	res->setCgi(this->output);
 
 	this->pid = 0;
 	int pip[2];
@@ -104,7 +102,6 @@ PipeCgi::PipeCgi(std::string bin, Rc<Request> req, Rc<Response> res)
 	_ERR_RET_THROW(this->pid = fork());
 
 	if (this->pid == 0) {
-		LOG(info, COL_YELLOW "I AM THE CHILD" RESET);
 		int reserve;
 		_ERR_RET_THROW(reserve = dup(STDOUT_FILENO));
 		_ERR_RET_THROW(fcntl(reserve, FD_CLOEXEC));
@@ -130,7 +127,6 @@ PipeCgi::PipeCgi(std::string bin, Rc<Request> req, Rc<Response> res)
 		close(reserve);
 		throw ExitError(127);
 	}
-	LOG(info, COL_RED "I AM THE PARENT" RESET);
 	close(pip[1]);
 	close(rfd);
 	this->rfd = pip[0];
@@ -148,3 +144,8 @@ PipeCgi::~PipeCgi() {
 	close(this->rfd);
 	LOG(trace, "PipeCgi is out");
 }
+
+PipeCgi::CallbackRead::CallbackRead(const PipeCgi& cgi)
+	: req(cgi.req), output(cgi.output), rfd(cgi.rfd), parent(cgi.parent) {}
+PipeCgi::CallbackHangup::CallbackHangup(const PipeCgi& cgi)
+	: req(cgi.req), output(cgi.output), rfd(cgi.rfd), parent(cgi.parent) {}

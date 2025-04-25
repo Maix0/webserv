@@ -6,7 +6,7 @@
 #    By: rparodi <rparodi@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/11/12 11:05:05 by rparodi           #+#    #+#              #
-#    Updated: 2025/04/24 23:32:41 by maiboyer         ###   ########.fr        #
+#    Updated: 2025/04/25 17:57:01 by maiboyer         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -79,7 +79,7 @@ ifeq ($(ENABLE_PRINT_PID), yes)
 endif
 
 ENABLE_TRUE_SEMAPHORE ?= yes
-ifeq ($(ENABLE_PRINT_PID), yes)
+ifeq ($(ENABLE_TRUE_SEMAPHORE), yes)
     CXXFLAGS_ADDITIONAL += -DENABLE_TRUE_SEMAPHORE
     ifeq ($(MAKECMDGOALS), header)
         MSG += "$(WSTART)using $(GOLD)using true semaphores$(WEND)"

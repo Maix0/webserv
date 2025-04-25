@@ -17,6 +17,7 @@ fs/Directory                                                                  \
 fs/File                                                                       \
 fs/Pipe                                                                       \
 fs/ServerRessources                                                           \
+http/CgiOutput                                                                \
 http/Request                                                                  \
 http/Response                                                                 \
 http/Routing                                                                  \

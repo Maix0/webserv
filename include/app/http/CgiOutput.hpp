@@ -1,29 +1,37 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   TempFile.hpp                                       :+:      :+:    :+:   */
+/*   CgiOutput.hpp                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/04/14 13:39:31 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/25 15:06:02 by maiboyer         ###   ########.fr       */
+/*   Created: 2025/04/25 15:01:23 by maiboyer          #+#    #+#             */
+/*   Updated: 2025/04/25 17:58:02 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
-#include <fstream>
-#include <string>
+#include "app/fs/CgiPipe.hpp"
+#include "lib/PassthruDeque.hpp"
+#include "lib/Rc.hpp"
+#include "lib/TempFile.hpp"
 
-class tiostream : public std::fstream {
+class Response;
+
+class CgiOutput {
 	private:
-		std::string filename;
-		int			fd;
+		Rc<Response> res;
+		Rc<PipeCgi>		   cgi;
+		Rc<PassthruDeque>  buf;
+		bool			   can_read;
 
 	public:
-		tiostream();
-		~tiostream();
+		CgiOutput(Rc<PipeCgi> cgi, Rc<Response>& s);
+		~CgiOutput();
 
-		const std::string& getFilename() const throw() { return this->filename; };
-		int				   getFd() const throw() { return this->fd; };
+		Rc<PassthruDeque>& getBuffer() { return this->buf; };
+		bool			   canRead();
+
+		int getPipeFd() { return this->cgi->asFd(); };
 };

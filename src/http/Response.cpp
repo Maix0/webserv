@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/03 13:48:32 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/24 22:16:32 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/25 18:04:08 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,6 +28,7 @@
 #include "app/State.hpp"
 #include "app/fs/CgiPipe.hpp"
 #include "app/fs/ServerRessources.hpp"
+#include "app/http/CgiOutput.hpp"
 #include "app/http/MimesTypes.hpp"
 #include "app/http/Request.hpp"
 #include "app/http/Response.hpp"
@@ -260,10 +261,14 @@ void handle_cgi_request(Epoll&			   epoll,
 	(void)(res);
 	(void)(cgi);
 
-	LOG(info, "new CGI ?");
-	CgiList&	cgi_list = State::getInstance().getCgis();
-	Rc<PipeCgi> c		 = new PipeCgi(cgi.binary, req, res);
-	cgi_list.push_back(c);
+	CgiList& cgi_list = State::getInstance().getCgis();
+	assert(!cgi.binary.empty());
+	Rc<PipeCgi>	  c = new PipeCgi(cgi.binary, req, connection);
+	Rc<CgiOutput> o = new CgiOutput(c, res);
+	cgi_list.push_back(o);
+	res->setCgi(o);
+	epoll.addCallback(c->asFd(), READ, new PipeCgi::CallbackRead(*c));
+	epoll.addCallback(c->asFd(), HANGUP, new PipeCgi::CallbackHangup(*c));
 }
 
 bool Response::setHeader(std::pair<std::string, std::string> pair) {
@@ -302,10 +307,10 @@ Rc<Response> Response::createStatusPageFor(Epoll&				 epoll,
 }
 
 const config::Cgi* find_cgi_for(const std::string& url, const config::Route& route) {
-	std::map<std::string, config::Cgi>& route_cgis = State::getInstance().getConfig().cgi;
-	const config::Cgi*					cgi		   = NULL;
-	std::string::size_type				slash_pos  = url.find('/');
-	std::string::size_type				qs_pos	   = url.find('?');
+	std::map<std::string, config::Cgi>& all_cgis  = State::getInstance().getConfig().cgi;
+	const config::Cgi*					cgi		  = NULL;
+	std::string::size_type				slash_pos = url.find('/');
+	std::string::size_type				qs_pos	  = url.find('?');
 	std::string							last_part;
 
 	{
@@ -317,14 +322,11 @@ const config::Cgi* find_cgi_for(const std::string& url, const config::Route& rou
 			start += slash_pos + 1;
 		last_part = std::string(start, url.end());
 	}
-	LOG(info, "last_part = " << last_part);
 
 	for (std::map<std::string, std::string>::const_iterator it = route.cgi.begin();
 		 it != route.cgi.end(); it++) {
-		LOG(trace, "checking for match'" << last_part << "' with suffix '" << it->first << "'");
-		if (!last_part.empty() && string_ends_with(last_part, it->first)) {
-			cgi = &route_cgis[it->second];
-			LOG(debug, "FOUND CGI: " << cgi->binary);
+		if (!last_part.empty() && !it->first.empty() && string_ends_with(last_part, it->first)) {
+			cgi = &all_cgis.at(it->second);
 			break;
 		}
 	}
@@ -382,9 +384,40 @@ Rc<Response> Response::createResponseFor(Epoll& epoll, Rc<Connection> connection
 
 std::size_t Response::fill_buffer(char buf[], std::size_t len) {
 	if (this->passthru.hasValue()) {
-		this->inner_buffer = *this->passthru.get();
-		this->passthru.get()->clear();
-		if (this->passthru.get()->getEofOnEmpty())
+		if (!this->passthru.get()->canRead())
+			return 0;
+		PassthruDeque* pdq = &*this->passthru.get()->getBuffer();
+		LOG(info, "output=>" << pdq);
+		if (!this->sent_headers) {
+			LOG(info, "sent_headers for CGI");
+			if (this->method == "HEAD") {
+				this->body = new std::stringstream();
+			}
+			std::stringstream ss;
+			{
+				Option<std::string> status_header = this->getHeader("status");
+				if (status_header.hasValue()) {
+					std::stringstream ss(status_header.get());
+					unsigned short	  i = 200;
+					ss >> i;
+					this->code = StatusCode(i);
+				} else
+					this->code = status::OK;
+			}
+			ss << "HTTP/1.1 " << this->code.code() << " "
+			   << this->code.canonical().get_or("Unknown Code") << CRLF;
+			for (HeaderMap::iterator it = this->headers.begin(); it != this->headers.end(); it++)
+				ss << it->first << ": " << it->second << CRLF;
+			ss << CRLF	CRLF;
+			std::string out = ss.str();
+			this->inner_buffer.insert(this->inner_buffer.end(), out.begin(), out.end());
+			this->sent_headers = true;
+		}
+		this->inner_buffer.insert(this->inner_buffer.end(),
+								  this->passthru.get()->getBuffer()->begin(),
+								  this->passthru.get()->getBuffer()->end());
+		this->passthru.get()->getBuffer()->clear();
+		if (this->passthru.get()->getBuffer()->getEofOnEmpty())
 			this->is_stream_eof = true;
 	} else {
 		if (!this->sent_headers) {

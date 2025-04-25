@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/02 22:07:07 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/22 18:00:16 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/25 17:10:59 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,7 @@
 #include <set>
 #include <vector>
 #include "app/fs/CgiPipe.hpp"
+#include "app/http/CgiOutput.hpp"
 #include "app/net/Connection.hpp"
 #include "app/net/Socket.hpp"
 #include "config/Config.hpp"
@@ -27,7 +28,7 @@ typedef std::map<Ip, std::vector<Rc<Socket> > >		  SocketList;
 typedef std::map<Port, std::set<Ip> >				  PortMap;
 typedef std::vector<Rc<Connection> >				  ConnectionList;
 typedef std::map<Port, std::vector<config::Server*> > PortServerMap;
-typedef std::vector<Rc<PipeCgi> >					  CgiList;
+typedef std::vector<Rc<CgiOutput> >					  CgiList;
 
 class State {
 	private:

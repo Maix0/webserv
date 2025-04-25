@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/02 15:39:45 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/24 21:38:48 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/25 15:08:21 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,9 +18,9 @@
 #include <sstream>
 #include <string>
 
+#include "app/http/CgiOutput.hpp"
 #include "app/http/StatusCode.hpp"
 #include "config/Config.hpp"
-#include "lib/PassthruDeque.hpp"
 #include "lib/Rc.hpp"
 #include "runtime/Epoll.hpp"
 
@@ -47,8 +47,8 @@ class Response {
 		bool is_finished;
 		bool is_stream_eof;
 
-		Option<Rc<PassthruDeque> > passthru;
-		std::string				   method;
+		Option<Rc<CgiOutput> > passthru;
+		std::string			   method;
 
 	public:
 		void setMethod(std::string method) { this->method = method; };
@@ -61,7 +61,7 @@ class Response {
 			  is_stream_eof(false) {};
 		~Response() {};
 
-		void setCgi(Rc<PassthruDeque> s) { this->passthru = s; }
+		void setCgi(Rc<CgiOutput> s) { this->passthru = s; };
 
 		void setBody(Rc<std::istream> body, size_t size) {
 			this->body		= body;
