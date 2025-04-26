@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/12 18:56:10 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/25 17:54:40 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/26 21:49:26 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,7 +46,6 @@ static void _send_builtin_code_response(Epoll&		   epoll,
 
 void _ConnCallbackR(Epoll& epoll, Rc<Callback> self, Rc<Connection> inner) {
 	if (inner->isClosed()) {
-		self->setFinished();
 		return;
 	}
 	try {
@@ -74,7 +73,6 @@ void _ConnCallbackR(Epoll& epoll, Rc<Callback> self, Rc<Connection> inner) {
 
 void _ConnCallbackW(Epoll& epoll, Rc<Callback> self, Rc<Connection> inner) {
 	if (inner->isClosed()) {
-		self->setFinished();
 		return;
 	}
 	if (inner->getResponse()->isFinished())
@@ -90,14 +88,14 @@ void _ConnCallbackW(Epoll& epoll, Rc<Callback> self, Rc<Connection> inner) {
 		buf.resize(before + got);
 	}
 	ssize_t res = 0;
-	if ((res = write(inner->asFd(), &buf[0], buf.size())) < 0) {
+	if (!buf.empty() && (res = write(inner->asFd(), &buf[0], buf.size())) < 0) {
 		int serr = errno;
 		(void)(serr);
 		LOG(warn, "Error when reading...: " << strerror(serr));
 		return;
 	}
 	epoll.addCallback(inner->asFd(), WRITE, self);
-	if (res > 0)
+	if (res >= 0)
 		inner->updateTime();
 
 	buf.erase(buf.begin(), buf.begin() + res);
@@ -105,7 +103,6 @@ void _ConnCallbackW(Epoll& epoll, Rc<Callback> self, Rc<Connection> inner) {
 
 void _ConnCallbackH(Epoll& epoll, Rc<Callback> self, Rc<Connection> inner) {
 	(void)(self);
-	self->setFinished();
 	inner->setClosed();
 	State&			ctx	 = State::getInstance();
 	ConnectionList& conn = ctx.getConnections();

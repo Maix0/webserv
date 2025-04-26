@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/02 22:07:07 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/25 17:10:59 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/26 22:11:46 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,6 @@
 #include <map>
 #include <set>
 #include <vector>
-#include "app/fs/CgiPipe.hpp"
 #include "app/http/CgiOutput.hpp"
 #include "app/net/Connection.hpp"
 #include "app/net/Socket.hpp"

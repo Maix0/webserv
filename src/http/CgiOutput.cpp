@@ -6,30 +6,31 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/25 15:00:28 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/25 18:30:44 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/26 23:36:12 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "app/http/CgiOutput.hpp"
 #include <string>
+
+#include "app/http/CgiOutput.hpp"
 #include "app/http/Request.hpp"
 #include "app/http/Response.hpp"
 #include "lib/StringHelper.hpp"
 
 void CgiOutput::parseBytes() {
-	while (!this->buf->empty()) {
+	while (!this->buffer.empty()) {
 		if (this->finished_headers) {
 			char data[2048];
-			while (!this->buf->empty()) {
-				size_t cpy_len = std::min(sizeof(data), this->buf->size());
+			while (!this->buffer.empty()) {
+				size_t cpy_len = std::min(sizeof(data), this->buffer.size());
 				for (size_t i = 0; i < cpy_len; i++)
-					data[i] = this->buf->at(i);
-				this->buf->erase(this->buf->begin(), this->buf->begin() + cpy_len);
+					data[i] = this->buffer.at(i);
+				this->buffer.erase(this->buffer.begin(), this->buffer.begin() + cpy_len);
 				this->body->write(data, cpy_len);
 				this->body_size += cpy_len;
 			}
 		} else {
-			std::string lines(this->buf->begin(), this->buf->end());
+			std::string lines(this->buffer.begin(), this->buffer.end());
 			if (!lines.empty())
 				LOG(debug, "line = '" << lines << "'");
 			Rc<Response> r = this->res;
@@ -38,7 +39,7 @@ void CgiOutput::parseBytes() {
 				if (crlf == std::string::npos)
 					return;
 				std::string l(lines.begin(), lines.begin() + crlf);
-				this->buf->erase(this->buf->begin(), this->buf->begin() + crlf + 2);
+				this->buffer.erase(this->buffer.begin(), this->buffer.begin() + crlf + 2);
 				lines.erase(lines.begin(), lines.begin() + crlf + 2);
 				if (l.empty()) {
 					this->finished_headers = true;
@@ -59,10 +60,19 @@ void CgiOutput::parseBytes() {
 		}
 	}
 }
-CgiOutput::CgiOutput(Rc<PipeCgi> p, Rc<Response>& r) : res(r), cgi(p), buf(p->getBuf()) {
+CgiOutput::CgiOutput(Epoll&		   epoll,
+					 Rc<Request>&  req,
+					 std::string   cgi_bin,
+					 Rc<Response>& res,
+					 Connection&   conn)
+	: conn(&conn), pipe(new PipeInstance(cgi_bin, req, this)), res(res) {
 	this->body_size		   = 0;
+	this->finished		   = false;
 	this->finished_headers = false;
+	epoll.addCallback(pipe->asFd(), READ, new PipeInstance::CRead(*this->pipe));
+	epoll.addCallback(pipe->asFd(), HANGUP, new PipeInstance::CHangup(*this->pipe));
 }
+
 CgiOutput::~CgiOutput() {}
 
 void CgiOutput::setFinished() {

@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/03 13:48:32 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/25 18:23:30 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/26 23:38:27 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,6 @@
 #include <string>
 
 #include "app/State.hpp"
-#include "app/fs/CgiPipe.hpp"
 #include "app/fs/ServerRessources.hpp"
 #include "app/http/CgiOutput.hpp"
 #include "app/http/MimesTypes.hpp"
@@ -263,12 +262,9 @@ void handle_cgi_request(Epoll&			   epoll,
 
 	CgiList& cgi_list = State::getInstance().getCgis();
 	assert(!cgi.binary.empty());
-	Rc<PipeCgi>	  c = new PipeCgi(cgi.binary, req, connection);
-	Rc<CgiOutput> o = new CgiOutput(c, res);
+	Rc<CgiOutput> o = new CgiOutput(epoll, req, cgi.binary, res, *connection);
 	cgi_list.push_back(o);
 	res->setCgi(o);
-	epoll.addCallback(c->asFd(), READ, new PipeCgi::CallbackRead(*c));
-	epoll.addCallback(c->asFd(), HANGUP, new PipeCgi::CallbackHangup(*c));
 }
 
 bool Response::setHeader(std::pair<std::string, std::string> pair) {
@@ -383,36 +379,35 @@ Rc<Response> Response::createResponseFor(Epoll& epoll, Rc<Connection> connection
 #define READ_BUF 2048
 
 std::size_t Response::fill_buffer(char buf[], std::size_t len) {
-	if (this->passthru.hasValue()) {
-		if (!this->passthru.get()->isFinished())
-			return 0;
-	} else {
-		if (!this->sent_headers) {
-			if (this->method == "HEAD") {
-				this->body = new std::stringstream();
-			}
-			std::stringstream ss;
-			ss << "HTTP/1.1 " << this->code.code() << " "
-			   << this->code.canonical().get_or("Unknown Code") << CRLF;
-			for (HeaderMap::iterator it = this->headers.begin(); it != this->headers.end(); it++)
-				ss << it->first << ": " << it->second << CRLF;
-			ss << "Content-Length: " << this->body_size;
-			ss << CRLF	CRLF;
-			std::string out = ss.str();
-			this->inner_buffer.insert(this->inner_buffer.end(), out.begin(), out.end());
-			this->sent_headers = true;
+	// we have to wait until the cgi is done...
+	if (this->passthru.hasValue() && !this->passthru.get()->isFinished())
+		return 0;
+
+	if (!this->sent_headers) {
+		if (this->method == "HEAD") {
+			this->body = new std::stringstream();
 		}
-		while (this->inner_buffer.size() <= len) {
-			char buffer[READ_BUF] = {};
-			this->body->read(buffer, READ_BUF);
-			size_t l = this->body->gcount();
-			if (this->body->eof() || this->body->fail()) {
-				this->is_stream_eof = true;
-			}
-			this->inner_buffer.insert(this->inner_buffer.end(), &buffer[0], &buffer[l]);
-			if (l < READ_BUF)
-				break;
+		std::stringstream ss;
+		ss << "HTTP/1.1 " << this->code.code() << " "
+		   << this->code.canonical().get_or("Unknown Code") << CRLF;
+		for (HeaderMap::iterator it = this->headers.begin(); it != this->headers.end(); it++)
+			ss << it->first << ": " << it->second << CRLF;
+		ss << "Content-Length: " << this->body_size;
+		ss << CRLF	CRLF;
+		std::string out = ss.str();
+		this->inner_buffer.insert(this->inner_buffer.end(), out.begin(), out.end());
+		this->sent_headers = true;
+	}
+	while (this->inner_buffer.size() <= len) {
+		char buffer[READ_BUF] = {};
+		this->body->read(buffer, READ_BUF);
+		size_t l = this->body->gcount();
+		if (this->body->eof() || this->body->fail()) {
+			this->is_stream_eof = true;
 		}
+		this->inner_buffer.insert(this->inner_buffer.end(), &buffer[0], &buffer[l]);
+		if (l < READ_BUF)
+			break;
 	}
 	std::size_t i = 0;
 	for (std::deque<char>::iterator it = this->inner_buffer.begin();

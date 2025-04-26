@@ -1,26 +1,26 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Pipe.cpp                                           :+:      :+:    :+:   */
+/*   Cgi.cpp                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/22 17:48:13 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/25 17:58:53 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/26 23:18:46 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <fcntl.h>
 #include <sys/wait.h>
 #include <unistd.h>
+
 #include <sstream>
 #include <string>
 #include <vector>
 
 #include "app/State.hpp"
-#include "app/fs/CgiPipe.hpp"
+#include "app/http/CgiOutput.hpp"
 #include "app/http/MimesTypes.hpp"
-#include "app/http/Request.hpp"
 #include "app/http/Response.hpp"
 #include "lib/ExitError.hpp"
 #include "runtime/Logger.hpp"
@@ -32,7 +32,7 @@
 		env.push_back(ss.str());    \
 	} while (0);
 
-char* const* PipeCgi::setup_env(char** envp) {
+char* const* CgiOutput::PipeInstance::setup_env(char** envp) {
 	std::size_t i = 0;
 
 	std::vector<std::string> env;
@@ -84,8 +84,8 @@ char* const* PipeCgi::setup_env(char** envp) {
 	return const_cast<char* const*>(out);
 }
 
-PipeCgi::PipeCgi(std::string bin, Rc<Request> req, Rc<Connection>& parent)
-	: rfd(-1), req(req), output(), bin(bin), parent(parent) {
+CgiOutput::PipeInstance::PipeInstance(std::string bin, Rc<Request> req, CgiOutput* parent)
+	: parent(parent), req(req), pid(-1), rfd(-1), bin(bin) {
 	LOG(info, "new CGI");
 	if (this->req->getBody().hasValue())
 		this->rfd = this->req->getBody().get()->getFd();
@@ -94,7 +94,7 @@ PipeCgi::PipeCgi(std::string bin, Rc<Request> req, Rc<Connection>& parent)
 
 	this->pid = 0;
 	int pip[2];
-	_ERR_RET_THROW(pipe(pip));
+	_ERR_RET_THROW(::pipe(pip));
 
 	_ERR_RET_THROW(fcntl(pip[0], FD_CLOEXEC));
 	_ERR_RET_THROW(fcntl(pip[1], FD_CLOEXEC));
@@ -102,13 +102,12 @@ PipeCgi::PipeCgi(std::string bin, Rc<Request> req, Rc<Connection>& parent)
 	_ERR_RET_THROW(this->pid = fork());
 
 	if (this->pid == 0) {
+		::log::setInsideChild();
 		int reserve;
 		_ERR_RET_THROW(reserve = dup(STDOUT_FILENO));
 		_ERR_RET_THROW(fcntl(reserve, FD_CLOEXEC));
 
 		try {
-			LOG(info, this->bin);
-
 			char* const* envp = setup_env(State::getInstance().getEnv());
 			char*		 argv[2];
 			argv[0] = (char*)(this->bin.c_str());
@@ -138,14 +137,11 @@ PipeCgi::PipeCgi(std::string bin, Rc<Request> req, Rc<Connection>& parent)
 	}
 }
 
-PipeCgi::~PipeCgi() {
-	while (waitpid(this->pid, NULL, 0) != -1)
+CgiOutput::PipeInstance::~PipeInstance() {
+	if (this->rfd != -1)
 		;
 	close(this->rfd);
-	LOG(trace, "PipeCgi is out");
+	if (this->pid != -1)
+		while (waitpid(this->pid, NULL, 0) != -1)
+			;
 }
-
-PipeCgi::CallbackRead::CallbackRead(const PipeCgi& cgi)
-	: req(cgi.req), output(cgi.output), rfd(cgi.rfd), parent(cgi.parent) {}
-PipeCgi::CallbackHangup::CallbackHangup(const PipeCgi& cgi)
-	: req(cgi.req), output(cgi.output), rfd(cgi.rfd), parent(cgi.parent) {}

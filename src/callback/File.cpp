@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/13 13:52:22 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/25 22:46:58 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/26 21:45:08 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,6 @@
 
 void FileReadCallback::call(Epoll& epoll, Rc<Callback> self) {
 	if (this->inner->isEof()) {
-		self->setFinished();
 		return;
 	}
 	char	buffer[READ_BUFFER_SIZE] = {};
@@ -28,7 +27,6 @@ void FileReadCallback::call(Epoll& epoll, Rc<Callback> self) {
 		throw std::runtime_error("Failed to read");
 	this->inner->getBuf().insert(this->inner->getBuf().end(), &buffer[0], &buffer[res]);
 	if (res == 0) {
-		self->setFinished();
 		return this->inner->setEof();
 	} else
 		epoll.addCallback(this->inner->asFd(), READ, self);
@@ -36,7 +34,6 @@ void FileReadCallback::call(Epoll& epoll, Rc<Callback> self) {
 
 void FileWriteCallback::call(Epoll& epoll, Rc<Callback> self) {
 	if (this->inner->getBuf().empty()) {
-		self->setFinished();
 		return;
 	}
 
@@ -48,6 +45,4 @@ void FileWriteCallback::call(Epoll& epoll, Rc<Callback> self) {
 	buf.erase(buf.begin(), buf.begin() + res);
 	if (!buf.empty())
 		epoll.addCallback(this->inner->asFd(), WRITE, self);
-	else
-		self->setFinished();
 };

@@ -1,11 +1,10 @@
 SRC_FILES =                                                                   \
 State                                                                         \
+callback/Cgi                                                                  \
 callback/Connection                                                           \
 callback/File                                                                 \
-callback/Pipe                                                                 \
 callback/Shutdown                                                             \
 callback/Socket                                                               \
-callback/_Callback                                                            \
 config/Cgi                                                                    \
 config/Config                                                                 \
 config/Route                                                                  \
@@ -13,9 +12,9 @@ config/Server                                                                 \
 config/_checkConfig                                                           \
 config/errors                                                                 \
 config/print                                                                  \
+fs/Cgi                                                                        \
 fs/Directory                                                                  \
 fs/File                                                                       \
-fs/Pipe                                                                       \
 fs/ServerRessources                                                           \
 http/CgiOutput                                                                \
 http/Request                                                                  \

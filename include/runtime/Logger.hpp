@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/02 18:29:43 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/24 23:42:59 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/26 23:06:09 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -90,8 +90,9 @@ namespace log {
 		TRACE = trace,
 	};
 
-	extern LogLevel	 logLevel;
-	extern Semaphore logSemaphore;
+	extern LogLevel	   logLevel;
+	extern Semaphore   logSemaphore;
+	extern const char* logPidColor;
 
 	inline bool _setEnvLogLevel(char** envp) {
 		try {
@@ -152,50 +153,10 @@ namespace log {
 	inline void setLogLevel(LogLevel level) {
 		logLevel = level;
 	}
-	template <typename L, typename R>
-	class Either {
-		private:
-			bool is_left;
-			union {
-					L* left;
-					R* right;
-			};
-			Either() : is_left(true), left(NULL) {}
 
-		public:
-			~Either() {
-				if (is_left) {
-					if (left)
-						delete left;
-				} else {
-					if (right)
-						delete right;
-				}
-			}
-			static Either Left(const L& val) {
-				Either out;
-				out.is_left = true;
-				out.left	= new L(val);
-				return out;
-			}
-
-			static Either Right(const R& val) {
-				Either out;
-				out.is_left = false;
-				out.right	= new R(val);
-				return out;
-			}
-
-			friend std::ostream& operator<<(std::ostream& o, const Either& v) {
-				if (v.is_left) {
-					const L& l = *v.left;
-					return (o << l);
-				}
-				const R& r = *v.right;
-				return (o << r);
-			}
-	};
-
+	inline void setInsideChild() {
+		::log::logPidColor = COL_YELLOW;
+	}
 }  // namespace log
 
 #define HEADER_fatal "[" COL_RED UNDERLINE BOLD "FATAL" RESET "]"
@@ -238,7 +199,7 @@ namespace log {
 #define SLINE		  STRINGIFY(__LINE__)
 
 #ifdef ENABLE_PRINT_PID
-#	define PRINT_PID "[" COL_CYAN << getpid() << RESET "] "
+#	define PRINT_PID "[" << ::log::logPidColor << getpid() << RESET "] "
 #else
 #	define PRINT_PID ""
 #endif
