@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/23 00:07:08 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/29 11:10:06 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/30 23:23:38 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,7 +77,7 @@ int wrapped_main(char* argv0, int argc, char* argv[], char* envp[]) {
 				close(fd);
 			}
 			Rc<SocketCallback> sock_cb =
-				Rc<SocketCallback>(Functor1<SocketCallback, Rc<Socket> >(sock), RCFUNCTOR);
+				Rc<SocketCallback>(Functor1<SocketCallback, Rc<Socket>&>(sock), RCFUNCTOR);
 			epoll.addCallback(sock->asFd(), READ, sock_cb.cast<Callback>());
 		}
 	}
@@ -88,7 +88,7 @@ int wrapped_main(char* argv0, int argc, char* argv[], char* envp[]) {
 		ctx.getShutdown() = shutdown_socket;
 		LOG(info, "Created shutdown socket on port: " << shutdown_socket->getBoundPort());
 		Rc<ShutdownCallback> shutdown_cb = Rc<ShutdownCallback>(
-			Functor2<ShutdownCallback, Rc<Socket>, Rc<bool> >(shutdown_socket, do_shutdown),
+			Functor2<ShutdownCallback, Rc<Socket>&, Rc<bool>&>(shutdown_socket, do_shutdown),
 			RCFUNCTOR);
 		epoll.addCallback(shutdown_socket->asFd(), READ, shutdown_cb.cast<Callback>());
 	}

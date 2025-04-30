@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/12 18:43:37 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/29 10:41:20 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/30 23:35:05 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,7 +54,7 @@ class Connection : public AsFd {
 				close(this->fd);
 			LOG(debug, "closing connection " << fd << " for " << remote_ip << ":" << remote_port);
 		};
-		Connection(int fd, Ip ip, Port port, Rc<Socket> sock)
+		Connection(int fd, Ip ip, Port port, Rc<Socket>& sock)
 			: fd(fd),
 			  closed(false),
 			  remote_ip(ip),
@@ -73,7 +73,7 @@ class Connection : public AsFd {
 		Ip		 getIp() { return this->remote_ip; };
 		Port	 getPort() { return this->remote_port; };
 
-		Rc<Socket>	  getSocket() { return this->socket; };
+		Rc<Socket>&	  getSocket() { return this->socket; };
 		Rc<Request>&  getRequest() { return this->request; };
 		Rc<Response>& getResponse() { return this->response; };
 
@@ -88,9 +88,9 @@ class Connection : public AsFd {
 		}
 };
 
-void _ConnCallbackR(Epoll& epoll, Rc<Callback> self, Rc<Connection> inner);
-void _ConnCallbackW(Epoll& epoll, Rc<Callback> self, Rc<Connection> inner);
-void _ConnCallbackH(Epoll& epoll, Rc<Callback> self, Rc<Connection> inner);
+void _ConnCallbackR(Epoll& epoll, Rc<Callback>& self, Rc<Connection>& inner);
+void _ConnCallbackW(Epoll& epoll, Rc<Callback>& self, Rc<Connection>& inner);
+void _ConnCallbackH(Epoll& epoll, Rc<Callback>& self, Rc<Connection>& inner);
 
 template <EpollType TY>
 class ConnectionCallback : public Callback {
@@ -99,7 +99,7 @@ class ConnectionCallback : public Callback {
 
 	public:
 		virtual ~ConnectionCallback() {};
-		ConnectionCallback(Rc<Connection> inner) : inner(inner) {};
+		ConnectionCallback(Rc<Connection>& inner) : inner(inner) {};
 		int		  getFd() { return this->inner->asFd(); };
 		EpollType getTy() { return TY; };
 

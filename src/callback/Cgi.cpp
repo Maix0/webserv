@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/22 11:02:42 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/26 23:08:21 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/30 22:58:36 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,9 +23,13 @@ void CgiOutput::PipeInstance::CHangup::call(Epoll& epoll, Rc<Callback> self) {
 	(void)(self);
 	epoll.removeCallback(this->asFd(), HANGUP);
 	epoll.removeCallback(this->asFd(), READ);
-	// Option<Rc<Connection> > a;
-	this->parent->conn->updateTime();
-	this->parent->setFinished();
+	Option<Rc<CgiOutput> > p = this->parent.upgrade();
+	if (p.hasValue()) {
+		Option<Rc<Connection> > c = p.get()->conn.upgrade();
+		if (c.hasValue())
+			c.get()->updateTime();
+		p.get()->setFinished();
+	}
 	while (true) {
 		CgiList& cgis		 = State::getInstance().getCgis();
 
@@ -42,7 +46,28 @@ void CgiOutput::PipeInstance::CHangup::call(Epoll& epoll, Rc<Callback> self) {
 
 template <>
 void CgiOutput::PipeInstance::CRead::call(Epoll& epoll, Rc<Callback> self) {
-	this->parent->conn->updateTime();
+	Option<Rc<CgiOutput> > p = this->parent.upgrade();
+	if (p.hasValue()) {
+		Option<Rc<Connection> > c = p.get()->conn.upgrade();
+		if (c.hasValue())
+			c.get()->updateTime();
+	} else {
+		epoll.removeCallback(this->asFd(), HANGUP);
+		epoll.removeCallback(this->asFd(), READ);
+		while (true) {
+			CgiList& cgis		 = State::getInstance().getCgis();
+
+			CgiList::iterator it = cgis.begin();
+			for (it = cgis.begin(); it != cgis.end() && (*it)->getPipeFd() != this->asFd(); it++)
+				;
+			if (it != cgis.end()) {
+				cgis.erase(it);
+			} else {
+				break;
+			}
+		}
+		return;
+	}
 
 	epoll.addCallback(self->getFd(), self->getTy(), self);
 	char	buffer[1024];
@@ -54,7 +79,7 @@ void CgiOutput::PipeInstance::CRead::call(Epoll& epoll, Rc<Callback> self) {
 		LOG(warn, "Failed to read on pipe for CGI: " << strerror(serr));
 	}
 	for (ssize_t i = 0; i < out; i++)
-		this->parent->buffer.push_back(buffer[i]);
+		p.get()->buffer.push_back(buffer[i]);
 }
 
 template class CgiOutput::PipeInstance::CB<READ>;

@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/03 13:48:32 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/29 10:48:56 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/30 23:43:37 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -101,10 +101,10 @@ void handle_redirect(Epoll& epoll, Rc<Connection> connection, Rc<Request> req, R
 	res->setHeader("Location", req->getRoute()->redirect.get());
 }
 
-void handle_post_delete(Epoll&		   epoll,
-						Rc<Connection> connection,
-						Rc<Request>	   req,
-						Rc<Response>   res) {
+void handle_post_delete(Epoll&			epoll,
+						Rc<Connection>& connection,
+						Rc<Request>&	req,
+						Rc<Response>&	res) {
 	(void)(epoll);
 	(void)(connection);
 	/// if no route, we CAN'T process those request since we don't have a post/upload dir
@@ -186,10 +186,10 @@ void handle_post_delete(Epoll&		   epoll,
 	}
 }
 
-void handle_static_file(Epoll&		   epoll,
-						Rc<Connection> connection,
-						Rc<Request>	   req,
-						Rc<Response>   res) {
+void handle_static_file(Epoll&			epoll,
+						Rc<Connection>& connection,
+						Rc<Request>&	req,
+						Rc<Response>&	res) {
 	(void)(epoll);
 	if (req->getMethod() == "POST" || req->getMethod() == "DELETE") {
 		handle_post_delete(epoll, connection, req, res);
@@ -254,9 +254,9 @@ void handle_static_file(Epoll&		   epoll,
 }
 
 void handle_cgi_request(Epoll&			   epoll,
-						Rc<Connection>	   connection,
-						Rc<Request>		   req,
-						Rc<Response>	   res,
+						Rc<Connection>&	   connection,
+						Rc<Request>&	   req,
+						Rc<Response>&	   res,
 						const config::Cgi& cgi) {
 	(void)(epoll);
 	(void)(connection);
@@ -267,7 +267,7 @@ void handle_cgi_request(Epoll&			   epoll,
 	CgiList& cgi_list = State::getInstance().getCgis();
 	assert(!cgi.binary.empty());
 	Rc<CgiOutput> o = Rc<CgiOutput>(
-		Functor5<CgiOutput, Epoll&, Rc<Request>, std::string, Rc<Response>, Rc<Connection> >(
+		Functor5<CgiOutput, Epoll&, Rc<Request>&, std::string, Rc<Response>&, Rc<Connection>&>(
 			epoll, req, cgi.binary, res, connection),
 		RCFUNCTOR);
 	cgi_list.push_back(o);
@@ -295,7 +295,7 @@ void Response::setMimeTypeRaw(const std::string& raw) {
 }
 
 Rc<Response> Response::createStatusPageFor(Epoll&				 epoll,
-										   Rc<Connection>		 conn,
+										   Rc<Connection>&		 conn,
 										   const config::Server* server,
 										   StatusCode			 code,
 										   bool					 with_body) {
@@ -336,22 +336,18 @@ const config::Cgi* find_cgi_for(const std::string& url, const config::Route& rou
 	return cgi;
 }
 
-Rc<Response> Response::createResponseFor(Epoll& epoll, Rc<Connection> connection) {
+Rc<Response> Response::createResponseFor(Epoll& epoll, Rc<Connection>& connection) {
 	Rc<Request> req = connection->getRequest();
 	req->setFinished();
-	{
-		Rc<Request> new_req =
-			Rc<Request>(Functor3<Request, Ip, Port, config::Server*>(
-							connection->getIp(), connection->getSocket()->getPort(),
-							connection->getSocket()->getServer()),
-						RCFUNCTOR);
-		connection->getRequest() = new_req;
-	}
-	Rc<Response> res;
-	connection->getResponse() = res;
+	connection->getRequest() =
+		Rc<Request>(Functor3<Request, Ip, Port, config::Server*>(
+						connection->getIp(), connection->getSocket()->getPort(),
+						connection->getSocket()->getServer()),
+					RCFUNCTOR);
+	Rc<Response>& res = connection->getResponse() = Rc<Response>();
 
-	std::string method		  = req->getMethod();
-	res->method				  = method;
+	std::string method							  = req->getMethod();
+	res->method									  = method;
 	if (req->getRoute() && req->getRoute()->allowed.hasValue() &&
 		std::find(req->getRoute()->allowed.get().begin(), req->getRoute()->allowed.get().end(),
 				  method) == req->getRoute()->allowed.get().end()) {
@@ -382,15 +378,14 @@ Rc<Response> Response::createResponseFor(Epoll& epoll, Rc<Connection> connection
 	} while (0);
 	{
 		Rc<ConnectionCallback<WRITE> > cbw = Rc<ConnectionCallback<WRITE> >(
-			Functor1<ConnectionCallback<WRITE>, Rc<Connection> >(connection), RCFUNCTOR);
+			Functor1<ConnectionCallback<WRITE>, Rc<Connection>&>(connection), RCFUNCTOR);
 		epoll.addCallback(connection->asFd(), WRITE, cbw.cast<Callback>());
 	}
 	add_common_header(*connection->getResponse());
 	// we strip the body if req->method == HEAD :)
 	if (req->getMethod() == "HEAD") {
 		LOG(info, "HEAD request, should remove body....");
-		Rc<std::stringstream> ebody;
-		connection->getResponse()->setBody(ebody.cast<std::istream>(),
+		connection->getResponse()->setBody(Rc<std::stringstream>().cast<std::istream>(),
 										   connection->getResponse()->getBodySize());
 	}
 	return (connection->getResponse());
@@ -405,8 +400,7 @@ std::size_t Response::fill_buffer(char buf[], std::size_t len) {
 
 	if (!this->sent_headers) {
 		if (this->method == "HEAD") {
-			Rc<std::stringstream> ebody;
-			this->body = ebody.cast<std::istream>();
+			this->body = Rc<std::stringstream>().cast<std::istream>();
 		}
 		std::stringstream ss;
 		ss << "HTTP/1.1 " << this->code.code() << " "

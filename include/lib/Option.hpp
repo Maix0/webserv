@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/28 14:52:32 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/03 13:55:38 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/30 23:21:15 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,7 @@ class Option {
 
 	public:
 		Option(const T& v) : value(new T(v)) {};
+		Option(      T* v) : value(v) {};
 		Option(void) : value(NULL) {};
 
 		Option(const Option& rhs) : value(NULL) {

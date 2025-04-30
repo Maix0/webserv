@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/25 15:00:28 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/29 10:50:59 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/30 23:33:00 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,7 +37,12 @@ void CgiOutput::parseBytes() {
 			std::string lines(this->buffer.begin(), this->buffer.end());
 			if (!lines.empty())
 				LOG(debug, "line = '" << lines << "'");
-			Rc<Response> r = this->res;
+			Option<Rc<Response> > ores = this->res.upgrade();
+			if (!ores.hasValue()) {
+				this->finished = true;
+				return;
+			}
+			Rc<Response> r = ores.get();
 			while (true) {
 				std::string::size_type crlf = lines.find(CRLF);
 				if (crlf == std::string::npos)
@@ -68,17 +73,13 @@ CgiOutput::CgiOutput(Epoll&			epoll,
 					 Rc<Request>&	req,
 					 std::string	cgi_bin,
 					 Rc<Response>&	res,
-					 Rc<Connection> conn)
+					 Rc<Connection>& conn)
 	: conn(conn),
-	  pipe(Rc<PipeInstance>(Functor3<PipeInstance, std::string, Rc<Request>, Rc<CgiOutput> >(
-								cgi_bin,
-								req,
-								Rc<CgiOutput>::fromRaw(this)),
+	  pipe(Rc<PipeInstance>(Functor2<PipeInstance, std::string, Rc<Request>& >(cgi_bin, req),
 							RCFUNCTOR)),
 	  res(res) {
 	(void)(cgi_bin);
 	(void)(req);
-	Rc<CgiOutput> self	   = Rc<CgiOutput>::fromRaw(this);
 	this->body_size		   = 0;
 	this->finished		   = false;
 	this->finished_headers = false;
@@ -93,6 +94,8 @@ CgiOutput::CgiOutput(Epoll&			epoll,
 CgiOutput::~CgiOutput() {}
 
 void CgiOutput::setFinished() {
-	this->finished = true;
-	this->res->setBody(this->body.cast<std::istream>(), this->body_size);
+	this->finished			   = true;
+	Option<Rc<Response> > ores = this->res.upgrade();
+	if (ores.hasValue())
+		ores.get()->setBody(this->body.cast<std::istream>(), this->body_size);
 };

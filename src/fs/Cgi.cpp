@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/22 17:48:13 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/28 01:44:10 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/30 22:50:18 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,7 @@
 #include <unistd.h>
 
 #include <sstream>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -33,37 +34,40 @@
 	} while (0);
 
 char* const* CgiOutput::PipeInstance::setup_env(char** envp) {
-	std::size_t i = 0;
+	std::size_t i			  = 0;
+
+	Option<Rc<Request> > oreq = this->req.upgrade();
+	if (!oreq.hasValue())
+		throw std::runtime_error("Request died...");
+	Rc<Request> req = oreq.get();
 
 	std::vector<std::string> env;
-	ADD_HEADER("CONTENT_LENGTH", this->req->getBodySize());
+	ADD_HEADER("CONTENT_LENGTH", req->getBodySize());
 	ADD_HEADER("GATEWAY_INTERFACE", "CGI/1.1");
-	ADD_HEADER("REMOTE_ADDR", this->req->getIp());
-	ADD_HEADER("REMOTE_PORT", this->req->getPort());
-	ADD_HEADER("REQUEST_METHOD", this->req->getMethod());
-	ADD_HEADER("REQUEST_URI", this->req->getUrl());
+	ADD_HEADER("REMOTE_ADDR", req->getIp());
+	ADD_HEADER("REMOTE_PORT", req->getPort());
+	ADD_HEADER("REQUEST_METHOD", req->getMethod());
+	ADD_HEADER("REQUEST_URI", req->getUrl());
 	ADD_HEADER("REQUEST_SCHEME", "http");
 	ADD_HEADER("SERVER_NAME", SERVER_NAME);
-	ADD_HEADER("SERVER_PORT", this->req->getServer()->port);
+	ADD_HEADER("SERVER_PORT", req->getServer()->port);
 	ADD_HEADER("SERVER_PROTOCOL", "HTTP/1.1");
 	ADD_HEADER("SERVER_SOFTWARE", SERVER_NAME << "/1");
 
-	ADD_HEADER("SCRIPT_NAME",
-			   std::string(this->req->getUrl().begin(),
-						   (this->req->getUrl().find('?') == std::string::npos)
-							   ? this->req->getUrl().end()
-							   : (this->req->getUrl().begin() + this->req->getUrl().find('?'))));
+	ADD_HEADER("SCRIPT_NAME", std::string(req->getUrl().begin(),
+										  (req->getUrl().find('?') == std::string::npos)
+											  ? req->getUrl().end()
+											  : (req->getUrl().begin() + req->getUrl().find('?'))));
 	{
 		std::string content_type = mime::MimeType::from_extension("binary").getInner();
-		if (this->req->getHeaders().count("content-type"))
-			content_type = this->req->getHeaders()["content-type"];
+		if (req->getHeaders().count("content-type"))
+			content_type = req->getHeaders()["content-type"];
 		ADD_HEADER("CONTENT_TYPE", content_type);
 	}
 
-	if (this->req->getUrl().find('?') == std::string::npos) {
-		ADD_HEADER("QUERY_STRING",
-				   std::string(this->req->getUrl().begin() + this->req->getUrl().find('?') + 1,
-							   this->req->getUrl().end()));
+	if (req->getUrl().find('?') == std::string::npos) {
+		ADD_HEADER("QUERY_STRING", std::string(req->getUrl().begin() + req->getUrl().find('?') + 1,
+											   req->getUrl().end()));
 	} else
 		ADD_HEADER("QUERY_STRING", "");
 
@@ -84,14 +88,16 @@ char* const* CgiOutput::PipeInstance::setup_env(char** envp) {
 	return const_cast<char* const*>(out);
 }
 
-CgiOutput::PipeInstance::PipeInstance(std::string bin, Rc<Request> req, Rc<CgiOutput> parent)
-	: parent(parent), req(req), pid(-1), rfd(-1), bin(bin) {
+CgiOutput::PipeInstance::PipeInstance(std::string bin, Weak<Request> req)
+	: req(req), pid(-1), rfd(-1), bin(bin) {
 	LOG(info, "new CGI");
-	if (this->req->getBody().hasValue())
-		this->rfd = this->req->getBody().get()->getFd();
-	else
+	Option<Rc<Request> > oreq = this->req.upgrade();
+	if (oreq.hasValue() && oreq.get()->getBody().hasValue()) {
+		_ERR_RET_THROW(this->rfd = dup(oreq.get()->getBody().get()->getFd()));
+	} else
 		this->rfd = open("/dev/null", O_RDONLY | O_CLOEXEC);
 
+	_ERR_RET_THROW(fcntl(this->rfd, FD_CLOEXEC));
 	this->pid = 0;
 	int pip[2];
 	_ERR_RET_THROW(::pipe(pip));

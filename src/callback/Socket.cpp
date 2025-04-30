@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/12 14:28:15 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/29 10:41:05 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/30 23:35:26 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,16 +49,16 @@ void SocketCallback::call(Epoll& epoll, Rc<Callback> self) {
 	struct sockaddr_in* addr_ip = (struct sockaddr_in*)(&addr);
 
 	State&		   ctx			= State::getInstance();
-	Rc<Connection> conn(Functor4<Connection, int, Ip, Port, Rc<Socket> >(
+	Rc<Connection> conn(Functor4<Connection, int, Ip, Port, Rc<Socket>&>(
 							res, Ip(ntohl(addr_ip->sin_addr.s_addr)),
 							Port(ntohs(addr_ip->sin_port)), this->socketfd),
 						RCFUNCTOR);
 	ctx.getConnections().push_back(conn);
 
 	Rc<ConnectionCallback<READ> > rcb = Rc<ConnectionCallback<READ> >(
-		Functor1<ConnectionCallback<READ>, Rc<Connection> >(conn), RCFUNCTOR);
+		Functor1<ConnectionCallback<READ>, Rc<Connection>& >(conn), RCFUNCTOR);
 	Rc<ConnectionCallback<HANGUP> > hcb = Rc<ConnectionCallback<HANGUP> >(
-		Functor1<ConnectionCallback<HANGUP>, Rc<Connection> >(conn), RCFUNCTOR);
+		Functor1<ConnectionCallback<HANGUP>, Rc<Connection>& >(conn), RCFUNCTOR);
 	epoll.addCallback(res, READ, rcb.cast<Callback>());
 	epoll.addCallback(res, HANGUP, hcb.cast<Callback>());
 };

@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/02 18:29:43 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/29 11:57:47 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/30 22:49:37 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -204,42 +204,37 @@ namespace log {
 #	define PRINT_PID ""
 #endif
 
-#define LOG(level, code)                                                                  \
-	do {                                                                                  \
-		::Semaphore::Ticket _ticket(::log::logSemaphore);                                 \
-		std::stringstream	pid;                                                          \
-		FILTER_##level(std::cerr << HEADER_##level " " << PRINT_PID << __FUNCTION__       \
-								 << " in " __FILE__ ":" SLINE " " << code << std::endl;); \
-		(void)_ticket;                                                                    \
-	} while (0)
-
-#define PLOG(level, code)                                                                          \
-	do {                                                                                           \
-		::Semaphore::Ticket _ticket(::log::logSemaphore);                                          \
-		std::stringstream	pid;                                                                   \
-		FILTER_##level(std::cerr << HEADER_##level " " << PRINT_PID << __PRETTY_FUNCTION__ << code \
-								 << std::endl;);                                                   \
-		(void)_ticket;                                                                             \
-	} while (0)
+#ifdef LOG_DISABLE
+#	define LOG(level, code)                                                                  \
+		do {                                                                                  \
+			::Semaphore::Ticket _ticket(::log::logSemaphore);                                 \
+			std::stringstream	pid;                                                          \
+			FILTER_##level(std::cerr << HEADER_##level " " << PRINT_PID << __FUNCTION__       \
+									 << " in " __FILE__ ":" SLINE " " << code << std::endl;); \
+			(void)_ticket;                                                                    \
+		} while (0)
+#else
+#	define LOG(level, code)
+#endif
 
 #include <cerrno>
 #include <cstring>
 #include <stdexcept>
 
-#define _ERR_RET(code)                                       \
-	if ((code) < 0) {                                        \
-		int serr = errno;                                    \
-		(void)serr;                                          \
-		LOG(debug, "early return here: " << strerror(serr)); \
-		return;                                              \
+#define _ERR_RET(code)                                                         \
+	if ((code) < 0) {                                                          \
+		int serr = errno;                                                      \
+		(void)serr;                                                            \
+		LOG(debug, "early return here (" << #code << "): " << strerror(serr)); \
+		return;                                                                \
 	}
 
-#define _ERR_RET_THROW(code)                                 \
-	if ((code) < 0) {                                        \
-		int serr = errno;                                    \
-		(void)serr;                                          \
-		LOG(debug, "early return here: " << strerror(serr)); \
-		throw std::runtime_error("check failed");            \
+#define _ERR_RET_THROW(code)                                                  \
+	if ((code) < 0) {                                                         \
+		int serr = errno;                                                     \
+		(void)serr;                                                           \
+		LOG(debug, "early return here: (" << #code << ")" << strerror(serr)); \
+		throw std::runtime_error("check failed");                             \
 	}
 
 #define _UNREACHABLE                                     \

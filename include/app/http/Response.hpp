@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/02 15:39:45 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/28 20:22:58 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/30 23:31:19 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,7 +61,7 @@ class Response {
 			  is_stream_eof(false) {};
 		~Response() {};
 
-		void setCgi(Rc<CgiOutput> s) { this->passthru = s; };
+		void setCgi(Rc<CgiOutput>& s) { this->passthru = s; };
 
 		void setBody(Rc<std::istream> body, size_t size) {
 			this->body		= body;
@@ -88,11 +88,11 @@ class Response {
 		void setMimeTypeRaw(const std::string& mime_type);
 
 		static Rc<Response> createStatusPageFor(Epoll&				  epoll,
-												Rc<Connection>		  conn,
+												Rc<Connection>&		  conn,
 												const config::Server* server,
 												StatusCode			  code,
 												bool				  with_body = true);
-		static Rc<Response> createResponseFor(Epoll& epoll, Rc<Connection> conn);
+		static Rc<Response> createResponseFor(Epoll& epoll, Rc<Connection>& conn);
 
 		std::size_t fill_buffer(char buf[], std::size_t len);
 		void		sent_bytes(std::size_t len);

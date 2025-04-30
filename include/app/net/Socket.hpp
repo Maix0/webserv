@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 13:36:52 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/04 16:28:02 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/30 23:23:51 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,7 +52,7 @@ class SocketCallback : public Callback {
 
 	public:
 		virtual ~SocketCallback() {};
-		SocketCallback(Rc<Socket> s) : socketfd(s) {};
+		SocketCallback(Rc<Socket>& s) : socketfd(s) {};
 		SocketCallback(const SocketCallback& rhs) : socketfd(rhs.socketfd) {};
 		SocketCallback& operator=(const SocketCallback& rhs) {
 			if (this != &rhs)
@@ -71,7 +71,7 @@ class ShutdownCallback : public Callback {
 
 	public:
 		virtual ~ShutdownCallback() {};
-		ShutdownCallback(Rc<Socket> s, Rc<bool> shutdown) : socketfd(s), shutdown(shutdown) {};
+		ShutdownCallback(Rc<Socket>& s, Rc<bool>& shutdown) : socketfd(s), shutdown(shutdown) {};
 		ShutdownCallback(const ShutdownCallback& rhs)
 			: socketfd(rhs.socketfd), shutdown(rhs.shutdown) {};
 		ShutdownCallback& operator=(const ShutdownCallback& rhs) {

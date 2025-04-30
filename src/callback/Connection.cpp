@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/12 18:56:10 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/29 10:42:30 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/30 23:25:32 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,16 +27,15 @@ extern int req_dump;
 
 static char READ_BUF[MAX_READ_BYTES];
 
-static void _send_builtin_code_response(Epoll&		   epoll,
-										Rc<Callback>   self,
-										Rc<Connection> inner,
-										StatusCode	   code,
-										bool		   with_body = true) {
+static void _send_builtin_code_response(Epoll&			epoll,
+										Rc<Callback>&	self,
+										Rc<Connection>& inner,
+										StatusCode		code,
+										bool			with_body = true) {
 	(void)(self);
-	Rc<Response> res;
+	Rc<Response> res = Response::createStatusPageFor(epoll, inner, inner->getRequest()->getServer(),
+													 code.code(), with_body);
 	LOG(info, "Returning page for code: " << code.code() << " - " << code.canonical());
-	res = Response::createStatusPageFor(epoll, inner, inner->getRequest()->getServer(), code.code(),
-										with_body);
 	res->setMethod(inner->getRequest()->getMethod());
 	inner->getRequest()->setFinished();
 	Rc<Request> req = Rc<Request>(
@@ -47,11 +46,11 @@ static void _send_builtin_code_response(Epoll&		   epoll,
 	inner->getRequest()				  = req;
 	inner->getResponse()			  = res;
 	Rc<ConnectionCallback<WRITE> > cb = Rc<ConnectionCallback<WRITE> >(
-		Functor1<ConnectionCallback<WRITE>, Rc<Connection> >(inner), RCFUNCTOR);
+		Functor1<ConnectionCallback<WRITE>, Rc<Connection>&>(inner), RCFUNCTOR);
 	epoll.addCallback(self->getFd(), WRITE, cb.cast<Callback>());
 }
 
-void _ConnCallbackR(Epoll& epoll, Rc<Callback> self, Rc<Connection> inner) {
+void _ConnCallbackR(Epoll& epoll, Rc<Callback>& self, Rc<Connection>& inner) {
 	if (inner->isClosed()) {
 		return;
 	}
@@ -78,7 +77,7 @@ void _ConnCallbackR(Epoll& epoll, Rc<Callback> self, Rc<Connection> inner) {
 	}
 }
 
-void _ConnCallbackW(Epoll& epoll, Rc<Callback> self, Rc<Connection> inner) {
+void _ConnCallbackW(Epoll& epoll, Rc<Callback>& self, Rc<Connection>& inner) {
 	if (inner->isClosed()) {
 		return;
 	}
@@ -108,7 +107,7 @@ void _ConnCallbackW(Epoll& epoll, Rc<Callback> self, Rc<Connection> inner) {
 	buf.erase(buf.begin(), buf.begin() + res);
 }
 
-void _ConnCallbackH(Epoll& epoll, Rc<Callback> self, Rc<Connection> inner) {
+void _ConnCallbackH(Epoll& epoll, Rc<Callback>& self, Rc<Connection>& inner) {
 	(void)(self);
 	inner->setClosed();
 	State&			ctx	 = State::getInstance();

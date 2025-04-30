@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/08 16:52:34 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/30 17:57:42 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/30 23:20:59 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -252,7 +252,8 @@ class Rc {
 #include "lib/Option.hpp"
 
 struct FunctorMarker {};
-#define RCFUNCTOR FunctorMarker()
+#define RCFUNCTOR  FunctorMarker()
+#define C_restrict __restrict__
 
 template <typename T>
 class Rc;
@@ -274,16 +275,15 @@ class RcBox {
 		static T* getObject(RcBox* self) { return reinterpret_cast<T*>(self->storage.data); }
 
 		template <typename Functor>
-		static RcBox* create(Functor f) {
-			RcBox* cb		 = new RcBox();
-			cb->strong_count = 1;
-			cb->weak_count	 = 1;
-			f(RcBox::getObject(cb));
-			return cb;
+		static RcBox* C_restrict create(Functor f) {
+			RcBox* nptr		   = new RcBox();
+			nptr->strong_count = 1;
+			nptr->weak_count   = 1;
+			f(RcBox::getObject(nptr));
+			return nptr;
 		}
 
 		static void destroyObject(RcBox* self) { RcBox::getObject(self)->~T(); }
-		static void deleteSelf(RcBox* self) { delete self; }
 
 	private:
 		friend class Rc<T>;
@@ -293,17 +293,17 @@ class RcBox {
 template <typename T>
 class Rc {
 	public:
-		Rc() : cb(RcBox<T>::create(Functor0<T>())) {}
+		Rc() : ptr(RcBox<T>::create(Functor0<T>())) {}
 
 		template <typename Functor>
-		Rc(Functor f, FunctorMarker functor_marker) : cb(RcBox<T>::create(f)) {
+		Rc(Functor f, FunctorMarker functor_marker) : ptr(RcBox<T>::create(f)) {
 			(void)(functor_marker);
 		};
 
 		Rc(const Rc& other) {
-			this->cb = other.cb;
-			if (this->cb)
-				this->cb->strong_count++;
+			this->ptr = other.ptr;
+			if (this->ptr)
+				this->ptr->strong_count++;
 		}
 
 		~Rc() { this->release(); }
@@ -311,45 +311,47 @@ class Rc {
 		Rc& operator=(const Rc& other) {
 			if (this != &other) {
 				this->release();
-				this->cb = other.cb;
-				if (this->cb)
-					this->cb->strong_count++;
+				this->ptr = other.ptr;
+				if (this->ptr)
+					this->ptr->strong_count++;
 			}
 			return *this;
 		}
 
-		T* operator->() const { return RcBox<T>::getObject(this->cb); }
-		T& operator*() const { return *(RcBox<T>::getObject(this->cb)); }
+		T* operator->() const { return RcBox<T>::getObject(this->ptr); }
+		T& operator*() const { return *(RcBox<T>::getObject(this->ptr)); }
 
-		static Rc fromRcBox(RcBox<T>* box) { return Rc(box, 0); }
-		static Rc fromRaw(T* raw) {
-			RcBox<T>* box = (RcBox<T>*)((char*)raw - offsetof(RcBox<T>, storage.data));
-			box->strong_count++;
-			return Rc(box, 0);
-		}
+		static Rc fromRcBox(RcBox<T>* C_restrict box) { return Rc(box, 0); }
+		// static Rc fromRaw(T* raw) {
+		//	RcBox<T>* box = (RcBox<T>*)((char*)raw - offsetof(RcBox<T>, storage.data));
+		//	box->strong_count++;
+		//	return Rc(box, 0);
+		// }
 
 		template <typename U>
 		Rc<U> cast() {
-			U* ptr = RcBox<T>::getObject(this->cb);
+			U* ptr = RcBox<T>::getObject(this->ptr);
 			(void)(ptr);
-			this->cb->strong_count++;
-			return Rc<U>::fromRcBox(reinterpret_cast<RcBox<U>*>(this->cb));
+			this->ptr->strong_count++;
+			return Rc<U>::fromRcBox(reinterpret_cast<RcBox<U>*>(this->ptr));
 		}
 
 	private:
-		RcBox<T>* cb;
-		void	  release() {
-			 if (this->cb) {
-				 if (--this->cb->strong_count == 0) {
-					 RcBox<T>::destroyObject(this->cb);
-					 if (--this->cb->weak_count == 0)
-						 RcBox<T>::deleteSelf(this->cb);
-				 }
-				 this->cb = NULL;
-			 }
+		RcBox<T>* C_restrict ptr;
+		void				 release() {
+			if (this->ptr) {
+				this->ptr->strong_count--;
+				if (this->ptr->strong_count == 0) {
+					RcBox<T>::destroyObject(this->ptr);
+					this->ptr->weak_count--;
+					if (this->ptr->weak_count == 0)
+						delete this->ptr;
+				}
+				this->ptr = NULL;
+			}
 		}
 
-		Rc(RcBox<T>* cb, int marker) : cb(cb) { (void)(marker); }
+		Rc(RcBox<T>* C_restrict cb, int marker) : ptr(cb) { (void)(marker); }
 
 		friend class Weak<T>;
 };
@@ -357,17 +359,17 @@ class Rc {
 template <typename T>
 class Weak {
 	public:
-		Weak() : cb(NULL) {}
+		Weak() : ptr(NULL) {}
 		Weak(const Rc<T>& shared) {
-			this->cb = shared.cb;
-			if (this->cb)
-				this->cb->weak_count++;
+			this->ptr = shared.ptr;
+			if (this->ptr)
+				this->ptr->weak_count++;
 		}
 
 		Weak(const Weak& other) {
-			this->cb = other.cb;
-			if (this->cb)
-				this->cb->weak_count++;
+			this->ptr = other.ptr;
+			if (this->ptr)
+				this->ptr->weak_count++;
 		}
 
 		~Weak() { this->release(); }
@@ -375,30 +377,30 @@ class Weak {
 		Weak& operator=(const Weak& other) {
 			if (this != &other) {
 				this->release();
-				this->cb = other.cb;
-				if (this->cb)
-					this->cb->weak_count++;
+				this->ptr = other.ptr;
+				if (this->ptr)
+					this->ptr->weak_count++;
 			}
 			return *this;
 		}
 
 		Option<Rc<T> > upgrade() const {
-			if (this->cb != NULL && this->cb->strong_count > 0) {
-				this->cb->strong_count++;
-				return Rc<T>(this->cb, 0);
+			if (this->ptr != NULL && this->ptr->strong_count > 0) {
+				this->ptr->strong_count++;
+				return new Rc<T>(this->ptr, 0);
 			}
 			return Option<Rc<T> >::None();
 		}
 
 	private:
-		RcBox<T>* cb;
+		RcBox<T>* C_restrict ptr;
 
 		void release() {
-			if (this->cb) {
-				if (--this->cb->weak_count == 0 && this->cb->strong_count == 0) {
-					RcBox<T>::deleteSelf(this->cb);
-				}
-				cb = NULL;
+			if (this->ptr) {
+				this->ptr->weak_count--;
+				if (this->ptr->weak_count == 0 && this->ptr->strong_count == 0)
+					delete this->ptr;
+				ptr = NULL;
 			}
 		}
 
