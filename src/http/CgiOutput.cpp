@@ -6,15 +6,19 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/25 15:00:28 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/26 23:36:12 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/29 10:50:59 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
+#include <cstddef>
 #include <string>
 
 #include "app/http/CgiOutput.hpp"
 #include "app/http/Request.hpp"
 #include "app/http/Response.hpp"
+#include "app/net/Connection.hpp"
+#include "lib/Functors.hpp"
+#include "lib/Rc.hpp"
 #include "lib/StringHelper.hpp"
 
 void CgiOutput::parseBytes() {
@@ -60,17 +64,30 @@ void CgiOutput::parseBytes() {
 		}
 	}
 }
-CgiOutput::CgiOutput(Epoll&		   epoll,
-					 Rc<Request>&  req,
-					 std::string   cgi_bin,
-					 Rc<Response>& res,
-					 Connection&   conn)
-	: conn(&conn), pipe(new PipeInstance(cgi_bin, req, this)), res(res) {
+CgiOutput::CgiOutput(Epoll&			epoll,
+					 Rc<Request>&	req,
+					 std::string	cgi_bin,
+					 Rc<Response>&	res,
+					 Rc<Connection> conn)
+	: conn(conn),
+	  pipe(Rc<PipeInstance>(Functor3<PipeInstance, std::string, Rc<Request>, Rc<CgiOutput> >(
+								cgi_bin,
+								req,
+								Rc<CgiOutput>::fromRaw(this)),
+							RCFUNCTOR)),
+	  res(res) {
+	(void)(cgi_bin);
+	(void)(req);
+	Rc<CgiOutput> self	   = Rc<CgiOutput>::fromRaw(this);
 	this->body_size		   = 0;
 	this->finished		   = false;
 	this->finished_headers = false;
-	epoll.addCallback(pipe->asFd(), READ, new PipeInstance::CRead(*this->pipe));
-	epoll.addCallback(pipe->asFd(), HANGUP, new PipeInstance::CHangup(*this->pipe));
+	Rc<PipeInstance::CRead>	  cbr(Functor1<PipeInstance::CRead, PipeInstance&>(*this->pipe),
+								  RCFUNCTOR);
+	Rc<PipeInstance::CHangup> cbh(Functor1<PipeInstance::CHangup, PipeInstance&>(*this->pipe),
+								  RCFUNCTOR);
+	epoll.addCallback(this->pipe->asFd(), READ, cbr.cast<Callback>());
+	epoll.addCallback(this->pipe->asFd(), HANGUP, cbh.cast<Callback>());
 }
 
 CgiOutput::~CgiOutput() {}

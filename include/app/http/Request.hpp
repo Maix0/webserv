@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/24 17:51:48 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/24 20:17:21 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/28 20:30:51 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,12 +21,12 @@
 #include <exception>
 #include <sstream>
 #include <string>
-#include <utility>
 #include <vector>
 
 #include "app/http/StatusCode.hpp"
 #include "config/Config.hpp"
 #include "lib/IndexMap.hpp"
+#include "lib/Option.hpp"
 #include "lib/Rc.hpp"
 #include "lib/TempFile.hpp"
 #include "runtime/Logger.hpp"
@@ -114,7 +114,7 @@ class Request {
 			: state(HEADER),
 			  headers_total_size(0),
 			  ip(ip),
-			  body(new tiostream()),
+			  body(),
 			  body_size(0),
 			  content_length(-1),
 			  server(default_server),

@@ -6,7 +6,7 @@
 #    By: rparodi <rparodi@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/11/12 11:05:05 by rparodi           #+#    #+#              #
-#    Updated: 2025/04/25 17:57:01 by maiboyer         ###   ########.fr        #
+#    Updated: 2025/04/30 18:00:01 by maiboyer         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -98,7 +98,7 @@ ifdef LLD
         ifeq ($(MAKECMDGOALS), header)
             MSG += "$(WSTART)using $(GOLD)lld$(WEND)"
         endif
-        LDFLAGS_ADDITIONAL += -fuse-ld=lld -Wno-unused-command-line-argument
+        LDFLAGS_ADDITIONAL += -fuse-ld=lld
     endif
 endif
 
@@ -129,6 +129,8 @@ ECHO = /usr/bin/env echo
 export ECHO
 
 # All (make all)
+#	$(eval CXXFLAGS_ADDITIONAL += -O0 -ggdb3 -Wno-\#warnings)
+#	$(eval LDFLAGS_ADDITIONAL += -no-pie)
 all:
 	$(eval CXXFLAGS_ADDITIONAL += -Werror)
 	@$(MAKE) --no-print-directory header
@@ -137,7 +139,8 @@ all:
 
 scan-build:
 	@$(SCAN_BUILD) $(MAKE) --no-print-directory -k re                  \
-		LOG_DISABLE=-DLOG_DISABLE ENABLE_BACKTRACE=no ENABLE_LLD=no \
+		CXXFLAGS_ADDITIONAL=-DLOG_DISABLE ENABLE_BACKTRACE=no ENABLE_LLD=no    \
+		ENABLE_TRUE_SEMAPHORE=no ENABLE_PRINT_PID=no                   \
 		"MSG_BONUS=$(WSTART)$(RED)SCAN BUILD IS RUNNING$(WEND)"
 
 release:
@@ -160,7 +163,7 @@ bonus:
 	$(eval CXXFLAGS_ADDITIONAL += -Werror -DBONUS=1)
 	@$(MAKE) --no-print-directory header 'MSG_BONUS=\n\x1b[D$(GOLD)         compiling with bonus          $(WEND)\n'
 	@$(MAKE) --no-print-directory -f ./Webserv.mk $(PMAKE) NAME=$(NAME)_bonus
-	@$(MAKE) --no-print-directory footer
+	@$(MAKE) --no-print-directory footerLE_TRUE_SEMAPHORE -DLOG_LEVEL=debug -DTERMINATE_BACKTRACE -MMD -O0 -Wall -Wextra -Wno-#warnings -fdiagnostics-color=always -fno-builtin -g3 -gcolumn-info -ggdb3 -std=c++98
 
 asan: 
 	$(eval CXXFLAGS_ADDITIONAL = "")
@@ -241,6 +244,14 @@ archive:
 	@$(ECHO) '    - "-I$(shell realpath $(INCLUDE_DIR))"' >> .clangd
 	@$(ECHO) >> .clangd
 
+#-fsanitize=address -fno-omit-frame-pointer
+tests:
+	@$(CXX) -Wall -Wextra -DLOG_LEVEL=trace -U_FORTIFY_SOURCE -std=c++98 -no-pie \
+			-ggdb3 -O0 -fdiagnostics-color \
+			-I$(INCLUDE_DIR) \
+			$(SRC_DIR)/runtime/shim.cpp $(SRC_DIR)/runtime/Logger.cpp $(SRC_DIR)/lib/Semaphore.cpp \
+			./test/Rc.cpp \
+			-o ./tests
 
 subject: .subject.txt
 	@bat --plain ./.subject.txt
@@ -270,4 +281,4 @@ symdiff:
 	@$(MAKE) --no-print-directory -f ./Webserv.mk symdiff $(PMAKE)
 
 #	phony
-.PHONY: all bonus clean fclean re header footer filelist .clangd .clang-format subject archive
+.PHONY: all bonus clean fclean re header footer filelist .clangd .clang-format subject archive tests

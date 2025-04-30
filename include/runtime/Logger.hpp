@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/02 18:29:43 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/26 23:06:09 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/29 11:57:47 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -211,6 +211,15 @@ namespace log {
 		FILTER_##level(std::cerr << HEADER_##level " " << PRINT_PID << __FUNCTION__       \
 								 << " in " __FILE__ ":" SLINE " " << code << std::endl;); \
 		(void)_ticket;                                                                    \
+	} while (0)
+
+#define PLOG(level, code)                                                                          \
+	do {                                                                                           \
+		::Semaphore::Ticket _ticket(::log::logSemaphore);                                          \
+		std::stringstream	pid;                                                                   \
+		FILTER_##level(std::cerr << HEADER_##level " " << PRINT_PID << __PRETTY_FUNCTION__ << code \
+								 << std::endl;);                                                   \
+		(void)_ticket;                                                                             \
 	} while (0)
 
 #include <cerrno>

@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/25 15:01:23 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/26 23:33:45 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/29 10:50:07 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,8 +26,8 @@ class CgiOutput {
 	private:
 		class PipeInstance : public AsFd {
 			private:
-				CgiOutput*	parent;
-				Rc<Request> req;
+				Rc<CgiOutput> parent;
+				Rc<Request>	  req;
 
 				int pid;
 				int rfd;
@@ -38,7 +38,7 @@ class CgiOutput {
 
 			public:
 				virtual int asFd() { return this->rfd; };
-				PipeInstance(std::string bin, Rc<Request> req, CgiOutput* parent);
+				PipeInstance(std::string bin, Rc<Request> req, Rc<CgiOutput> parent);
 				~PipeInstance();
 
 			private:
@@ -50,8 +50,7 @@ class CgiOutput {
 						int			  rfd;
 
 					public:
-						CB(const PipeInstance& cgi)
-							: parent(cgi.parent), req(cgi.req), rfd(cgi.rfd) {};
+						CB(const PipeInstance& p) : parent(p.parent), req(p.req), rfd(p.rfd) {};
 
 						virtual int		  asFd() { return this->rfd; };
 						virtual int		  getFd() { return this->asFd(); };
@@ -65,7 +64,7 @@ class CgiOutput {
 		};
 
 	private:
-		Connection*		 conn;
+		Rc<Connection>	 conn;
 		Rc<PipeInstance> pipe;
 		Rc<Response>	 res;
 
@@ -78,11 +77,11 @@ class CgiOutput {
 		bool finished_headers;
 
 	public:
-		CgiOutput(Epoll&		epoll,
-				  Rc<Request>&	req,
-				  std::string	cgi_bin,
-				  Rc<Response>& res,
-				  Connection&	conn);
+		CgiOutput(Epoll&		 epoll,
+				  Rc<Request>&	 req,
+				  std::string	 cgi_bin,
+				  Rc<Response>&	 res,
+				  Rc<Connection> conn);
 		~CgiOutput();
 
 		void parseBytes();

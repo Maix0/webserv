@@ -6,196 +6,401 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/08 16:52:34 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/26 23:20:49 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/30 17:57:42 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
+/*
 #include <strings.h>
 #include <cassert>
 #include <cstddef>
+#include <limits>
 #include <stdexcept>
+#include "lib/Functors.hpp"
 #include "lib/Option.hpp"
+#include "lib/aligned_storage.hpp"
 #include "runtime/Logger.hpp"
 
-#define assert_valid(OBJ) \
-	assert((OBJ).ptr && ((OBJ).ptr->strong > 0 || ((OBJ).ptr->strong == 0 && (OBJ).ptr->weak > 0)))
 
-#define assert_valid_strong(OBJ) assert((OBJ).ptr && ((OBJ).ptr->strong > 0))
+void dbg();
+
+#define OPERATOR_FIELD(NAME, FIELD, OPERATOR, TYPE, LIMIT)         \
+	static void NAME##_##FIELD(_RcAlloc* self) {                   \
+		if (self->f.FIELD > 10)                                    \
+			dbg();                                                 \
+		if (self->f.FIELD == std::numeric_limits<TYPE>::LIMIT()) { \
+			return;                                                \
+		}                                                          \
+		self->f.FIELD OPERATOR;                                    \
+	}
+
+/// *
+#define PRINT_RCBOX(rcbox)                        \
+	if (rcbox != NULL)                            \
+		LOG(debug, COL_GREEN << *rcbox << RESET); \
+	else                                          \
+		LOG(debug, COL_RED << "RcAlloc<T>(nil)" << RESET);
+// * /
+// #define PRINT_RCBOX(rcbox)
+
+template <typename T>
+struct _RcAlloc {
+		// counts
+		struct Data {
+				unsigned int strong;
+				unsigned int weak;
+		};
+
+		typename aligned_storage<sizeof(T), 16>::type v;
+		Data										  f;
+
+		static inline void assert_valid(_RcAlloc* self) {
+			assert(self->f.strong > 0 || self->f.strong == 0 && self->f.weak > 0);
+		}
+		static T* getValuePtr(_RcAlloc* self) { return reinterpret_cast<T*>(&self->v); }
+
+		static void destroy_value(_RcAlloc* self) {
+			assert(self->f.strong == 0);
+			reinterpret_cast<T*>(&self->v)->~T();
+		}
+
+		OPERATOR_FIELD(increase, strong, ++, unsigned int, max);
+		OPERATOR_FIELD(decrease, strong, --, unsigned int, min);
+
+		OPERATOR_FIELD(increase, weak, ++, unsigned int, max);
+		OPERATOR_FIELD(decrease, weak, --, unsigned int, min);
+
+		friend std::ostream& operator<<(std::ostream& o, const _RcAlloc& a) {
+			o << "RcAlloc<T>(s: " << a.f.strong << ", w: " << a.f.weak << ")";
+			return (o);
+		}
+};
+
+#define PRIV_RETURN_VAL(TYPE, OBJ, PTR) \
+	A::assert_valid((OBJ).alloc);       \
+	return PTR(OBJ).getPtr();
+
+struct FunctorMarker {};
+
+template <typename T>
+class Weak {
+	private:
+		typedef _RcAlloc<T> A;
+
+		struct FromRawMarker {};
+
+		A* alloc;
+		Weak(A* alloc, FromRawMarker _marker) : alloc(alloc) {
+			(void)(_marker);
+			PRINT_RCBOX(alloc);
+		};
+
+	public:
+		Weak() : alloc(NULL) { PRINT_RCBOX(alloc); }
+		~Weak() {
+			PRINT_RCBOX(this->alloc);
+			if (this->alloc == NULL)
+				return;
+			A::decrease_weak(this->alloc);
+			if (this->alloc->f.strong == 0 && this->alloc->f.weak == 0)
+				delete this->alloc;
+		}
+
+		Weak(const Weak& rhs) : alloc(NULL) { *this = rhs; }
+		Weak& operator=(const Weak& rhs) {
+			PRINT_RCBOX(alloc);
+			if (this == &rhs)
+				return (*this);
+			this->~Weak();
+			this->alloc = rhs.alloc;
+			if (this->alloc != NULL)
+				A::increase_weak(this->alloc);
+			return (*this);
+		}
+
+		static _RcAlloc<T>* _getAlloc(const Weak& self) { return self->alloc; };
+
+		static Weak<T> fromRaw(T* raw) {
+			assert(raw != NULL);
+			A* alloc_ptr = (A*)((char*)raw - offsetof(A, v));
+			return Weak(alloc_ptr, FromRawMarker());
+		}
+};
 
 template <typename T>
 class Rc {
 	private:
-		struct RcInner {
-				std::size_t strong;
-				std::size_t weak;
-				T*			value;
-		};
-		RcInner* ptr;
+		typedef _RcAlloc<T> A;
 
-		Rc(RcInner* ptr) : ptr(ptr) { assert_valid(*this); };
+		struct FromRawMarker {};
+
+		_RcAlloc<T>* alloc;
+		Rc(T* ptr, FromRawMarker _marker) : alloc(NULL) {
+			A* alloc_ptr = ;
+			this->alloc	 = alloc_ptr;
+			(void)(_marker);
+		};
+
+		T*		 getPtr() { return A::getValuePtr(this->alloc); };
+		const T* getPtr() const { return A::getValuePtr(this->alloc); };
 
 	public:
-		// Opaque type. Represent RcInner::RcInner
-		struct RawRc;
+		static Option<Rc> upgrade(const Weak<T>& weak) {
+			A* raw = Weak<T>::_getAlloc(weak);
+			PRINT_RCBOX(raw);
+			if (raw == NULL || raw->f.strong == 0)
+				return Option<Rc>::None();
+
+			A::increase_strong(raw);
+			return Rc(A::getValuePtr(raw), FromRawMarker());
+		}
+
+		static Weak<T> downgrade(const Rc& self) {
+			PRINT_RCBOX(self.alloc);
+			A::increase_weak(self.alloc);
+			return Weak<T>::fromRaw(A::getValuePtr(self.alloc));
+		}
+
 		Rc() {
-			this->ptr		  = new RcInner();
-			this->ptr->strong = 1;
-			this->ptr->weak	  = 0;
-			// new (this->ptr->value.buffer()) T();
-			this->ptr->value  = new T();
-			assert_valid_strong(*this);
+			this->alloc			  = new _RcAlloc<T>();
+			this->alloc->f.strong = 1;
+			this->alloc->f.weak	  = 1;
+			Functor0<T>()(A::getValuePtr(this->alloc));
+			PRINT_RCBOX(this->alloc);
 		}
 
-		Rc(T* val) {
-			if (val == NULL)
-				throw std::runtime_error("Tried to init a shared ptr from NULL");
-			this->ptr		  = new RcInner();
-			this->ptr->strong = 1;
-			this->ptr->weak	  = 0;
-			this->ptr->value  = val;
-			assert_valid_strong(*this);
+		template <typename F>
+		Rc(F constructor, FunctorMarker marker) {
+			(void)marker;
+			this->alloc			  = new _RcAlloc<T>();
+			this->alloc->f.strong = 1;
+			this->alloc->f.weak	  = 1;
+			constructor(A::getValuePtr(this->alloc));
+			PRINT_RCBOX(this->alloc);
 		}
-
 		~Rc() {
-			assert_valid_strong(*this);
-			--this->ptr->strong;
-			if (this->ptr->strong == 0 && this->ptr->value != NULL) {
-				delete this->ptr->value;
-				this->ptr->value = NULL;
+			PRINT_RCBOX(this->alloc);
+			if (this->alloc == NULL)
+				return;
+			A::decrease_strong(this->alloc);
+			if (this->alloc->f.strong == 0) {
+				A::destroy_value(this->alloc);
+				A::decrease_weak(this->alloc);
 			}
-			if (this->ptr->strong == 0 && this->ptr->weak == 0) {
-				delete this->ptr;
-			}
+			if (this->alloc->f.strong == 0 && this->alloc->f.weak == 0)
+				delete this->alloc;
 		}
 
-		Rc(const Rc& rhs) {
-			assert_valid_strong(rhs);
-			this->ptr = rhs.ptr;
-			if (this->ptr == NULL)
-				throw std::runtime_error("shared.ptr == NULL");
-			this->ptr->strong++;
-		}
+		Rc(const Rc& rhs) : alloc(NULL) { *this = rhs; }
 		Rc& operator=(const Rc& rhs) {
-			assert_valid_strong(rhs);
-			assert_valid_strong(*this);
-			if (this != &rhs) {
-				{
-					Rc cpy = *this;
-					// hello yes run the destructor pls
-					this->ptr->strong--;
-					(void)(cpy);
-				}
-				this->ptr = rhs.ptr;
-				this->ptr->strong++;
-			}
+			if (this == &rhs)
+				return (*this);
+			this->~Rc();
+			this->alloc = rhs.alloc;
+			A::increase_strong(this->alloc);
+			PRINT_RCBOX(this->alloc);
 			return (*this);
 		}
 
-		T&		 operator*() { return (assert_valid_strong(*this), *this->ptr->value); }
-		const T& operator*() const { return (assert_valid_strong(*this), *this->ptr->value); }
-		T*		 operator->() { return (assert_valid_strong(*this), this->ptr->value); }
-		const T* operator->() const { return (assert_valid_strong(*this), this->ptr->value); }
+		T&		 operator*() { PRIV_RETURN_VAL(T, *this, *); }
+		const T& operator*() const { PRIV_RETURN_VAL(T, *this, *); }
+		T*		 operator->() { PRIV_RETURN_VAL(T, *this, ); }
+		const T* operator->() const { PRIV_RETURN_VAL(T, *this, ); }
 
 		// GetRaw
-		RawRc* getRaw() {
-			assert_valid_strong(*this);
-			return ((RawRc*)this->ptr);
+		T* getRaw() {
+			A::assert_valid(this->alloc);
+			return this->getPtr();
 		}
 
 		// GetRaw
-		static Rc fromRaw(RawRc* raw) {
-			if (raw == NULL)
-				throw std::runtime_error("Tried to init a shared ptr from raw NULL");
-			RcInner* raw_cast = (RcInner*)(raw);
-
-			return Rc(raw_cast);
+		static Rc fromRaw(T* raw) {
+			assert(raw != NULL);
+			return Rc(raw, FromRawMarker());
 		}
 
 		template <typename U>
 		Rc<U> cast() {
-			assert_valid_strong(*this);
-			U* ptr = (this->ptr->value);
-			assert((void*)ptr == (void*)this->ptr->value);
-			this->ptr->strong++;
-			RawRc* raw = this->getRaw();
-			return Rc<U>::fromRaw((typename Rc<U>::RawRc*)raw);
+			U* ptr = this->getPtr();
+			A::increase_strong(this->alloc);
+			return Rc<U>::fromRaw(ptr);
 		}
 
 		template <typename U>
 		Rc<U> try_cast() {
-			assert_valid_strong(*this);
-			T& val		= *this->ptr->value;
-			U& val_cast = dynamic_cast<U&>(val);
-			assert(&val == &val_cast);
-			this->ptr->strong++;
-			RawRc* raw = this->getRaw();
-			return Rc<U>::fromRaw((typename Rc<U>::RawRc*)raw);
+			U* ptr = dynamic_cast<U*>(this->getPtr());
+			A::increase_strong(this->alloc);
+			return Rc<U>::fromRaw(ptr);
 		}
 
-		class Weak {
-				RcInner* ptr;
-				Weak(RcInner* ptr) : ptr(ptr) { assert_valid(*this); };
+		static void increase_strong(const Rc& self) { A::increase_strong(self->alloc); }
+		static void decrease_strong(const Rc& self) { A::decrease_strong(self->alloc); }
+		static void increase_weak(const Rc& self) { A::increase_weak(self->alloc); }
+		static void decrease_weak(const Rc& self) { A::decrease_weak(self->alloc); }
 
-			public:
-				static Weak make_weak(Rc& shared) {
-					Weak out(reinterpret_cast<RcInner*>(shared.getRaw()));
-					out.ptr->weak++;
-					return out;
-				};
+		static unsigned int strong_count(const Rc& self) { return self.alloc->f.strong; };
+		static unsigned int weak_count(const Rc& self) { return self.alloc->f.weak; };
+};
+*/
 
-				~Weak() {
-					assert_valid(*this);
-					--this->ptr->weak;
-					if (this->ptr->strong == 0 && this->ptr->value != NULL) {
-						delete this->ptr->value;
-						this->ptr->value = NULL;
-					}
-					if (this->ptr->strong == 0 && this->ptr->weak == 0) {
-						delete this->ptr;
-					}
-				}
+#include <cassert>
+#include <cstddef>
+#include <new>
+#include "lib/Functors.hpp"
+#include "lib/Option.hpp"
 
-				Weak() {
-					this->ptr		  = new RcInner();
-					this->ptr->value  = NULL;
-					this->ptr->weak	  = 1;
-					this->ptr->strong = 0;
-					assert_valid(*this);
-				}
+struct FunctorMarker {};
+#define RCFUNCTOR FunctorMarker()
 
-				Weak(const Weak& rhs) {
-					assert_valid(rhs);
-					this->ptr = rhs.ptr;
-					++this->ptr->weak;
-				}
-				Weak& operator=(const Weak& rhs) {
-					assert_valid(*this);
-					assert_valid(rhs);
-					if (this != &rhs) {
-						Weak cpy(*this);
-						--this->ptr->weak;
-						this->ptr = rhs.ptr;
-						++this->ptr->weak;
-						(void)(cpy);
-					}
-					return (*this);
-				}
+template <typename T>
+class Rc;
 
-				Option<Rc> upgrade() {
-					assert_valid(*this);
-					if (this->ptr->strong != 0) {
-						++this->ptr->strong;
-						return Option<Rc>::Some(
-							Rc(Rc::fromRaw(reinterpret_cast<RawRc*>(this->ptr))));
-					}
-					return Option<Rc>::None();
-				}
+template <typename T>
+class Weak;
+
+template <typename T>
+class RcBox {
+	public:
+		size_t strong_count;
+		size_t weak_count;
+
+		union {
+				char		data[sizeof(T)];
+				long double align;	// force max alignment for most types
+		} storage;
+
+		static T* getObject(RcBox* self) { return reinterpret_cast<T*>(self->storage.data); }
+
+		template <typename Functor>
+		static RcBox* create(Functor f) {
+			RcBox* cb		 = new RcBox();
+			cb->strong_count = 1;
+			cb->weak_count	 = 1;
+			f(RcBox::getObject(cb));
+			return cb;
+		}
+
+		static void destroyObject(RcBox* self) { RcBox::getObject(self)->~T(); }
+		static void deleteSelf(RcBox* self) { delete self; }
+
+	private:
+		friend class Rc<T>;
+		friend class Weak<T>;
+};
+
+template <typename T>
+class Rc {
+	public:
+		Rc() : cb(RcBox<T>::create(Functor0<T>())) {}
+
+		template <typename Functor>
+		Rc(Functor f, FunctorMarker functor_marker) : cb(RcBox<T>::create(f)) {
+			(void)(functor_marker);
 		};
 
-		static bool isSameRcPtr(const Rc& lhs, const Rc& rhs) { return lhs.ptr == rhs.ptr; };
-		static bool isSameRcPtr(const Weak& lhs, const Rc& rhs) { return lhs.ptr == rhs.ptr; };
-		static bool isSameRcPtr(const Rc& lhs, const Weak& rhs) { return lhs.ptr == rhs.ptr; };
-		static bool isSameRcPtr(const Weak& lhs, const Weak& rhs) { return lhs.ptr == rhs.ptr; };
+		Rc(const Rc& other) {
+			this->cb = other.cb;
+			if (this->cb)
+				this->cb->strong_count++;
+		}
+
+		~Rc() { this->release(); }
+
+		Rc& operator=(const Rc& other) {
+			if (this != &other) {
+				this->release();
+				this->cb = other.cb;
+				if (this->cb)
+					this->cb->strong_count++;
+			}
+			return *this;
+		}
+
+		T* operator->() const { return RcBox<T>::getObject(this->cb); }
+		T& operator*() const { return *(RcBox<T>::getObject(this->cb)); }
+
+		static Rc fromRcBox(RcBox<T>* box) { return Rc(box, 0); }
+		static Rc fromRaw(T* raw) {
+			RcBox<T>* box = (RcBox<T>*)((char*)raw - offsetof(RcBox<T>, storage.data));
+			box->strong_count++;
+			return Rc(box, 0);
+		}
+
+		template <typename U>
+		Rc<U> cast() {
+			U* ptr = RcBox<T>::getObject(this->cb);
+			(void)(ptr);
+			this->cb->strong_count++;
+			return Rc<U>::fromRcBox(reinterpret_cast<RcBox<U>*>(this->cb));
+		}
+
+	private:
+		RcBox<T>* cb;
+		void	  release() {
+			 if (this->cb) {
+				 if (--this->cb->strong_count == 0) {
+					 RcBox<T>::destroyObject(this->cb);
+					 if (--this->cb->weak_count == 0)
+						 RcBox<T>::deleteSelf(this->cb);
+				 }
+				 this->cb = NULL;
+			 }
+		}
+
+		Rc(RcBox<T>* cb, int marker) : cb(cb) { (void)(marker); }
+
+		friend class Weak<T>;
+};
+
+template <typename T>
+class Weak {
+	public:
+		Weak() : cb(NULL) {}
+		Weak(const Rc<T>& shared) {
+			this->cb = shared.cb;
+			if (this->cb)
+				this->cb->weak_count++;
+		}
+
+		Weak(const Weak& other) {
+			this->cb = other.cb;
+			if (this->cb)
+				this->cb->weak_count++;
+		}
+
+		~Weak() { this->release(); }
+
+		Weak& operator=(const Weak& other) {
+			if (this != &other) {
+				this->release();
+				this->cb = other.cb;
+				if (this->cb)
+					this->cb->weak_count++;
+			}
+			return *this;
+		}
+
+		Option<Rc<T> > upgrade() const {
+			if (this->cb != NULL && this->cb->strong_count > 0) {
+				this->cb->strong_count++;
+				return Rc<T>(this->cb, 0);
+			}
+			return Option<Rc<T> >::None();
+		}
+
+	private:
+		RcBox<T>* cb;
+
+		void release() {
+			if (this->cb) {
+				if (--this->cb->weak_count == 0 && this->cb->strong_count == 0) {
+					RcBox<T>::deleteSelf(this->cb);
+				}
+				cb = NULL;
+			}
+		}
+
+		friend class Rc<T>;
 };

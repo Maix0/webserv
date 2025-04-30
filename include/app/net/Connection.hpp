@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/12 18:43:37 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/23 12:37:35 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/29 10:41:20 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,9 @@
 #include "app/http/Request.hpp"
 #include "app/http/Response.hpp"
 #include "app/net/Socket.hpp"
+#include "config/Config.hpp"
 #include "interface/AsFd.hpp"
+#include "lib/Functors.hpp"
 #include "lib/Rc.hpp"
 #include "lib/Time.hpp"
 #include "runtime/Epoll.hpp"
@@ -58,7 +60,9 @@ class Connection : public AsFd {
 			  remote_ip(ip),
 			  remote_port(port),
 			  socket(sock),
-			  request(new Request(ip, port, socket->getServer())),
+			  request(Rc<Request>(
+				  Functor3<Request, Ip, Port, config::Server*>(ip, port, socket->getServer()),
+				  RCFUNCTOR)),
 			  last_updated(Time::now()) {
 			LOG(debug, "new connection " << fd << " for " << ip << ":" << port);
 			this->response->setFinished();
@@ -76,9 +80,7 @@ class Connection : public AsFd {
 		int	 asFd() { return this->fd; };
 		bool isClosed() { return this->closed; };
 		void setClosed() { this->closed = true; };
-		void updateTime() {
-			this->last_updated = Time::now();
-		};
+		void updateTime() { this->last_updated = Time::now(); };
 		bool timeout() const {
 			Time should_to;
 			should_to.inner = this->last_updated.inner + Connection::KEEP_ALIVE_TIMEOUT;

@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/22 17:48:13 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/26 23:18:46 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/28 01:44:10 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -84,7 +84,7 @@ char* const* CgiOutput::PipeInstance::setup_env(char** envp) {
 	return const_cast<char* const*>(out);
 }
 
-CgiOutput::PipeInstance::PipeInstance(std::string bin, Rc<Request> req, CgiOutput* parent)
+CgiOutput::PipeInstance::PipeInstance(std::string bin, Rc<Request> req, Rc<CgiOutput> parent)
 	: parent(parent), req(req), pid(-1), rfd(-1), bin(bin) {
 	LOG(info, "new CGI");
 	if (this->req->getBody().hasValue())

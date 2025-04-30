@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/12 18:56:10 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/26 21:49:26 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/29 10:42:30 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@
 #include "app/http/StatusCode.hpp"
 #include "app/net/Connection.hpp"
 #include "interface/Callback.hpp"
+#include "lib/Functors.hpp"
 #include "runtime/EpollType.hpp"
 #include "runtime/Logger.hpp"
 extern int req_dump;
@@ -38,10 +39,16 @@ static void _send_builtin_code_response(Epoll&		   epoll,
 										with_body);
 	res->setMethod(inner->getRequest()->getMethod());
 	inner->getRequest()->setFinished();
-	inner->getRequest() =
-		new Request(inner->getIp(), inner->getSocket()->getPort(), inner->getSocket()->getServer());
-	inner->getResponse() = res;
-	epoll.addCallback(self->getFd(), WRITE, new ConnectionCallback<WRITE>(inner));
+	Rc<Request> req = Rc<Request>(
+		Functor3<Request, Ip, Port, config::Server*>(inner->getIp(), inner->getSocket()->getPort(),
+													 inner->getSocket()->getServer()),
+		RCFUNCTOR);
+
+	inner->getRequest()				  = req;
+	inner->getResponse()			  = res;
+	Rc<ConnectionCallback<WRITE> > cb = Rc<ConnectionCallback<WRITE> >(
+		Functor1<ConnectionCallback<WRITE>, Rc<Connection> >(inner), RCFUNCTOR);
+	epoll.addCallback(self->getFd(), WRITE, cb.cast<Callback>());
 }
 
 void _ConnCallbackR(Epoll& epoll, Rc<Callback> self, Rc<Connection> inner) {

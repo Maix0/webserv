@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/23 00:07:08 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/25 14:42:04 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/29 11:10:06 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,7 +37,7 @@ using std::string;
 using std::vector;
 
 int		 req_dump	 = -1;
-Rc<bool> do_shutdown = new bool(false);
+Rc<bool> do_shutdown = Rc<bool>(Functor1<bool, bool>(false), RCFUNCTOR);
 
 static void install_ctrlc_handler(void);
 
@@ -69,23 +69,27 @@ int wrapped_main(char* argv0, int argc, char* argv[], char* envp[]) {
 	for (SocketList::iterator iit = s.begin(); iit != s.end(); iit++) {
 		for (vector<Rc<Socket> >::iterator sit = iit->second.begin(); sit != iit->second.end();
 			 sit++) {
-			Rc<Socket>		   sock	   = *sit;
-			Rc<SocketCallback> sock_cb = new SocketCallback(sock);
+			Rc<Socket> sock = *sit;
 			{
 				int fd = -1;
 				_ERR_RET_THROW(fd = open("/tmp/socket_webserv", O_CREAT | O_TRUNC | O_RDWR, 0777));
 				dprintf(fd, "%i\n", sock->getBoundPort().inner);
 				close(fd);
 			}
+			Rc<SocketCallback> sock_cb =
+				Rc<SocketCallback>(Functor1<SocketCallback, Rc<Socket> >(sock), RCFUNCTOR);
 			epoll.addCallback(sock->asFd(), READ, sock_cb.cast<Callback>());
 		}
 	}
 
 	if (config.shutdown_port.hasValue()) {
-		Rc<Socket> shutdown_socket = new Socket(Ip(0), config.shutdown_port.get());
-		ctx.getShutdown()		   = shutdown_socket;
+		Rc<Socket> shutdown_socket =
+			Rc<Socket>(Functor2<Socket, Ip, Port>(Ip(0), config.shutdown_port.get()), RCFUNCTOR);
+		ctx.getShutdown() = shutdown_socket;
 		LOG(info, "Created shutdown socket on port: " << shutdown_socket->getBoundPort());
-		Rc<ShutdownCallback> shutdown_cb = new ShutdownCallback(shutdown_socket, do_shutdown);
+		Rc<ShutdownCallback> shutdown_cb = Rc<ShutdownCallback>(
+			Functor2<ShutdownCallback, Rc<Socket>, Rc<bool> >(shutdown_socket, do_shutdown),
+			RCFUNCTOR);
 		epoll.addCallback(shutdown_socket->asFd(), READ, shutdown_cb.cast<Callback>());
 	}
 	// if (false)

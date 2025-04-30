@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/02 22:14:09 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/08 16:50:41 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/29 10:41:49 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,10 @@
 
 #include "app/State.hpp"
 #include "runtime/Logger.hpp"
+
+void dbg() {
+
+}
 
 using std::set;
 using std::vector;
@@ -42,7 +46,10 @@ void State::openAllSockets() {
 			if (this->sockets.count(ip) == 0)
 				this->sockets[ip] = vector<Rc<Socket> >();
 			LOG(trace, "creating socket for " << ip << ":" << port);
-			this->sockets[ip].push_back(new Socket(ip, port, this->port_server_map.at(port)[0]));
+			Rc<Socket> sock(Functor3<Socket, Ip, Port, config::Server*>(
+								ip, port, this->port_server_map.at(port)[0]),
+							RCFUNCTOR);
+			this->sockets[ip].push_back(sock);
 		}
 	}
 	LOG(info, "all sockets are opened: " << this->sockets.size() << "opened sockets");

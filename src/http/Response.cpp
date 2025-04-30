@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/03 13:48:32 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/26 23:38:27 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/29 10:48:56 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,7 +41,7 @@
 #define COPY_BUFFER_SIZE (1 << 22)
 
 static Rc<Response> default_status_page(StatusCode code, bool with_body) {
-	Rc<Response>		  res		= new Response();
+	Rc<Response>		  res;
 	const std::string	  canonical = code.canonical().get_or("Unknown code");
 	Rc<std::stringstream> body;
 
@@ -54,7 +54,11 @@ static Rc<Response> default_status_page(StatusCode code, bool with_body) {
 	(*body) << "</html>" CRLF;
 
 	res->setStatus(code);
-	res->setBody(with_body ? body.cast<std::istream>() : new std::stringstream, body->str().size());
+	if (with_body) {
+		res->setBody(body.cast<std::istream>(), body->str().size());
+	} else {
+		res->setBody(Rc<std::stringstream>().cast<std::istream>(), body->str().size());
+	}
 	res->setMimeType("html");
 	return res;
 }
@@ -262,7 +266,10 @@ void handle_cgi_request(Epoll&			   epoll,
 
 	CgiList& cgi_list = State::getInstance().getCgis();
 	assert(!cgi.binary.empty());
-	Rc<CgiOutput> o = new CgiOutput(epoll, req, cgi.binary, res, *connection);
+	Rc<CgiOutput> o = Rc<CgiOutput>(
+		Functor5<CgiOutput, Epoll&, Rc<Request>, std::string, Rc<Response>, Rc<Connection> >(
+			epoll, req, cgi.binary, res, connection),
+		RCFUNCTOR);
 	cgi_list.push_back(o);
 	res->setCgi(o);
 }
@@ -332,11 +339,19 @@ const config::Cgi* find_cgi_for(const std::string& url, const config::Route& rou
 Rc<Response> Response::createResponseFor(Epoll& epoll, Rc<Connection> connection) {
 	Rc<Request> req = connection->getRequest();
 	req->setFinished();
-	connection->getRequest() = new Request(connection->getIp(), connection->getSocket()->getPort(),
-										   connection->getSocket()->getServer());
-	Rc<Response> res		 = (connection->getResponse() = new Response());
-	std::string	 method		 = req->getMethod();
-	res->method				 = method;
+	{
+		Rc<Request> new_req =
+			Rc<Request>(Functor3<Request, Ip, Port, config::Server*>(
+							connection->getIp(), connection->getSocket()->getPort(),
+							connection->getSocket()->getServer()),
+						RCFUNCTOR);
+		connection->getRequest() = new_req;
+	}
+	Rc<Response> res;
+	connection->getResponse() = res;
+
+	std::string method		  = req->getMethod();
+	res->method				  = method;
 	if (req->getRoute() && req->getRoute()->allowed.hasValue() &&
 		std::find(req->getRoute()->allowed.get().begin(), req->getRoute()->allowed.get().end(),
 				  method) == req->getRoute()->allowed.get().end()) {
@@ -365,12 +380,17 @@ Rc<Response> Response::createResponseFor(Epoll& epoll, Rc<Connection> connection
 		// no special threatment to be done, do whatever :)
 		handle_static_file(epoll, connection, req, res);
 	} while (0);
-	epoll.addCallback(connection->asFd(), WRITE, new ConnectionCallback<WRITE>(connection));
+	{
+		Rc<ConnectionCallback<WRITE> > cbw = Rc<ConnectionCallback<WRITE> >(
+			Functor1<ConnectionCallback<WRITE>, Rc<Connection> >(connection), RCFUNCTOR);
+		epoll.addCallback(connection->asFd(), WRITE, cbw.cast<Callback>());
+	}
 	add_common_header(*connection->getResponse());
 	// we strip the body if req->method == HEAD :)
 	if (req->getMethod() == "HEAD") {
 		LOG(info, "HEAD request, should remove body....");
-		connection->getResponse()->setBody(new std::stringstream(),
+		Rc<std::stringstream> ebody;
+		connection->getResponse()->setBody(ebody.cast<std::istream>(),
 										   connection->getResponse()->getBodySize());
 	}
 	return (connection->getResponse());
@@ -385,7 +405,8 @@ std::size_t Response::fill_buffer(char buf[], std::size_t len) {
 
 	if (!this->sent_headers) {
 		if (this->method == "HEAD") {
-			this->body = new std::stringstream();
+			Rc<std::stringstream> ebody;
+			this->body = ebody.cast<std::istream>();
 		}
 		std::stringstream ss;
 		ss << "HTTP/1.1 " << this->code.code() << " "

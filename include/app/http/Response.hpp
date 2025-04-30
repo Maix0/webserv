@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/02 15:39:45 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/25 15:08:21 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/04/28 20:22:58 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,7 +55,7 @@ class Response {
 		Response()
 			: code(StatusCode(200)),
 			  body_size(0),
-			  body(Rc<std::istream>(new std::stringstream())),
+			  body(Rc<std::stringstream>().cast<std::istream>()),
 			  sent_headers(false),
 			  is_finished(false),
 			  is_stream_eof(false) {};

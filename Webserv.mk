@@ -6,7 +6,7 @@
 #    By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/11/03 13:20:01 by maiboyer          #+#    #+#              #
-#    Updated: 2025/04/16 18:02:58 by maiboyer         ###   ########.fr        #
+#    Updated: 2025/04/30 18:03:22 by maiboyer         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -25,7 +25,7 @@ CXXFLAGS		=	-Wall -Wextra -MMD -std=c++98
 CXXFLAGS		+=	$(CXXFLAGS_ADDITIONAL)
 LDFLAGS			=  $(LDFLAGS_ADDITIONAL)
 # sorting + removing useless args
-CXXFLAGS		:=	$(shell sh -c 'for arg in $(CXXFLAGS); do echo $$arg; done | sort -u')
+CXXFLAGS		:=	$(shell /bin/sh -c 'for arg in $(CXXFLAGS); do echo $$arg; done | sort -u')
 
 -include 			./Filelist.mk
 
@@ -45,10 +45,11 @@ ECHO			?=	/usr/bin/env echo
 
 .PHONY = all bonus clean re subject filelist .clangd archive _flags _archive_inner
 
+export BUILD_DIR
 export CXX
 export CXXFLAGS
-export BUILD_DIR
 export INCLUDES
+export LDFLAGS
 
 all:
 	@$(MAKE) -f Webserv.mk _flags
@@ -100,13 +101,17 @@ filelist:
 	@tree $(SRC_DIR) -ifF | rg '$(SRC_DIR)/(.*)\.cpp$$' --replace '$$1' | sed -re 's/^(.*)_([0-9]+)$$/\1|\2/g' | sort -t'|' --key=1,1 --key=2,2n | sed -e's/|/_/' | xargs printf '%-78s\\\n' >> Filelist.mk
 	@echo "" >> Filelist.mk
 
+.ONESHELL:
 _flags: 
-	@$(eval BUILD_FINGERPRINT="CXX = $(CXX)\nCXXFLAGS = $(CXXFLAGS)\nLDFLAGS = $(LDFLAGS)")
-	@$(eval CURRENT_FINGERPRINT="$(shell cat $(BUILD_DIR)/.flags.txt 2>/dev/null | sed -e 's/\\n/ /g')")
-	@if [ $(CURRENT_FINGERPRINT) != "$(shell echo $(BUILD_FINGERPRINT) | sed -e 's/\\n/ /g')" ]; then \
-		mkdir -p $(BUILD_DIR);                                           \
-		$(ECHO) -e $(BUILD_FINGERPRINT) > $(BUILD_DIR)/.flags.txt;       \
-	fi
+	@/bin/sh <<EOF
+	#newlines have been replaced by spaces, and a space has been added at the end to satisfy compatibility
+	if [ \
+	"CXX = $$CXX CXXFLAGS = $$CXXFLAGS LDFLAGS = $$LDFLAGS " \
+	!= "$$(cat $$BUILD_DIR/.flags.txt 2>/dev/null | tr '\n' ' ')" ]; then 
+		mkdir -p $$BUILD_DIR;
+		echo -e "CXX = $$CXX\nCXXFLAGS = $$CXXFLAGS\nLDFLAGS = $$LDFLAGS" > $$BUILD_DIR/.flags.txt; 
+	fi;
+	EOF
 
 
 # change $(OBJ) with the name of all objects
