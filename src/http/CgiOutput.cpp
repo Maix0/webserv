@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/25 15:00:28 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/05/02 17:51:19 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/05/02 20:51:41 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -123,6 +123,11 @@ CgiOutput::CgiOutput(Epoll&				epoll,
 		this->path_info += parts[i];
 	}
 
+	if (this->path_info.empty())
+		this->path_info = "/";
+	else
+		this->path_info.erase(0, 0);
+
 	std::string cgi_bin = cgi->binary;
 	this->do_exec(cgi_bin);
 }
@@ -227,34 +232,36 @@ char* const* CgiOutput ::setup_env(char**					 envp,
 		throw std::runtime_error("Request died...");
 	Rc<Request> req = oreq.get();
 
-	ADD_HEADER("PATH_INFO", this->path_info);
+	std::string query_string;
+	{
+		std::string::size_type last_slash = req->getUrl().find('/');
+		std::string::size_type first_qmark =
+			req->getUrl().find('?', last_slash != std::string::npos ? last_slash : 0);
+		if (first_qmark != std::string::npos)
+			query_string =
+				std::string(req->getUrl().begin() + first_qmark + 1, req->getUrl().end());
+	}
+	std::string content_type = mime::MimeType::from_extension("binary").getInner();
+	if (req->getHeaders().count("content-type"))
+		content_type = req->getHeaders()["content-type"];
+
+	ADD_HEADER("AUTH_TYPE", "");
 	ADD_HEADER("CONTENT_LENGTH", req->getBodySize());
+	ADD_HEADER("CONTENT_TYPE", content_type);
 	ADD_HEADER("GATEWAY_INTERFACE", "CGI/1.1");
+	ADD_HEADER("PATH_INFO", this->path_info);
+	ADD_HEADER("PATH_TRANSLATED", "");
+	ADD_HEADER("QUERY_STRING", query_string);
 	ADD_HEADER("REMOTE_ADDR", req->getIp());
 	ADD_HEADER("REMOTE_PORT", req->getPort());
 	ADD_HEADER("REQUEST_METHOD", req->getMethod());
-	ADD_HEADER("REQUEST_URI", req->getUrl());
 	ADD_HEADER("REQUEST_SCHEME", "http");
-	ADD_HEADER("SERVER_NAME", SERVER_NAME);
+	ADD_HEADER("REQUEST_URI", req->getUrl());
+	ADD_HEADER("SCRIPT_NAME", this->script_path);
+	ADD_HEADER("SERVER_NAME", "localhost");
 	ADD_HEADER("SERVER_PORT", req->getServer()->port);
 	ADD_HEADER("SERVER_PROTOCOL", "HTTP/1.1");
-	ADD_HEADER("SERVER_SOFTWARE", SERVER_NAME << "/1");
-	// if (this->path_info.empty())
-	//	this->path_info = "/";
-
-	ADD_HEADER("SCRIPT_NAME", this->script_path);
-	{
-		std::string content_type = mime::MimeType::from_extension("binary").getInner();
-		if (req->getHeaders().count("content-type"))
-			content_type = req->getHeaders()["content-type"];
-		ADD_HEADER("CONTENT_TYPE", content_type);
-	}
-
-	if (req->getUrl().find('?') != std::string::npos) {
-		ADD_HEADER("QUERY_STRING", std::string(req->getUrl().begin() + req->getUrl().find('?') + 1,
-											   req->getUrl().end()));
-	} else
-		ADD_HEADER("QUERY_STRING", "");
+	ADD_HEADER("SERVER_SOFTWARE", SERVER_NAME << "/0.1");
 
 	Request::HeaderMap& h = req->getHeaders();
 	for (Request::HeaderMap::iterator it = h.begin(); it != h.end(); it++) {
