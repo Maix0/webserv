@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/25 15:01:23 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/30 23:33:10 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/05/02 17:01:51 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,50 +24,10 @@ class Connection;
 
 class CgiOutput {
 	private:
-		class PipeInstance : public AsFd {
-			private:
-				Weak<CgiOutput> parent;
-				Weak<Request>	req;
-
-				int pid;
-				int rfd;
-
-				std::string bin;
-
-				char* const* setup_env(char** envp);
-
-			public:
-				virtual int asFd() { return this->rfd; };
-				PipeInstance(std::string bin, Weak<Request> req);
-				void setWeaks(Weak<CgiOutput> p) { this->parent = p; }
-				~PipeInstance();
-
-			private:
-				template <EpollType TY>
-				class CB : public ::AsFd, public ::Callback {
-					private:
-						Weak<CgiOutput> parent;
-						Weak<Request>	req;
-						int				rfd;
-
-					public:
-						CB(const PipeInstance& p) : parent(p.parent), req(p.req), rfd(p.rfd) {};
-
-						virtual int		  asFd() { return this->rfd; };
-						virtual int		  getFd() { return this->asFd(); };
-						virtual EpollType getTy() { return TY; };
-						virtual void	  call(Epoll& epoll, Rc<Callback> self);
-				};
-
-			public:
-				typedef CB<READ>   CRead;
-				typedef CB<HANGUP> CHangup;
-		};
-
-	private:
 		Weak<Connection> conn;
-		Rc<PipeInstance> pipe;
 		Weak<Response>	 res;
+		Weak<Request>	 req;
+		Rc<tiostream>	 raw_buf;
 
 		Rc<tiostream> body;
 		size_t		  body_size;
@@ -77,17 +37,31 @@ class CgiOutput {
 		bool finished;
 		bool finished_headers;
 
+		int req_fd;
+		int pid;
+
+		std::string script_path;
+		std::string path_info;
+		std::string query_string;
+
+		char* const* setup_env(char**					 envp,
+							   std::vector<std::string>& buf,
+							   std::vector<char const*>& out);
+		void		 do_exec(std::string& bin);
+
 	public:
-		CgiOutput(Epoll&		  epoll,
-				  Rc<Request>&	  req,
-				  std::string	  cgi_bin,
-				  Rc<Response>&	  res,
-				  Rc<Connection>& conn);
+		CgiOutput(Epoll&			 epoll,
+				  Rc<Request>&		 req,
+				  const config::Cgi* cgi,
+				  std::string&		 cgi_suffix,
+				  Rc<Response>&		 res,
+				  Rc<Connection>&	 conn);
 		~CgiOutput();
 
 		void parseBytes();
 		void setFinished();
+		int	 getPid() { return this->pid; };
 
-		int	 getPipeFd() { return this->pipe->asFd(); };
+		int	 getPipeFd() { return this->req_fd; };
 		bool isFinished() { return this->finished; };
 };

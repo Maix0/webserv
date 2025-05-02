@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/08 18:07:56 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/03/25 22:46:41 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/05/02 14:14:10 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,7 +64,7 @@ bool Epoll::addCallback(int fd, EpollType eventType, Rc<Callback> callback) {
 	if (epoll_ctl(this->fd, op, fd, &ev) == -1) {
 		int serrno = errno;
 		(void)(serrno);	 // log macro
-		LOG(err, "epoll_ctl: " << fd << ":" << strerror(serrno));
+		LOG(err, "epoll_ctl: " << fd << ": " << strerror(serrno));
 		return false;
 	}
 	return true;
@@ -92,7 +92,7 @@ bool Epoll::removeCallback(int fd, EpollType eventType) {
 	if (epoll_ctl(this->fd, op, fd, &ev) == -1) {
 		int serrno = errno;
 		(void)(serrno);	 // log macro
-		LOG(err, "epoll_ctl: " << fd << ":" << strerror(serrno));
+		LOG(err, "epoll_ctl: " << fd << ": " << strerror(serrno));
 		return false;
 	}
 

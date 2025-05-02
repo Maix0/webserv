@@ -1,6 +1,5 @@
 SRC_FILES =                                                                   \
 State                                                                         \
-callback/Cgi                                                                  \
 callback/Connection                                                           \
 callback/File                                                                 \
 callback/Shutdown                                                             \
@@ -12,7 +11,6 @@ config/Server                                                                 \
 config/_checkConfig                                                           \
 config/errors                                                                 \
 config/print                                                                  \
-fs/Cgi                                                                        \
 fs/Directory                                                                  \
 fs/File                                                                       \
 fs/ServerRessources                                                           \

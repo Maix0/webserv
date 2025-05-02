@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/02 18:29:43 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/30 22:49:37 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/05/02 14:38:53 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -204,11 +204,11 @@ namespace log {
 #	define PRINT_PID ""
 #endif
 
-#ifdef LOG_DISABLE
+#ifndef LOG_DISABLE
 #	define LOG(level, code)                                                                  \
 		do {                                                                                  \
 			::Semaphore::Ticket _ticket(::log::logSemaphore);                                 \
-			std::stringstream	pid;                                                          \
+			std::stringstream	_pid_message_private_in_macro;                                                          \
 			FILTER_##level(std::cerr << HEADER_##level " " << PRINT_PID << __FUNCTION__       \
 									 << " in " __FILE__ ":" SLINE " " << code << std::endl;); \
 			(void)_ticket;                                                                    \

@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 13:36:52 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/30 23:23:51 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/05/02 10:45:28 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,18 +67,14 @@ class SocketCallback : public Callback {
 class ShutdownCallback : public Callback {
 	private:
 		Rc<Socket> socketfd;
-		Rc<bool>   shutdown;
 
 	public:
 		virtual ~ShutdownCallback() {};
-		ShutdownCallback(Rc<Socket>& s, Rc<bool>& shutdown) : socketfd(s), shutdown(shutdown) {};
-		ShutdownCallback(const ShutdownCallback& rhs)
-			: socketfd(rhs.socketfd), shutdown(rhs.shutdown) {};
+		ShutdownCallback(Rc<Socket>& s) : socketfd(s) {};
+		ShutdownCallback(const ShutdownCallback& rhs) : socketfd(rhs.socketfd) {};
 		ShutdownCallback& operator=(const ShutdownCallback& rhs) {
-			if (this != &rhs) {
+			if (this != &rhs)
 				this->socketfd = rhs.socketfd;
-				this->shutdown = rhs.shutdown;
-			}
 			return (*this);
 		};
 		void call(Epoll& epoll, Rc<Callback> self);

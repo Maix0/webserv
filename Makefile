@@ -6,7 +6,7 @@
 #    By: rparodi <rparodi@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/11/12 11:05:05 by rparodi           #+#    #+#              #
-#    Updated: 2025/04/30 18:00:01 by maiboyer         ###   ########.fr        #
+#    Updated: 2025/05/02 14:57:18 by maiboyer         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -78,7 +78,8 @@ ifeq ($(ENABLE_PRINT_PID), yes)
     endif
 endif
 
-ENABLE_TRUE_SEMAPHORE ?= yes
+# currently it leads to deadlock so no thank you...
+ENABLE_TRUE_SEMAPHORE ?= no
 ifeq ($(ENABLE_TRUE_SEMAPHORE), yes)
     CXXFLAGS_ADDITIONAL += -DENABLE_TRUE_SEMAPHORE
     ifeq ($(MAKECMDGOALS), header)

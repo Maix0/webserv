@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/03 13:48:32 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/30 23:43:37 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/05/02 17:08:26 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -257,7 +257,8 @@ void handle_cgi_request(Epoll&			   epoll,
 						Rc<Connection>&	   connection,
 						Rc<Request>&	   req,
 						Rc<Response>&	   res,
-						const config::Cgi& cgi) {
+						const config::Cgi& cgi,
+						std::string		   cgi_prefix) {
 	(void)(epoll);
 	(void)(connection);
 	(void)(req);
@@ -267,8 +268,8 @@ void handle_cgi_request(Epoll&			   epoll,
 	CgiList& cgi_list = State::getInstance().getCgis();
 	assert(!cgi.binary.empty());
 	Rc<CgiOutput> o = Rc<CgiOutput>(
-		Functor5<CgiOutput, Epoll&, Rc<Request>&, std::string, Rc<Response>&, Rc<Connection>&>(
-			epoll, req, cgi.binary, res, connection),
+		Functor6<CgiOutput, Epoll&, Rc<Request>&, const config::Cgi*, std::string&, Rc<Response>&,
+				 Rc<Connection>&>(epoll, req, &cgi, cgi_prefix, res, connection),
 		RCFUNCTOR);
 	cgi_list.push_back(o);
 	res->setCgi(o);
@@ -309,31 +310,23 @@ Rc<Response> Response::createStatusPageFor(Epoll&				 epoll,
 	return (default_status_page(code, with_body));
 }
 
-const config::Cgi* find_cgi_for(const std::string& url, const config::Route& route) {
-	std::map<std::string, config::Cgi>& all_cgis  = State::getInstance().getConfig().cgi;
-	const config::Cgi*					cgi		  = NULL;
-	std::string::size_type				slash_pos = url.find('/');
-	std::string::size_type				qs_pos	  = url.find('?');
-	std::string							last_part;
+const config::Cgi* find_cgi_for(const std::string&	 url,
+								const config::Route& route,
+								std::string&		 cgi_suffix) {
+	const config::Cgi*					cgi		 = NULL;
+	std::map<std::string, config::Cgi>& all_cgis = State::getInstance().getConfig().cgi;
+	std::vector<std::string>			parts	 = url_to_parts(url);
 
-	{
-		std::string::const_iterator start = url.begin();
-		std::string::const_iterator end	  = url.end();
-		if (qs_pos != std::string::npos)
-			end = url.begin() + qs_pos;
-		if (slash_pos != std::string::npos)
-			start += slash_pos + 1;
-		last_part = std::string(start, url.end());
-	}
-
-	for (std::map<std::string, std::string>::const_iterator it = route.cgi.begin();
-		 it != route.cgi.end(); it++) {
-		if (!last_part.empty() && !it->first.empty() && string_ends_with(last_part, it->first)) {
-			cgi = &all_cgis.at(it->second);
-			break;
+	for (size_t i = route.parts.size(); i < parts.size() && cgi == NULL; i++) {
+		for (std::map<std::string, std::string>::const_iterator cit = route.cgi.begin();
+			 cit != route.cgi.end(); cit++) {
+			if (string_ends_with(parts[i], cit->first)) {
+				cgi_suffix = cit->first;
+				return (&all_cgis.at(cit->second));
+			}
 		}
 	}
-	return cgi;
+	return NULL;
 }
 
 Rc<Response> Response::createResponseFor(Epoll& epoll, Rc<Connection>& connection) {
@@ -367,10 +360,11 @@ Rc<Response> Response::createResponseFor(Epoll& epoll, Rc<Connection>& connectio
 			handle_redirect(epoll, connection, req, res);
 			break;
 		}
-		const config::Cgi* cgi = find_cgi_for(req->getUrl(), *req->getRoute());
+		std::string		   cgi_prefix;
+		const config::Cgi* cgi = find_cgi_for(req->getUrl(), *req->getRoute(), cgi_prefix);
 		// the route we matched is cgi
 		if (cgi) {
-			handle_cgi_request(epoll, connection, req, res, *cgi);
+			handle_cgi_request(epoll, connection, req, res, *cgi, cgi_prefix);
 			break;
 		}
 		// no special threatment to be done, do whatever :)

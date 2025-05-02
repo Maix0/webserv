@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/23 00:07:08 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/30 23:23:38 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/05/02 14:48:18 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,9 @@
 #include <unistd.h>
 #include <cstddef>
 #include <cstdio>
+#include <cstdlib>
 #include <exception>
+#include <ios>
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -36,10 +38,10 @@
 using std::string;
 using std::vector;
 
-int		 req_dump	 = -1;
-Rc<bool> do_shutdown = Rc<bool>(Functor1<bool, bool>(false), RCFUNCTOR);
+int	 req_dump	 = -1;
+bool do_shutdown = false;
 
-static void install_ctrlc_handler(void);
+static void install_signals(void);
 
 int wrapped_main(char* argv0, int argc, char* argv[], char* envp[]) {
 	(void)(argv0);
@@ -88,16 +90,15 @@ int wrapped_main(char* argv0, int argc, char* argv[], char* envp[]) {
 		ctx.getShutdown() = shutdown_socket;
 		LOG(info, "Created shutdown socket on port: " << shutdown_socket->getBoundPort());
 		Rc<ShutdownCallback> shutdown_cb = Rc<ShutdownCallback>(
-			Functor2<ShutdownCallback, Rc<Socket>&, Rc<bool>&>(shutdown_socket, do_shutdown),
-			RCFUNCTOR);
+			Functor1<ShutdownCallback, Rc<Socket>&>(shutdown_socket), RCFUNCTOR);
 		epoll.addCallback(shutdown_socket->asFd(), READ, shutdown_cb.cast<Callback>());
 	}
 	// if (false)
-	install_ctrlc_handler();
+	install_signals();
 	vector<size_t>			 to_indexes;
 	size_t					 idx = 0;
 	ConnectionList::iterator conn;
-	while (!*do_shutdown) {
+	while (!do_shutdown) {
 		vector<Rc<Callback> > callbacks = epoll.fetchCallbacks();
 		for (vector<Rc<Callback> >::iterator it = callbacks.begin(); it != callbacks.end(); it++) {
 			Rc<Callback> cb = *it;
@@ -117,19 +118,66 @@ int wrapped_main(char* argv0, int argc, char* argv[], char* envp[]) {
 			LOG(trace, "Keep alive timeout for " << (*c)->asFd());
 			connections.erase(c);
 		}
+		vector<pid_t>				  pids;
+		IndexMap<pid_t, ChildStatus>& cstatus = ctx.getChildStatus();
+		CgiList&					  cgis	  = ctx.getCgis();
+		for (IndexMap<pid_t, ChildStatus>::iterator it = cstatus.begin(); it != cstatus.end();
+			 it++) {
+			if (it->second.is_finished) {
+				pids.push_back(it->first);
+				LOG(debug, "found1: " << it->first);
+			}
+		}
+		for (vector<pid_t>::iterator it = pids.begin(); it != pids.end(); it++) {
+			cstatus.erase(cstatus.find_key(*it));
+			CgiList::iterator cit;
+			for (cit = cgis.begin(); cit != cgis.end() && (*cit)->getPid() != *it; cit++)
+				;
+			if (cit != cgis.end()) {
+				LOG(debug, "FOUND: " << (*cit)->getPid());
+				(*cit)->setFinished();
+			}
+		}
 	};
 	LOG(info, "shutting down now...");
 	return 0;
 }
 
+#include <sys/wait.h>
 #include <csignal>
 
-static void _ctrlc_handler(int sig) {
+static void _sigint_handler(int sig) {
 	(void)(sig);
 	LOG(warn, "Ctrl+C: Shutting down");
-	*do_shutdown = true;
+	do_shutdown = true;
 }
 
-static void install_ctrlc_handler(void) {
-	signal(SIGINT, _ctrlc_handler);
+static void _signchild_handler(int sig) {
+	(void)(sig);
+	int							  child_pid = -1;
+	int							  status;
+	IndexMap<pid_t, ChildStatus>& cstatus = State::getInstance().getChildStatus();
+
+	while ((child_pid = waitpid(-1, &status, WNOHANG)) != -1) {
+		int exit_code = -1;
+		if (WIFEXITED(status))
+			exit_code = WEXITSTATUS(status);
+		else if (WIFSIGNALED(status))
+			exit_code = WSTOPSIG(status) + 128;
+
+		if (exit_code != -1) {
+			if (cstatus.count(child_pid) != 0) {
+				LOG(debug, "child " << child_pid << " finished with exit code " << exit_code);
+				cstatus.at(child_pid).exit_code	  = exit_code;
+				cstatus.at(child_pid).is_finished = true;
+			} else {
+				LOG(warn, "unknown child pid " << child_pid);
+			}
+		}
+	}
+}
+
+static void install_signals(void) {
+	signal(SIGINT, _sigint_handler);
+	signal(SIGCHLD, _signchild_handler);
 };
