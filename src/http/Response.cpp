@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/03 13:48:32 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/05/02 17:08:26 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/05/05 23:51:48 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,6 +33,7 @@
 #include "app/http/Response.hpp"
 #include "app/http/Routing.hpp"
 #include "app/http/StatusCode.hpp"
+#include "app/http/Url.hpp"
 #include "app/net/Connection.hpp"
 #include "config/Config.hpp"
 #include "lib/StringHelper.hpp"
@@ -84,7 +85,7 @@ void handle_redirect(Epoll& epoll, Rc<Connection> connection, Rc<Request> req, R
 	const std::string		canonical = CODE.canonical().get_or("Unknown code");
 	Rc<std::stringstream>	body;
 
-	LOG(info, "handle request !");
+	LOG(info, "handling redirect for " << req->getUrl().getAll());
 	(*body) << "<html>" CRLF;
 	(*body) << "<head><title> Redirection - " << string_escape_html(req->getRoute()->redirect.get())
 			<< "</title></head>" CRLF;
@@ -107,6 +108,7 @@ void handle_post_delete(Epoll&			epoll,
 						Rc<Response>&	res) {
 	(void)(epoll);
 	(void)(connection);
+	LOG(info, "handling post_put_delete for " << req->getUrl().getAll());
 	/// if no route, we CAN'T process those request since we don't have a post/upload dir
 	if (!req->getRoute()) {
 		LOG(debug, "no route...");
@@ -121,14 +123,14 @@ void handle_post_delete(Epoll&			epoll,
 	}
 	std::string file				   = route.post_dir.get();
 	file							  += "/";
-	std::vector<std::string> url_parts = url_to_parts(req->getUrl());
+	std::vector<std::string> url_parts = req->getUrl().getParts();
 	url_parts.erase(url_parts.begin(),
 					url_parts.begin() + (std::min(url_parts.size(), route.parts.size())));
 	if (url_parts.empty()) {
 		if (route.index.hasValue())
 			url_parts.push_back(route.index.get());
 		else
-			throw Request::PageException(status::NOT_FOUND, req->getMethod() != "HEAD");
+			url_parts.push_back("hello_yes_this_is_index");
 	}
 
 	for (std::vector<std::string>::iterator it = url_parts.begin(); it != url_parts.end(); it++) {
@@ -191,16 +193,17 @@ void handle_static_file(Epoll&			epoll,
 						Rc<Request>&	req,
 						Rc<Response>&	res) {
 	(void)(epoll);
-	if (req->getMethod() == "POST" || req->getMethod() == "DELETE") {
+	if (req->getMethod() == "POST" || req->getMethod() == "PUT" || req->getMethod() == "DELETE") {
 		handle_post_delete(epoll, connection, req, res);
 		return;
 	}
 	try {
+		LOG(info, "handling static_file for " << req->getUrl().getAll());
 		std::size_t body_size = 0;
 		std::string ext;
 		std::string file_path;
 		{
-			std::vector<std::string>		url_parts	= url_to_parts(req->getUrl());
+			std::vector<std::string>		url_parts	= req->getUrl().getParts();
 			const std::vector<std::string>* route_parts = NULL;
 			if (req->getRoute())
 				route_parts = &req->getRoute()->parts;
@@ -265,6 +268,7 @@ void handle_cgi_request(Epoll&			   epoll,
 	(void)(res);
 	(void)(cgi);
 
+	LOG(info, "handling cgi for " << req->getUrl().getAll());
 	CgiList& cgi_list = State::getInstance().getCgis();
 	assert(!cgi.binary.empty());
 	Rc<CgiOutput> o = Rc<CgiOutput>(
@@ -310,12 +314,12 @@ Rc<Response> Response::createStatusPageFor(Epoll&				 epoll,
 	return (default_status_page(code, with_body));
 }
 
-const config::Cgi* find_cgi_for(const std::string&	 url,
+const config::Cgi* find_cgi_for(const Url&			 url,
 								const config::Route& route,
 								std::string&		 cgi_suffix) {
 	const config::Cgi*					cgi		 = NULL;
 	std::map<std::string, config::Cgi>& all_cgis = State::getInstance().getConfig().cgi;
-	std::vector<std::string>			parts	 = url_to_parts(url);
+	std::vector<std::string>			parts	 = url.getParts();
 
 	for (size_t i = route.parts.size(); i < parts.size() && cgi == NULL; i++) {
 		for (std::map<std::string, std::string>::const_iterator cit = route.cgi.begin();
@@ -348,6 +352,7 @@ Rc<Response> Response::createResponseFor(Epoll& epoll, Rc<Connection>& connectio
 		throw Request::PageException(status::METHOD_NOT_ALLOWED, req->getMethod() != "HEAD");
 	}
 
+	LOG(info, "making response for" << req->getUrl().getAll());
 	// the poor man block-breaking capability...
 	do {
 		// we have no route, default to server-level handling
@@ -404,6 +409,7 @@ std::size_t Response::fill_buffer(char buf[], std::size_t len) {
 		ss << "Content-Length: " << this->body_size;
 		ss << CRLF	CRLF;
 		std::string out = ss.str();
+		LOG(debug, "Content-Length: " << this->body_size);
 		this->inner_buffer.insert(this->inner_buffer.end(), out.begin(), out.end());
 		this->sent_headers = true;
 	}

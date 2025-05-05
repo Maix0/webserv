@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/29 17:16:21 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/24 21:57:30 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/05/06 00:04:51 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -138,12 +138,12 @@ bool Request::parseBytes(std::string& buffer) {
 				break;
 			};
 			case Request::PREBODY: {
+				continue_loop = true;
 				if (!(this->method == "POST" || this->method == "PUT")) {
-					continue_loop = true;
-					this->state	  = FINISHED;
-				} else
+					this->state = FINISHED;
+				} else {
 					this->state = BODY;
-
+				}
 				// if the host header is set, then use it to find the Server
 				if (this->headers.count("host")) {
 					std::string host = this->headers.at("host");
@@ -159,13 +159,14 @@ bool Request::parseBytes(std::string& buffer) {
 					}
 
 					assert(this->server != NULL);
-					this->route = getRouteFor(*this->server, this->url);
+					this->route = getRouteFor(*this->server, this->url.getParts());
 				}
 
 				// we may have chunked BODY, handle that
 				if (this->headers.count("transfer-encoding")) {
 					if (this->headers.at("transfer-encoding") == "chunked") {
 						this->state = Request::CHUNKED_BODY_HEADER;
+						this->body	= Option<Rc<tiostream> >::Some();
 					} else {
 					}
 				}
@@ -218,6 +219,7 @@ bool Request::parseBytes(std::string& buffer) {
 				size_t		to_read = std::min(buffer.size(), this->remaining_chunk_size);
 				std::string data(buffer.begin(), buffer.begin() + to_read);
 				buffer.erase(buffer.begin(), buffer.begin() + to_read);
+				this->body.get()->write(data.c_str(), data.size());
 
 				assert(this->remaining_chunk_size >= to_read);
 				this->body_size			   += to_read;
@@ -246,6 +248,8 @@ bool Request::parseBytes(std::string& buffer) {
 				buffer.erase(buffer.begin(), buffer.begin() + 2);
 				this->state	  = Request::FINISHED;
 				continue_loop = true;
+				if (this->route != NULL && this->route->max_size < this->body_size)
+					throw PageException(status::PAYLOAD_TOO_LARGE, this->method != "HEAD");
 				break;
 			};
 

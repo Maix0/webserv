@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/23 00:07:08 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/05/02 14:48:18 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/05/05 20:51:18 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -125,7 +125,6 @@ int wrapped_main(char* argv0, int argc, char* argv[], char* envp[]) {
 			 it++) {
 			if (it->second.is_finished) {
 				pids.push_back(it->first);
-				LOG(debug, "found1: " << it->first);
 			}
 		}
 		for (vector<pid_t>::iterator it = pids.begin(); it != pids.end(); it++) {
@@ -134,7 +133,6 @@ int wrapped_main(char* argv0, int argc, char* argv[], char* envp[]) {
 			for (cit = cgis.begin(); cit != cgis.end() && (*cit)->getPid() != *it; cit++)
 				;
 			if (cit != cgis.end()) {
-				LOG(debug, "FOUND: " << (*cit)->getPid());
 				(*cit)->setFinished();
 			}
 		}

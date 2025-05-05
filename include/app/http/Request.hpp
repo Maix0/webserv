@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/24 17:51:48 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/28 20:30:51 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/05/05 20:28:40 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,6 +24,7 @@
 #include <vector>
 
 #include "app/http/StatusCode.hpp"
+#include "app/http/Url.hpp"
 #include "config/Config.hpp"
 #include "lib/IndexMap.hpp"
 #include "lib/Option.hpp"
@@ -36,7 +37,6 @@
 class Request {
 	public:
 		typedef IndexMap<std::string, std::string> HeaderMap;
-		typedef std::string						   Url;
 		typedef std::string						   Method;
 
 		static const std::vector<std::string> ALLOWED_MULTIHEADERS;

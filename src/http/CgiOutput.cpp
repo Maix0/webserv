@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/25 15:00:28 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/05/02 20:51:41 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/05/06 00:29:56 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,13 +36,11 @@
 void CgiOutput::parseBytes() {
 	while (!this->buffer.empty()) {
 		if (this->finished_headers) {
-			char data[2048];
+			static char data[1 << 20];
 			while (!this->buffer.empty()) {
-				LOG(info, "trying to copy the remaining " << this->buffer.size() << " bytes");
 				size_t cpy_len = std::min(sizeof(data), this->buffer.size());
 				for (size_t i = 0; i < cpy_len; i++)
 					data[i] = this->buffer.at(i);
-				LOG(info, "copied " << cpy_len << " bytes");
 				this->buffer.erase(this->buffer.begin(), this->buffer.begin() + cpy_len);
 				this->body->write(data, cpy_len);
 				this->body_size += cpy_len;
@@ -94,7 +92,7 @@ CgiOutput::CgiOutput(Epoll&				epoll,
 					 std::string&		cgi_suffix,
 					 Rc<Response>&		res,
 					 Rc<Connection>&	conn)
-	: conn(conn), res(res), req(req), req_fd(-1), pid(-1) {
+	: conn(conn), res(res), req(req), req_fd(-1), pid(-1), bin_path(cgi->binary) {
 	(void)(epoll);
 	(void)(req);
 	this->body_size					= 0;
@@ -103,8 +101,7 @@ CgiOutput::CgiOutput(Epoll&				epoll,
 	const config::Route* rte		= req->getRoute();
 
 	this->script_path				= "";
-	this->path_info					= "";
-	std::vector<std::string> parts	= url_to_parts(req->getUrl());
+	std::vector<std::string> parts	= req->getUrl().getParts();
 	size_t					 r_size = rte->parts.size();
 	for (size_t i = 0; i < r_size; i++) {
 		this->script_path += "/";
@@ -117,19 +114,8 @@ CgiOutput::CgiOutput(Epoll&				epoll,
 		if (string_ends_with(parts[i], cgi_suffix))
 			break;
 	}
-	i++;
-	for (; i < parts.size(); i++) {
-		this->path_info += "/";
-		this->path_info += parts[i];
-	}
 
-	if (this->path_info.empty())
-		this->path_info = "/";
-	else
-		this->path_info.erase(0, 0);
-
-	std::string cgi_bin = cgi->binary;
-	this->do_exec(cgi_bin);
+	this->do_exec();
 }
 
 CgiOutput::~CgiOutput() {
@@ -140,39 +126,27 @@ CgiOutput::~CgiOutput() {
 }
 
 void CgiOutput::setFinished() {
-	char buffer[4096];
+	static char			  buffer[1 << 20];
+	Option<Rc<Response> > ores = this->res.upgrade();
 	this->raw_buf->seekg(0, std::ios::beg);
-	{
-		int size;
-		int dest = open("./cgi_dump", O_WRONLY | O_CREAT | O_TRUNC, 0644);
-		lseek(this->raw_buf->getFd(), 0, SEEK_SET);
-		while ((size = read(this->raw_buf->getFd(), buffer, sizeof(buffer))) > 0) {
-			(void)!write(dest, buffer, size);
-		}
-		close(dest);
-	}
 	do {
-		errno = 0;
 		this->raw_buf->read(buffer, sizeof(buffer));
-		int serr = errno;
-		(void)(serr);
 		this->buffer.insert(this->buffer.end(), &buffer[0], &buffer[this->raw_buf->gcount()]);
 		this->parseBytes();
 	} while (!(this->raw_buf->eof() || this->raw_buf->fail()));
 
 	this->finished = true;
 	this->body->seekg(0, std::ios::beg);
-	Option<Rc<Response> > ores = this->res.upgrade();
 	if (ores.hasValue()) {
 		ores.get()->setBody(this->body.cast<std::istream>(), this->body_size);
 	}
 };
 
-void CgiOutput::do_exec(std::string& bin) {
-	LOG(info, "new CGI");
+void CgiOutput::do_exec() {
 	Option<Rc<Request> > oreq = this->req.upgrade();
 	if (oreq.hasValue() && oreq.get()->getBody().hasValue()) {
 		_ERR_RET_THROW(this->req_fd = dup(oreq.get()->getBody().get()->getFd()));
+		LOG(info, "got body for cgi...");
 	} else {
 		_ERR_RET_THROW(this->req_fd = open("/dev/null", O_RDONLY | O_CLOEXEC));
 	}
@@ -193,12 +167,12 @@ void CgiOutput::do_exec(std::string& bin) {
 			std::vector<char const*> obuf;
 			char* const*			 envp = setup_env(State::getInstance().getEnv(), sbuf, obuf);
 			char*					 argv[2];
-			argv[0] = (char*)(bin.c_str());
+			argv[0] = (char*)(this->bin_path.c_str());
 			argv[1] = NULL;
 
 			_ERR_RET_THROW(dup2(this->req_fd, STDIN_FILENO));
 			_ERR_RET_THROW(dup2(this->raw_buf->getFd(), STDOUT_FILENO));
-			_ERR_RET_THROW(execve(bin.c_str(), argv, envp));
+			_ERR_RET_THROW(execve(this->bin_path.c_str(), argv, envp));
 		} catch (const std::exception& e) {
 			dup2(reserve, STDOUT_FILENO);
 			LOG(fatal, "Child threw: " << e.what());
@@ -230,33 +204,34 @@ char* const* CgiOutput ::setup_env(char**					 envp,
 	Option<Rc<Request> > oreq = this->req.upgrade();
 	if (!oreq.hasValue())
 		throw std::runtime_error("Request died...");
-	Rc<Request> req = oreq.get();
+	Rc<Request> req			 = oreq.get();
 
-	std::string query_string;
-	{
-		std::string::size_type last_slash = req->getUrl().find('/');
-		std::string::size_type first_qmark =
-			req->getUrl().find('?', last_slash != std::string::npos ? last_slash : 0);
-		if (first_qmark != std::string::npos)
-			query_string =
-				std::string(req->getUrl().begin() + first_qmark + 1, req->getUrl().end());
-	}
 	std::string content_type = mime::MimeType::from_extension("binary").getInner();
 	if (req->getHeaders().count("content-type"))
 		content_type = req->getHeaders()["content-type"];
+
+	std::string url;
+	{
+		std::stringstream				url_out;
+		const std::vector<std::string>& parts = req->getUrl().getParts();
+		for (std::vector<std::string>::const_iterator it = parts.begin(); it != parts.end(); it++)
+			url_out << "/" << *it;
+		url = url_out.str();
+	}
 
 	ADD_HEADER("AUTH_TYPE", "");
 	ADD_HEADER("CONTENT_LENGTH", req->getBodySize());
 	ADD_HEADER("CONTENT_TYPE", content_type);
 	ADD_HEADER("GATEWAY_INTERFACE", "CGI/1.1");
-	ADD_HEADER("PATH_INFO", this->path_info);
+	ADD_HEADER("PATH_INFO", url);
 	ADD_HEADER("PATH_TRANSLATED", "");
-	ADD_HEADER("QUERY_STRING", query_string);
+	ADD_HEADER("QUERY_STRING", req->getUrl().getQs());
 	ADD_HEADER("REMOTE_ADDR", req->getIp());
 	ADD_HEADER("REMOTE_PORT", req->getPort());
 	ADD_HEADER("REQUEST_METHOD", req->getMethod());
 	ADD_HEADER("REQUEST_SCHEME", "http");
-	ADD_HEADER("REQUEST_URI", req->getUrl());
+	ADD_HEADER("REQUEST_URI", url);
+	ADD_HEADER("SCRIPT_PATH", this->bin_path);
 	ADD_HEADER("SCRIPT_NAME", this->script_path);
 	ADD_HEADER("SERVER_NAME", "localhost");
 	ADD_HEADER("SERVER_PORT", req->getServer()->port);

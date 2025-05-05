@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/07 21:50:04 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/25 14:40:52 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/05/05 20:42:15 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -263,7 +263,9 @@ namespace config {
 			std::set<std::vector<string> > route_seens;
 			for (IndexMap<string, Route>::iterator route = sit->second.routes.begin();
 				 route != sit->second.routes.end(); route++) {
-				vector<string> parts = url_to_parts(route->first);
+				LOG(info, route->first);
+				Url			   u	 = route->first;
+				vector<string> parts = u.getParts();
 				if (route_seens.count(parts) != 0) {
 					LOG(err, "Duplicate route for server "
 								 << sit->first << " (offending route: " << route->first << ")");

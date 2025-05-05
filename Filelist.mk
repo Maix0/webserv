@@ -19,6 +19,7 @@ http/Request                                                                  \
 http/Response                                                                 \
 http/Routing                                                                  \
 http/StatusCode                                                               \
+http/Url                                                                      \
 lib/Semaphore                                                                 \
 lib/TempFile                                                                  \
 lib/Time                                                                      \

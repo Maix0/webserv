@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 13:36:52 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/05/02 10:45:28 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/05/06 00:10:41 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,7 +31,7 @@ class Socket : public AsFd {
 		config::Server* server;
 
 	public:
-		static const int BACKLOG = 5;
+		static const int BACKLOG = 128;
 
 		Socket();
 		Socket(const Ip& host, Port port, config::Server* server = NULL);

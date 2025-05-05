@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/25 15:01:23 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/05/02 17:01:51 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/05/03 17:16:28 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,11 +43,12 @@ class CgiOutput {
 		std::string script_path;
 		std::string path_info;
 		std::string query_string;
+		std::string bin_path;
 
 		char* const* setup_env(char**					 envp,
 							   std::vector<std::string>& buf,
 							   std::vector<char const*>& out);
-		void		 do_exec(std::string& bin);
+		void		 do_exec();
 
 	public:
 		CgiOutput(Epoll&			 epoll,

@@ -1,8 +1,8 @@
 shutdown = false
 
 [cgi]
-cgi_tester = { binary = "./dl/cgi_tester" }
-#cgi_tester = { binary = "./test_cgi" }
+#cgi_tester = { binary = "./dl/cgi_tester" }
+cgi_tester = { binary = "./dumper_cgi" }
 #php_cgi = { binary = "php_cgi", from_env = false }
 #env_php_cgi = { binary = "PHP_CGI", from_env = true }
 
@@ -21,7 +21,7 @@ allowed = ["PUT"]
 cgi = { "bla" = "cgi_tester" }
 post_directory = "./put_dir"
 
-[server.example.routes."/post_directory"]
+[server.example.routes."/post_body"]
 allowed = ["POST"]
 cgi = { "bla" = "cgi_tester" }
 max_size = 100
@@ -33,5 +33,6 @@ allowed = ["GET", "POST"]
 cgi = { "bla" = "cgi_tester" }
 index = "youpi.bad_extension"
 post_directory = "./post_dir"
+max_size = 100000000
 
 #cgi = { php = "php_cgi1" }

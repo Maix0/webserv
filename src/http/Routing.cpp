@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/14 16:30:56 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/18 18:36:57 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/05/05 20:35:14 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,8 +47,9 @@ vector<string> url_to_parts(const std::string& url) {
 	return parts;
 }
 
-const config::Route* getRouteFor(const config::Server& server, const std::string& url) {
-	vector<string> parts			   = url_to_parts(url);
+const config::Route* getRouteFor(const config::Server&			 server,
+								 const std::vector<std::string>& url) {
+	vector<string> parts			   = url;
 
 	const config::Route* closest_match = NULL;
 	int					 match_count   = 0;
