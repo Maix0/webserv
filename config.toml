@@ -1,8 +1,8 @@
 shutdown = false
 
 [cgi]
-#cgi_tester = { binary = "./dl/cgi_tester" }
-cgi_tester = { binary = "./dumper_cgi" }
+cgi_tester = { binary = "./dl/cgi_tester" }
+#cgi_tester = { binary = "./dumper_cgi" }
 #php_cgi = { binary = "php_cgi", from_env = false }
 #env_php_cgi = { binary = "PHP_CGI", from_env = true }
 

@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/23 00:07:08 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/05/05 20:51:18 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/05/06 16:34:26 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,7 +38,6 @@
 using std::string;
 using std::vector;
 
-int	 req_dump	 = -1;
 bool do_shutdown = false;
 
 static void install_signals(void);
@@ -65,8 +64,6 @@ int wrapped_main(char* argv0, int argc, char* argv[], char* envp[]) {
 
 	SocketList s = ctx.getSockets();
 	Epoll	   epoll;
-	req_dump = open("./req_dump", O_RDWR | O_TRUNC | O_CREAT, 0777);
-	assert(req_dump != -1);
 
 	for (SocketList::iterator iit = s.begin(); iit != s.end(); iit++) {
 		for (vector<Rc<Socket> >::iterator sit = iit->second.begin(); sit != iit->second.end();
@@ -157,6 +154,8 @@ static void _signchild_handler(int sig) {
 	IndexMap<pid_t, ChildStatus>& cstatus = State::getInstance().getChildStatus();
 
 	while ((child_pid = waitpid(-1, &status, WNOHANG)) != -1) {
+		if (child_pid == 0)
+			continue;
 		int exit_code = -1;
 		if (WIFEXITED(status))
 			exit_code = WEXITSTATUS(status);

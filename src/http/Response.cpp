@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/03 13:48:32 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/05/05 23:51:48 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/05/06 16:24:10 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -431,3 +431,21 @@ std::size_t Response::fill_buffer(char buf[], std::size_t len) {
 	this->inner_buffer.erase(this->inner_buffer.begin(), this->inner_buffer.begin() + i);
 	return i;
 }
+
+Response::~Response() {
+	if (this->passthru.hasValue()) {
+		CgiOutput* cptr	 = &*this->passthru.get();
+		CgiList&   clist = State::getInstance().getCgis();
+		bool	   found;
+		do {
+			found = false;
+			for (CgiList::iterator it = clist.begin(); it != clist.end(); it++) {
+				if (&**it == cptr) {
+					clist.erase(it);
+					found = true;
+					break;
+				}
+			}
+		} while (found);
+	}
+};

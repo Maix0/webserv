@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/25 15:00:28 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/05/06 00:29:56 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/05/06 16:35:28 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -146,7 +146,6 @@ void CgiOutput::do_exec() {
 	Option<Rc<Request> > oreq = this->req.upgrade();
 	if (oreq.hasValue() && oreq.get()->getBody().hasValue()) {
 		_ERR_RET_THROW(this->req_fd = dup(oreq.get()->getBody().get()->getFd()));
-		LOG(info, "got body for cgi...");
 	} else {
 		_ERR_RET_THROW(this->req_fd = open("/dev/null", O_RDONLY | O_CLOEXEC));
 	}
@@ -166,7 +165,8 @@ void CgiOutput::do_exec() {
 			std::vector<std::string> sbuf;
 			std::vector<char const*> obuf;
 			char* const*			 envp = setup_env(State::getInstance().getEnv(), sbuf, obuf);
-			char*					 argv[2];
+			LOG(info, "Cgi Sendoff: " << this->bin_path);
+			char* argv[2];
 			argv[0] = (char*)(this->bin_path.c_str());
 			argv[1] = NULL;
 
@@ -251,17 +251,11 @@ char* const* CgiOutput ::setup_env(char**					 envp,
 	}
 
 	(void)(envp);
-	// while (envp[i])
-	//	env.push_back(envp[i++]);
 
-	for (i = 0; i < buf.size(); i++) {
+	for (i = 0; i < buf.size(); i++)
 		out.push_back(buf[i].c_str());
-	}
+
 	out.push_back(NULL);
-	for (size_t i = 0; i < out.size(); i++) {
-		if (out[i] != NULL)
-			LOG(debug, "env[" << i << "](" << strlen(out[i]) << ") = " << out[i]);
-	}
 
 	return (char* const*)out.data();
 }

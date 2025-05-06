@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/12 18:56:10 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/30 23:25:32 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/05/06 16:34:42 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,7 @@
 #include "lib/Functors.hpp"
 #include "runtime/EpollType.hpp"
 #include "runtime/Logger.hpp"
-extern int req_dump;
+
 // 4 MiB
 #define MAX_READ_BYTES (1 << 22)
 
@@ -61,7 +61,6 @@ void _ConnCallbackR(Epoll& epoll, Rc<Callback>& self, Rc<Connection>& inner) {
 			throw Request::PageException(status::INTERNAL_SERVER_ERROR,
 										 inner->getRequest()->getMethod() != "HEAD");
 		}
-		(void)!write(req_dump, READ_BUF, res);
 		if (res > 0)
 			inner->updateTime();
 		inner->getInBuffer().insert(inner->getInBuffer().end(), &READ_BUF[0], &READ_BUF[res]);

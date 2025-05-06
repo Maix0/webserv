@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/02 15:39:45 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/30 23:31:19 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/05/06 16:23:14 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,8 +59,7 @@ class Response {
 			  sent_headers(false),
 			  is_finished(false),
 			  is_stream_eof(false) {};
-		~Response() {};
-
+		~Response();
 		void setCgi(Rc<CgiOutput>& s) { this->passthru = s; };
 
 		void setBody(Rc<std::istream> body, size_t size) {
