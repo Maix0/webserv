@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/07 21:50:04 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/05/05 20:42:15 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/05/07 08:58:12 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -103,9 +103,10 @@ namespace config {
 					}
 					envp2++;
 				}
-				if (!found)
+				if (!found) {
 					LOG(err, "cgi '" << name << "' was declared as using a variable ('"
 									 << cgi.binary << "') to get path, but no such var is set");
+				}
 				error |= !found;
 			}
 			if (!cgi.from_env) {

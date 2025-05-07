@@ -6,7 +6,7 @@
 #    By: rparodi <rparodi@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/11/12 11:05:05 by rparodi           #+#    #+#              #
-#    Updated: 2025/05/02 14:57:18 by maiboyer         ###   ########.fr        #
+#    Updated: 2025/05/07 09:06:33 by maiboyer         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -70,6 +70,14 @@ ifeq ($(ENABLE_BACKTRACE), yes)
     endif
 endif
 
+ENABLE_SOCKET_PORT ?= yes
+ifeq ($(ENABLE_BACKTRACE), yes)
+    CXXFLAGS_ADDITIONAL += -DENABLE_SOCKET_PORT
+    ifeq ($(MAKECMDGOALS), header)
+        MSG += "$(WSTART)printing last socket port onto /tmp/socket_webserv$(WEND)"
+    endif
+endif
+
 ENABLE_PRINT_PID ?= yes
 ifeq ($(ENABLE_PRINT_PID), yes)
     CXXFLAGS_ADDITIONAL += -DENABLE_PRINT_PID
@@ -78,19 +86,9 @@ ifeq ($(ENABLE_PRINT_PID), yes)
     endif
 endif
 
-# currently it leads to deadlock so no thank you...
-ENABLE_TRUE_SEMAPHORE ?= no
-ifeq ($(ENABLE_TRUE_SEMAPHORE), yes)
-    CXXFLAGS_ADDITIONAL += -DENABLE_TRUE_SEMAPHORE
-    ifeq ($(MAKECMDGOALS), header)
-        MSG += "$(WSTART)using $(GOLD)using true semaphores$(WEND)"
-    endif
-endif
-
-
-CXXFLAGS_ADDITIONAL	+= -gcolumn-info -g3 -fno-builtin
-CXXFLAGS_ADDITIONAL	+= -fdiagnostics-color=always
-CXXFLAGS_ADDITIONAL	+= -DLOG_LEVEL=debug
+#CXXFLAGS_ADDITIONAL	+= -gcolumn-info -g3 -fno-builtin
+#CXXFLAGS_ADDITIONAL	+= -fdiagnostics-color=always
+#CXXFLAGS_ADDITIONAL	+= -DLOG_LEVEL=debug
 
 ENABLE_LLD ?= yes
 LLD := $(shell command -v lld 2> /dev/null)
@@ -129,9 +127,6 @@ export BASE_PATH
 ECHO = /usr/bin/env echo
 export ECHO
 
-# All (make all)
-#	$(eval CXXFLAGS_ADDITIONAL += -O0 -ggdb3 -Wno-\#warnings)
-#	$(eval LDFLAGS_ADDITIONAL += -no-pie)
 all:
 	$(eval CXXFLAGS_ADDITIONAL += -Werror)
 	@$(MAKE) --no-print-directory header
@@ -141,7 +136,7 @@ all:
 scan-build:
 	@$(SCAN_BUILD) $(MAKE) --no-print-directory -k re                  \
 		CXXFLAGS_ADDITIONAL=-DLOG_DISABLE ENABLE_BACKTRACE=no ENABLE_LLD=no    \
-		ENABLE_TRUE_SEMAPHORE=no ENABLE_PRINT_PID=no                   \
+		ENABLE_PRINT_PID=no                   \
 		"MSG_BONUS=$(WSTART)$(RED)SCAN BUILD IS RUNNING$(WEND)"
 
 release:
@@ -164,7 +159,7 @@ bonus:
 	$(eval CXXFLAGS_ADDITIONAL += -Werror -DBONUS=1)
 	@$(MAKE) --no-print-directory header 'MSG_BONUS=\n\x1b[D$(GOLD)         compiling with bonus          $(WEND)\n'
 	@$(MAKE) --no-print-directory -f ./Webserv.mk $(PMAKE) NAME=$(NAME)_bonus
-	@$(MAKE) --no-print-directory footerLE_TRUE_SEMAPHORE -DLOG_LEVEL=debug -DTERMINATE_BACKTRACE -MMD -O0 -Wall -Wextra -Wno-#warnings -fdiagnostics-color=always -fno-builtin -g3 -gcolumn-info -ggdb3 -std=c++98
+	@$(MAKE) --no-print-directory footer
 
 asan: 
 	$(eval CXXFLAGS_ADDITIONAL = "")

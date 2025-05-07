@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/02 18:29:43 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/05/02 14:38:53 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/05/07 08:56:29 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,6 @@
 #include <sstream>
 #include <string>
 
-#include "lib/Semaphore.hpp"
 #include "lib/StringHelper.hpp"
 
 #define RESET		   "\x1b[0m"
@@ -91,7 +90,6 @@ namespace log {
 	};
 
 	extern LogLevel	   logLevel;
-	extern Semaphore   logSemaphore;
 	extern const char* logPidColor;
 
 	inline bool _setEnvLogLevel(char** envp) {
@@ -207,11 +205,8 @@ namespace log {
 #ifndef LOG_DISABLE
 #	define LOG(level, code)                                                                  \
 		do {                                                                                  \
-			::Semaphore::Ticket _ticket(::log::logSemaphore);                                 \
-			std::stringstream	_pid_message_private_in_macro;                                                          \
 			FILTER_##level(std::cerr << HEADER_##level " " << PRINT_PID << __FUNCTION__       \
 									 << " in " __FILE__ ":" SLINE " " << code << std::endl;); \
-			(void)_ticket;                                                                    \
 		} while (0)
 #else
 #	define LOG(level, code)

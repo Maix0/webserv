@@ -382,6 +382,7 @@ built_in = {
     "_fini",
     "_init",
     "_start",
+    "_dl_relocate_static_pie",
     # seems like clang likes to use these function on newer version ?
     "__isoc23_strtol",
     "__isoc23_strtoull",

@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/03 13:48:32 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/05/06 16:24:10 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/05/07 09:16:58 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,7 +31,6 @@
 #include "app/http/MimesTypes.hpp"
 #include "app/http/Request.hpp"
 #include "app/http/Response.hpp"
-#include "app/http/Routing.hpp"
 #include "app/http/StatusCode.hpp"
 #include "app/http/Url.hpp"
 #include "app/net/Connection.hpp"
@@ -151,16 +150,20 @@ void handle_post_delete(Epoll&			epoll,
 	if (req->getMethod() == "POST") {
 		std::ofstream file_out;
 		file_out.open(file.c_str(), std::ios_base::out | std::ios_base::binary);
-		if (file_out.fail())
+		if (file_out.fail()) {
+			LOG(warn, "Failed to open file " << file);
 			throw Request::PageException(status::INTERNAL_SERVER_ERROR, req->getMethod() != "HEAD");
+		}
 		char*		  buffer = new char[COPY_BUFFER_SIZE];
 		Rc<tiostream> body	 = req->getBody().get();
 		body->seekg(0, std::ios_base::beg);
-		if (body->fail())
+		if (body->fail()) {
 			LOG(err, "failed to seekg");
+		}
 		body->seekp(0, std::ios_base::beg);
-		if (body->fail())
+		if (body->fail()) {
 			LOG(err, "failed to seekp");
+		}
 		while (!(body->eof() || body->fail() || file_out.fail())) {
 			body->read(buffer, COPY_BUFFER_SIZE);
 			size_t len = body->gcount();

@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/23 00:07:08 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/05/06 16:34:26 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/05/07 09:01:52 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,12 +69,12 @@ int wrapped_main(char* argv0, int argc, char* argv[], char* envp[]) {
 		for (vector<Rc<Socket> >::iterator sit = iit->second.begin(); sit != iit->second.end();
 			 sit++) {
 			Rc<Socket> sock = *sit;
-			{
-				int fd = -1;
-				_ERR_RET_THROW(fd = open("/tmp/socket_webserv", O_CREAT | O_TRUNC | O_RDWR, 0777));
-				dprintf(fd, "%i\n", sock->getBoundPort().inner);
-				close(fd);
-			}
+#ifdef ENABLE_SOCKET_PORT
+			int fd = -1;
+			_ERR_RET_THROW(fd = open("/tmp/socket_webserv", O_CREAT | O_TRUNC | O_RDWR, 0777));
+			dprintf(fd, "%i\n", sock->getBoundPort().inner);
+			close(fd);
+#endif
 			Rc<SocketCallback> sock_cb =
 				Rc<SocketCallback>(Functor1<SocketCallback, Rc<Socket>&>(sock), RCFUNCTOR);
 			epoll.addCallback(sock->asFd(), READ, sock_cb.cast<Callback>());

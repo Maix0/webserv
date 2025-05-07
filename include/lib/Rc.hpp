@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/08 16:52:34 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/30 23:20:59 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/05/07 08:54:12 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -252,8 +252,8 @@ class Rc {
 #include "lib/Option.hpp"
 
 struct FunctorMarker {};
-#define RCFUNCTOR  FunctorMarker()
-#define C_restrict __restrict__
+#define RCFUNCTOR FunctorMarker()
+#define C_restrict
 
 template <typename T>
 class Rc;

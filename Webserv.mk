@@ -6,7 +6,7 @@
 #    By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/11/03 13:20:01 by maiboyer          #+#    #+#              #
-#    Updated: 2025/04/30 18:03:22 by maiboyer         ###   ########.fr        #
+#    Updated: 2025/05/07 09:06:10 by maiboyer         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -129,7 +129,7 @@ SYMDIFF_ALLOWED = accept access bind chdir close closedir connect dup dup2    \
 				  write
 
 symdiff:
-	@$(MAKE) -f ./Webserv.mk --no-print-directory all "CXXFLAGS=-g3 -Wall -Wextra -MMD -std=c++98" "CFLAGS=-g3 -Wall -Wextra -MMD"
+	@$(MAKE) -f ./Webserv.mk --no-print-directory all "CXXFLAGS=-g3 -Wall -Wextra -MMD -std=c++98" "CFLAGS=-g3 -Wall -Wextra -MMD" LDFLAGS=
 	@./symdiff.py -C $(SYMDIFF_CLASSES) -o $(OBJ) -b $(TARGET) $(SYMDIFF_FLAGS) -a $(SYMDIFF_ALLOWED)
 
 -include $(DEPS)
