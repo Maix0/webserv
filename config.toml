@@ -1,10 +1,7 @@
-shutdown = false
+shutdown = 80085
 
 [cgi]
 cgi_tester = { binary = "./dl/cgi_tester" }
-#cgi_tester = { binary = "./dumper_cgi" }
-#php_cgi = { binary = "php_cgi", from_env = false }
-#env_php_cgi = { binary = "PHP_CGI", from_env = true }
 
 [server.example]
 host = "localhost"
@@ -35,4 +32,14 @@ index = "youpi.bad_extension"
 post_directory = "./post_dir"
 max_size = 100000000
 
-#cgi = { php = "php_cgi1" }
+
+[server.maix]
+host = "local.maix.me"
+bind = "0.0.0.0"
+port = 80
+root = "./test/"
+
+[server.maix.routes."/"]
+allowed = ["GET"]
+index = "index.html"
+
