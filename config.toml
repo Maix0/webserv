@@ -1,12 +1,23 @@
-shutdown = 80085
+shutdown = true
 
 [cgi]
 cgi_tester = { binary = "./dl/cgi_tester" }
 
-[server.example]
-host = "localhost"
+[server.maix]
+host = "local.maix.me"
 bind = "0.0.0.0"
-port = 0
+port = 8080
+root = "./static/"
+
+[server.maix.routes."/"]
+allowed = ["GET"]
+index = "index.html"
+
+
+[server.example]
+host = "tester.local.maix.me"
+bind = "0.0.0.0"
+port = 8081
 root = "./YoupiBanane/"
 
 [server.example.routes."/"]
@@ -24,22 +35,9 @@ cgi = { "bla" = "cgi_tester" }
 max_size = 100
 post_directory = "./post_dir"
 
-
 [server.example.routes."/directory/"]
 allowed = ["GET", "POST"]
 cgi = { "bla" = "cgi_tester" }
 index = "youpi.bad_extension"
 post_directory = "./post_dir"
 max_size = 100000000
-
-
-[server.maix]
-host = "local.maix.me"
-bind = "0.0.0.0"
-port = 80
-root = "./test/"
-
-[server.maix.routes."/"]
-allowed = ["GET"]
-index = "index.html"
-
