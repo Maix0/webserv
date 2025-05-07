@@ -1,6 +1,7 @@
-shutdown = true
+shutdown = 8000
 
 [cgi]
+api_cgi = { binary = "./api_cgi.py" }
 cgi_tester = { binary = "./dl/cgi_tester" }
 
 [server.maix]
@@ -13,6 +14,10 @@ root = "./static/"
 allowed = ["GET"]
 index = "index.html"
 
+[server.maix.routes."/api/"]
+allowed = ["DELETE", "POST", "GET"]
+cgi = { "api" = "api_cgi" }
+root = "/var/empty"
 
 [server.example]
 host = "tester.local.maix.me"

@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/23 00:07:08 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/05/07 09:01:52 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/05/07 10:12:40 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,6 +41,7 @@ using std::vector;
 bool do_shutdown = false;
 
 static void install_signals(void);
+static void update_childs();
 
 int wrapped_main(char* argv0, int argc, char* argv[], char* envp[]) {
 	(void)(argv0);
@@ -115,6 +116,7 @@ int wrapped_main(char* argv0, int argc, char* argv[], char* envp[]) {
 			LOG(trace, "Keep alive timeout for " << (*c)->asFd());
 			connections.erase(c);
 		}
+		update_childs();
 		vector<pid_t>				  pids;
 		IndexMap<pid_t, ChildStatus>& cstatus = ctx.getChildStatus();
 		CgiList&					  cgis	  = ctx.getCgis();
@@ -147,8 +149,7 @@ static void _sigint_handler(int sig) {
 	do_shutdown = true;
 }
 
-static void _signchild_handler(int sig) {
-	(void)(sig);
+static void update_childs() {
 	int							  child_pid = -1;
 	int							  status;
 	IndexMap<pid_t, ChildStatus>& cstatus = State::getInstance().getChildStatus();
@@ -173,8 +174,6 @@ static void _signchild_handler(int sig) {
 		}
 	}
 }
-
 static void install_signals(void) {
 	signal(SIGINT, _sigint_handler);
-	signal(SIGCHLD, _signchild_handler);
 };
