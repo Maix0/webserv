@@ -55,7 +55,7 @@ def get_info(db:sqlite3.Cursor, method: str, path: str):
             "\r\n"
             "Not Logged in\r\n"
         )
-    res = db.fetchone("SELECT * FROM users WHERE session = ?", (cookies["session"],))
+    res = db.execute("SELECT * FROM users WHERE session = ?", (cookies["session"],)).fetchone()
     if res is None:
         return (
             "status: 403 Forbidden\r\n"
@@ -65,7 +65,6 @@ def get_info(db:sqlite3.Cursor, method: str, path: str):
         )
     return (
         "status: 200 OK\r\n"
-        "set-cookie: session=deleted; expires=Thu, 01 Jan 1970 00:00:00 GMT\r\n"
         "\r\n"
         f"{res[3]}\r\n"
     )
@@ -95,7 +94,7 @@ def set_info(db:sqlite3.Cursor, method: str, path: str):
             "Not Logged in\r\n"
         )
     new_info = input()
-    db.execute("UPDATE users SET info = ? WHERE session = ?", (new_info, res[0]))
+    db.execute("UPDATE users SET info = ? WHERE session = ?", (new_info, cookies["session"]))
     return (
         "status: 200 OK\r\n"
         "\r\n"

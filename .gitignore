@@ -29,3 +29,4 @@ testing
 post_dir
 req_dumps
 YoupiBanane
+*.db

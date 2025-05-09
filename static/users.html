@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Super duper User facing website</title>
+    <style>
+        .error {
+            background-color: red;
+            color: black;
+        }
+
+        .ok {
+            background-color: green;
+            color: black;
+        }
+    </style>
+</head>
+
+<body>
+
+    <input type="text" class="username" placeholder="username"></input>
+    <input type="text" class="password" placeholder="password"></input>
+    <input type="text" class="info" placeholder="info"></input>
+    <button onclick="signin()">signin</button>
+    <button onclick="login()">login</button>
+    <button onclick="logout()">logout</button>
+    <button onclick="getinfo()">getinfo</button>
+    <button onclick="setinfo()">setinfo</button>
+    <button onclick="dumpdb()">dumpdb</button>
+    <div class="output-box"></div>
+    <div class="cookie"></div>
+
+    <script>
+        const OUTPUT = document.querySelector(".output-box");
+        const COOKIE = document.querySelector(".cookie");
+
+        function set_cookie(cookie) {
+            if (cookie === null)
+                COOKIE.innerText = "session=";
+            else
+                COOKIE.innerText = "session=" + cookie;
+        }
+
+        function set_err(txt) {
+            OUTPUT.classList.remove("ok")
+            OUTPUT.classList.add("error")
+            OUTPUT.innerText = txt;
+        }
+
+
+        function set_ok(txt) {
+            OUTPUT.classList.remove("error")
+            OUTPUT.classList.add("ok")
+            OUTPUT.innerText = txt;
+        }
+
+        function getCookie(name) {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return parts.pop().split(';').shift();
+            return null;
+        }
+
+        async function login() {
+            let username = document.querySelector(".username").value;
+            let password = document.querySelector(".password").value;
+
+            if (username.Length === 0 || password.Length == 0)
+                return set_err("username/password must be set");
+            let res = await fetch("/api/login.api", { method: "POST", body: `${username}\n${password}\n` });
+            if (res.ok)
+                set_ok(await res.text())
+            else
+                set_err(await res.text())
+            set_cookie(getCookie("session"))
+        }
+
+        async function logout() {
+            document.querySelector(".username").value = "";
+            document.querySelector(".password").value = "";
+
+            let res = await fetch("/api/logout.api");
+            if (res.ok)
+                set_ok(await res.text())
+            else
+                set_err(await res.text())
+            set_cookie(getCookie("session"))
+        }
+
+        async function signin() {
+            let username = document.querySelector(".username").value;
+            let password = document.querySelector(".password").value;
+
+            if (username.Length === 0 || password.Length == 0)
+                return set_err("username/password must be set");
+            let res = await fetch("/api/signin.api", { method: "POST", body: `${username}\n${password}\n` });
+            if (res.ok)
+                set_ok(await res.text())
+            else
+                set_err(await res.text())
+            set_cookie(getCookie("session"))
+        }
+
+        async function dumpdb() {
+            let res = await fetch("/api/dumpdb.api");
+            if (res.ok)
+                set_ok(await res.text())
+            else
+                set_err(await res.text())
+            set_cookie(getCookie("session"))
+        }
+
+        
+        async function setinfo() {
+            let info = document.querySelector(".info").value;
+            let res = await fetch("/api/setinfo.api", {method: "POST", body: `${info}\n`});
+            if (res.ok)
+                set_ok(await res.text())
+            else
+                set_err(await res.text())
+            set_cookie(getCookie("session"))
+        }
+
+        async function getinfo() {
+            let res = await fetch("/api/getinfo.api");
+            if (res.ok)
+                set_ok(await res.text())
+            else
+                set_err(await res.text())
+            set_cookie(getCookie("session"))
+        }
+    </script>
+</body>
+
+</html>
