@@ -106,10 +106,10 @@ _flags:
 	@/bin/sh <<EOF
 	#newlines have been replaced by spaces, and a space has been added at the end to satisfy compatibility
 	if [ \
-	"CXX = $$CXX CXXFLAGS = $$CXXFLAGS LDFLAGS = $$LDFLAGS " \
-	!= "$$(cat $$BUILD_DIR/.flags.txt 2>/dev/null | tr '\n' ' ')" ]; then 
+	"'CXX = $$CXX CXXFLAGS = $$CXXFLAGS LDFLAGS = $$LDFLAGS '" \
+	!= "'$$(cat $$BUILD_DIR/.flags.txt 2>/dev/null | tr '\n' ' ')'" ]; then 
 		mkdir -p $$BUILD_DIR;
-		echo -e "CXX = $$CXX\nCXXFLAGS = $$CXXFLAGS\nLDFLAGS = $$LDFLAGS" > $$BUILD_DIR/.flags.txt; 
+		/usr/bin/env echo -e "CXX = $$CXX\nCXXFLAGS = $$CXXFLAGS\nLDFLAGS = $$LDFLAGS" > $$BUILD_DIR/.flags.txt; 
 	fi;
 	EOF
 

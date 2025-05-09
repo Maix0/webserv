@@ -74,6 +74,7 @@ void add_common_header(Response& res) {
 	strftime(buffer, sizeof(buffer), "%a, %d %b %Y %H:%M:%S GMT", tm_info);
 	res.setHeader("Date", buffer);
 	res.setHeader("Server", SERVER_NAME);
+	res.setHeader("Content-Security-Policy","default-src * 'unsafe-inline' 'unsafe-eval'; script-src * 'unsafe-inline' 'unsafe-eval'; connect-src * 'unsafe-inline'; img-src * data: blob: 'unsafe-inline'; frame-src *; style-src * 'unsafe-inline';");
 }
 
 void handle_redirect(Epoll& epoll, Rc<Connection> connection, Rc<Request> req, Rc<Response> res) {

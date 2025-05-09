@@ -7,7 +7,7 @@ cgi_tester = { binary = "./dl/cgi_tester" }
 [server.maix]
 host = "local.maix.me"
 bind = "0.0.0.0"
-port = 8080
+port = 8088
 root = "./static/"
 
 [server.maix.routes."/"]
