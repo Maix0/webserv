@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/02 15:39:45 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/05/06 16:23:14 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/05/10 12:21:19 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,6 +27,8 @@
 #ifndef SERVER_NAME
 #	define SERVER_NAME "Maixserv"
 #endif
+
+#define COPY_BUFFER_SIZE (1 << 22)
 
 class Connection;
 
@@ -96,3 +98,31 @@ class Response {
 		std::size_t fill_buffer(char buf[], std::size_t len);
 		void		sent_bytes(std::size_t len);
 };
+
+namespace handlers {
+
+	void handle_static_file(Epoll&			epoll,
+							Rc<Connection>& connection,
+							Rc<Request>&	req,
+							Rc<Response>&	res);
+	void handle_post_delete(Epoll&			epoll,
+							Rc<Connection>& connection,
+							Rc<Request>&	req,
+							Rc<Response>&	res);
+	void handle_redirect(Epoll&			 epoll,
+						 Rc<Connection>& connection,
+						 Rc<Request>&	 req,
+						 Rc<Response>&	 res);
+
+	void		 handle_cgi_request(Epoll&			   epoll,
+									Rc<Connection>&	   connection,
+									Rc<Request>&	   req,
+									Rc<Response>&	   res,
+									const config::Cgi& cgi,
+									std::string		   cgi_prefix);
+	Rc<Response> default_status_page(StatusCode code, bool with_body);
+
+	const config::Cgi* find_cgi_for(const Url&			 url,
+									const config::Route& route,
+									std::string&		 cgi_suffix);
+};	// namespace handlers

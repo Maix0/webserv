@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/25 15:01:23 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/05/03 17:16:28 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/05/10 12:47:56 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,6 +41,7 @@ class CgiOutput {
 		int pid;
 
 		std::string script_path;
+		std::string script_directory;
 		std::string path_info;
 		std::string query_string;
 		std::string bin_path;

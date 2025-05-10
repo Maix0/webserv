@@ -6,13 +6,14 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/25 15:00:28 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/05/06 16:35:28 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/05/10 13:29:34 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <cerrno>
 #include <cstddef>
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
 #include <sstream>
 #include <stdexcept>
@@ -25,11 +26,9 @@
 #include "app/http/MimesTypes.hpp"
 #include "app/http/Request.hpp"
 #include "app/http/Response.hpp"
-#include "app/http/Routing.hpp"
 #include "app/net/Connection.hpp"
 #include "config/Config.hpp"
 #include "lib/ExitError.hpp"
-#include "lib/Functors.hpp"
 #include "lib/Rc.hpp"
 #include "lib/StringHelper.hpp"
 
@@ -114,7 +113,33 @@ CgiOutput::CgiOutput(Epoll&				epoll,
 		if (string_ends_with(parts[i], cgi_suffix))
 			break;
 	}
-
+	std::string r =
+		(req->getRoute() ? (req->getRoute()->root.hasValue() ? req->getRoute()->root.get()
+															 : req->getServer()->root)
+						 : req->getServer()->root);
+	{
+		char		resolved[4096];
+		std::string r2 =
+			(req->getRoute() ? (req->getRoute()->root.hasValue()
+									? req->getRoute()->root.get()
+									: (req->getServer()->root + "/" + req->getRoute()->name))
+							 : req->getServer()->root);
+		char* ret = realpath(r2.c_str(), resolved);
+		if (ret == NULL)
+			throw std::runtime_error("Failed to get realpath of the directory...");
+		this->script_directory = resolved;
+		LOG(info, "CGI: script directory=" << this->script_directory);
+	}
+	{
+		char		resolved[4096];
+		std::string s	= r + "/" + this->script_path;
+		char*		ret = realpath(s.c_str(), resolved);
+		LOG(info, s);
+		if (ret == NULL)
+			throw std::runtime_error("Failed to get realpath of the script...");
+		this->script_path = resolved;
+		LOG(info, "CGI: script path=" << this->script_path);
+	}
 	this->do_exec();
 }
 
@@ -166,10 +191,12 @@ void CgiOutput::do_exec() {
 			std::vector<char const*> obuf;
 			char* const*			 envp = setup_env(State::getInstance().getEnv(), sbuf, obuf);
 			LOG(info, "Cgi Sendoff: " << this->bin_path);
-			char* argv[2];
+			char* argv[3];
 			argv[0] = (char*)(this->bin_path.c_str());
-			argv[1] = NULL;
+			argv[1] = (char*)(this->script_path.c_str());
+			argv[2] = NULL;
 
+			_ERR_RET_THROW(chdir(this->script_directory.c_str()));
 			_ERR_RET_THROW(dup2(this->req_fd, STDIN_FILENO));
 			_ERR_RET_THROW(dup2(this->raw_buf->getFd(), STDOUT_FILENO));
 			_ERR_RET_THROW(execve(this->bin_path.c_str(), argv, envp));
@@ -248,6 +275,10 @@ char* const* CgiOutput ::setup_env(char**					 envp,
 				*sit = '_';
 		}
 		ADD_HEADER(hname, it->second);
+	}
+	for (char** e = envp; *e != NULL; e++) {
+		if (string_start_with(*e, "PATH="))
+			buf.push_back(*e);
 	}
 
 	(void)(envp);

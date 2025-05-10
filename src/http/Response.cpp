@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/03 13:48:32 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/05/07 09:16:58 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/05/10 12:21:38 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,31 +38,6 @@
 #include "lib/StringHelper.hpp"
 #include "runtime/Logger.hpp"
 
-#define COPY_BUFFER_SIZE (1 << 22)
-
-static Rc<Response> default_status_page(StatusCode code, bool with_body) {
-	Rc<Response>		  res;
-	const std::string	  canonical = code.canonical().get_or("Unknown code");
-	Rc<std::stringstream> body;
-
-	(*body) << "<html>" CRLF;
-	(*body) << "<head><title> " << code.code() << " - " << canonical << "</title></head>" CRLF;
-	(*body) << "<body>" CRLF;
-	(*body) << "<center><h1>" << code.code() << " - " << canonical << "</h1></center>" CRLF;
-	(*body) << "<center><small>" << "Server: " << SERVER_NAME << "</small></center>" CRLF;
-	(*body) << "</body>" CRLF;
-	(*body) << "</html>" CRLF;
-
-	res->setStatus(code);
-	if (with_body) {
-		res->setBody(body.cast<std::istream>(), body->str().size());
-	} else {
-		res->setBody(Rc<std::stringstream>().cast<std::istream>(), body->str().size());
-	}
-	res->setMimeType("html");
-	return res;
-}
-
 void add_common_header(Response& res) {
 	char	   buffer[1024] = {};
 	struct tm* tm_info;
@@ -74,213 +49,6 @@ void add_common_header(Response& res) {
 	strftime(buffer, sizeof(buffer), "%a, %d %b %Y %H:%M:%S GMT", tm_info);
 	res.setHeader("Date", buffer);
 	res.setHeader("Server", SERVER_NAME);
-	res.setHeader("Content-Security-Policy","default-src * 'unsafe-inline' 'unsafe-eval'; script-src * 'unsafe-inline' 'unsafe-eval'; connect-src * 'unsafe-inline'; img-src * data: blob: 'unsafe-inline'; frame-src *; style-src * 'unsafe-inline';");
-}
-
-void handle_redirect(Epoll& epoll, Rc<Connection> connection, Rc<Request> req, Rc<Response> res) {
-	(void)(epoll);
-	(void)(connection);
-
-	static const StatusCode CODE	  = status::MOVED_PERMANENTLY;
-	const std::string		canonical = CODE.canonical().get_or("Unknown code");
-	Rc<std::stringstream>	body;
-
-	LOG(info, "handling redirect for " << req->getUrl().getAll());
-	(*body) << "<html>" CRLF;
-	(*body) << "<head><title> Redirection - " << string_escape_html(req->getRoute()->redirect.get())
-			<< "</title></head>" CRLF;
-	(*body) << "<body>" CRLF;
-	(*body) << "<center><h1>" << "you are being redirected to "
-			<< string_escape_html(req->getRoute()->redirect.get()) << "</h1></center>" CRLF;
-	(*body) << "<center><small>" << "Server: " << SERVER_NAME << "</small></center>" CRLF;
-	(*body) << "</body>" CRLF;
-	(*body) << "</html>" CRLF;
-
-	res->setStatus(CODE);
-	res->setBody(body.cast<std::istream>(), body->str().size());
-	res->setMimeType("html");
-	res->setHeader("Location", req->getRoute()->redirect.get());
-}
-
-void handle_post_delete(Epoll&			epoll,
-						Rc<Connection>& connection,
-						Rc<Request>&	req,
-						Rc<Response>&	res) {
-	(void)(epoll);
-	(void)(connection);
-	LOG(info, "handling post_put_delete for " << req->getUrl().getAll());
-	/// if no route, we CAN'T process those request since we don't have a post/upload dir
-	if (!req->getRoute()) {
-		LOG(debug, "no route...");
-		throw Request::PageException(status::METHOD_NOT_ALLOWED, req->getMethod() != "HEAD");
-	}
-	const config::Route& route = *req->getRoute();
-	/// Well we have a route, but it doesn't have a post_dir. this shoul de caught before, but we
-	/// don't know yet;
-	if (!route.post_dir.hasValue()) {
-		LOG(debug, "no post dir");
-		throw Request::PageException(status::METHOD_NOT_ALLOWED, req->getMethod() != "HEAD");
-	}
-	std::string file				   = route.post_dir.get();
-	file							  += "/";
-	std::vector<std::string> url_parts = req->getUrl().getParts();
-	url_parts.erase(url_parts.begin(),
-					url_parts.begin() + (std::min(url_parts.size(), route.parts.size())));
-	if (url_parts.empty()) {
-		if (route.index.hasValue())
-			url_parts.push_back(route.index.get());
-		else
-			url_parts.push_back("hello_yes_this_is_index");
-	}
-
-	for (std::vector<std::string>::iterator it = url_parts.begin(); it != url_parts.end(); it++) {
-		// no directory traversal for you :)
-		if (*it == ".." || *it == ".")
-			throw Request::PageException(status::SERVICE_UNAVAILABLE, req->getMethod() != "HEAD");
-		file += "/";
-		file += *it;
-	}
-	// remove all `//` and replace them with a single /
-	for (std::string::size_type pos = file.find("//"); pos != std::string::npos;
-		 pos						= file.find("//"))
-		   file.replace(pos, 2, "/");
-
-	struct stat s;
-	int			sres = stat(file.c_str(), &s);
-	int			serr = errno;
-	if (req->getMethod() == "POST") {
-		std::ofstream file_out;
-		file_out.open(file.c_str(), std::ios_base::out | std::ios_base::binary);
-		if (file_out.fail()) {
-			LOG(warn, "Failed to open file " << file);
-			throw Request::PageException(status::INTERNAL_SERVER_ERROR, req->getMethod() != "HEAD");
-		}
-		char*		  buffer = new char[COPY_BUFFER_SIZE];
-		Rc<tiostream> body	 = req->getBody().get();
-		body->seekg(0, std::ios_base::beg);
-		if (body->fail()) {
-			LOG(err, "failed to seekg");
-		}
-		body->seekp(0, std::ios_base::beg);
-		if (body->fail()) {
-			LOG(err, "failed to seekp");
-		}
-		while (!(body->eof() || body->fail() || file_out.fail())) {
-			body->read(buffer, COPY_BUFFER_SIZE);
-			size_t len = body->gcount();
-			file_out.write(buffer, len);
-		}
-		delete[] buffer;
-		if ((body->bad() || file_out.bad()))
-			throw Request::PageException(status::INTERNAL_SERVER_ERROR, req->getMethod() != "HEAD");
-		res->setStatus(status::NO_CONTENT);
-	} else if (req->getMethod() == "DELETE") {
-		// no file
-		if (sres == -1 && serr == ENOENT)
-			throw Request::PageException(status::NOT_FOUND, req->getMethod() != "HEAD");
-		// can't write to it == can't delete it
-		if (!(s.st_mode & (S_IWUSR | S_IWGRP | S_IWOTH)))
-			throw Request::PageException(status::FORBIDDEN, req->getMethod() != "HEAD");
-		// trying to remove the file/directory :)
-		if (unlink(file.c_str())) {
-			int serr2 = errno;
-			(void)(serr2);
-			LOG(warn, "failed to unlink file '" << file << "': " << strerror(serr2));
-			throw Request::PageException(status::INTERNAL_SERVER_ERROR, req->getMethod() != "HEAD");
-		}
-		res->setStatus(status::NO_CONTENT);
-	}
-}
-
-void handle_static_file(Epoll&			epoll,
-						Rc<Connection>& connection,
-						Rc<Request>&	req,
-						Rc<Response>&	res) {
-	(void)(epoll);
-	if (req->getMethod() == "POST" || req->getMethod() == "PUT" || req->getMethod() == "DELETE") {
-		handle_post_delete(epoll, connection, req, res);
-		return;
-	}
-	try {
-		LOG(info, "handling static_file for " << req->getUrl().getAll());
-		std::size_t body_size = 0;
-		std::string ext;
-		std::string file_path;
-		{
-			std::vector<std::string>		url_parts	= req->getUrl().getParts();
-			const std::vector<std::string>* route_parts = NULL;
-			if (req->getRoute())
-				route_parts = &req->getRoute()->parts;
-
-			url_parts.erase(url_parts.begin(),
-							url_parts.begin() + (std::min(url_parts.size(),
-														  route_parts ? route_parts->size() : 0)));
-
-			for (std::vector<std::string>::iterator it = url_parts.begin(); it != url_parts.end();
-				 it++) {
-				// no directory traversal for you :)
-				if (it->empty())
-					continue;
-				if (*it == ".." || *it == ".")
-					throw Request::PageException(status::SERVICE_UNAVAILABLE,
-												 req->getMethod() != "HEAD");
-				file_path += "/";
-				file_path += *it;
-			}
-			// remove all `//` and replace them with a single /
-			for (std::string::size_type pos = file_path.find("//"); pos != std::string::npos;
-				 pos						= file_path.find("//"))
-				   file_path.replace(pos, 2, "/");
-		}
-		std::size_t* bptr = &body_size;
-		assert(bptr != NULL);
-		*bptr = 1;
-		assert(body_size == 1);
-		body_size = 0;
-		assert(*bptr == 0);
-		Rc<std::istream> body =
-			getFileAt(file_path, req->getServer(), req->getRoute(), &ext, bptr, NULL);
-		res->setBody(body, body_size);
-		res->setMimeType(ext);
-		res->setStatus(200);
-		connection->getResponse() = res;
-	} catch (const fs::error::NotAllowed& e) {
-		connection->getResponse() =
-			Response::createStatusPageFor(epoll, connection, req->getServer(), status::FORBIDDEN);
-	} catch (const fs::error::NotFound& e) {
-		connection->getResponse() =
-			Response::createStatusPageFor(epoll, connection, req->getServer(), status::NOT_FOUND);
-	} catch (const fs::error::IsADirectory& e) {
-		connection->getResponse() =
-			Response::createStatusPageFor(epoll, connection, req->getServer(), status::NOT_FOUND);
-	} catch (const std::exception& e) {
-		LOG(warn, "got error: " << e.what());
-		connection->getResponse() =
-			Response::createStatusPageFor(epoll, connection, req->getServer(), status::NOT_FOUND);
-	}
-}
-
-void handle_cgi_request(Epoll&			   epoll,
-						Rc<Connection>&	   connection,
-						Rc<Request>&	   req,
-						Rc<Response>&	   res,
-						const config::Cgi& cgi,
-						std::string		   cgi_prefix) {
-	(void)(epoll);
-	(void)(connection);
-	(void)(req);
-	(void)(res);
-	(void)(cgi);
-
-	LOG(info, "handling cgi for " << req->getUrl().getAll());
-	CgiList& cgi_list = State::getInstance().getCgis();
-	assert(!cgi.binary.empty());
-	Rc<CgiOutput> o = Rc<CgiOutput>(
-		Functor6<CgiOutput, Epoll&, Rc<Request>&, const config::Cgi*, std::string&, Rc<Response>&,
-				 Rc<Connection>&>(epoll, req, &cgi, cgi_prefix, res, connection),
-		RCFUNCTOR);
-	cgi_list.push_back(o);
-	res->setCgi(o);
 }
 
 bool Response::setHeader(std::pair<std::string, std::string> pair) {
@@ -301,40 +69,6 @@ void Response::setMimeType(const std::string& extension) {
 
 void Response::setMimeTypeRaw(const std::string& raw) {
 	this->setHeader("Content-Type", raw);
-}
-
-Rc<Response> Response::createStatusPageFor(Epoll&				 epoll,
-										   Rc<Connection>&		 conn,
-										   const config::Server* server,
-										   StatusCode			 code,
-										   bool					 with_body) {
-	(void)(epoll);
-	(void)(conn);
-	std::stringstream s;
-	s << code.code();
-	std::string c = s.str();
-	if (server == NULL || server->errors.count(c) == 0)
-		return (default_status_page(code, with_body));
-	return (default_status_page(code, with_body));
-}
-
-const config::Cgi* find_cgi_for(const Url&			 url,
-								const config::Route& route,
-								std::string&		 cgi_suffix) {
-	const config::Cgi*					cgi		 = NULL;
-	std::map<std::string, config::Cgi>& all_cgis = State::getInstance().getConfig().cgi;
-	std::vector<std::string>			parts	 = url.getParts();
-
-	for (size_t i = route.parts.size(); i < parts.size() && cgi == NULL; i++) {
-		for (std::map<std::string, std::string>::const_iterator cit = route.cgi.begin();
-			 cit != route.cgi.end(); cit++) {
-			if (string_ends_with(parts[i], cit->first)) {
-				cgi_suffix = cit->first;
-				return (&all_cgis.at(cit->second));
-			}
-		}
-	}
-	return NULL;
 }
 
 Rc<Response> Response::createResponseFor(Epoll& epoll, Rc<Connection>& connection) {
@@ -361,23 +95,24 @@ Rc<Response> Response::createResponseFor(Epoll& epoll, Rc<Connection>& connectio
 	do {
 		// we have no route, default to server-level handling
 		if (req->getRoute() == NULL) {
-			handle_static_file(epoll, connection, req, res);
+			handlers::handle_static_file(epoll, connection, req, res);
 			break;
 		}
 		// the route we matched is a redirect
 		if (req->getRoute()->redirect.hasValue()) {
-			handle_redirect(epoll, connection, req, res);
+			handlers::handle_redirect(epoll, connection, req, res);
 			break;
 		}
 		std::string		   cgi_prefix;
-		const config::Cgi* cgi = find_cgi_for(req->getUrl(), *req->getRoute(), cgi_prefix);
+		const config::Cgi* cgi =
+			handlers::find_cgi_for(req->getUrl(), *req->getRoute(), cgi_prefix);
 		// the route we matched is cgi
 		if (cgi) {
-			handle_cgi_request(epoll, connection, req, res, *cgi, cgi_prefix);
+			handlers::handle_cgi_request(epoll, connection, req, res, *cgi, cgi_prefix);
 			break;
 		}
 		// no special threatment to be done, do whatever :)
-		handle_static_file(epoll, connection, req, res);
+		handlers::handle_static_file(epoll, connection, req, res);
 	} while (0);
 	{
 		Rc<ConnectionCallback<WRITE> > cbw = Rc<ConnectionCallback<WRITE> >(

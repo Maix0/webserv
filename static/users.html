@@ -18,8 +18,8 @@
 </head>
 
 <body>
-
-    <input type="text" class="username" placeholder="username"></input>
+    <div>Currently Logged in as: <span class="name"></span></div> 
+	<input type="text" class="username" placeholder="username"></input>
     <input type="text" class="password" placeholder="password"></input>
     <input type="text" class="info" placeholder="info"></input>
     <button onclick="signin()">signin</button>
@@ -34,12 +34,14 @@
     <script>
         const OUTPUT = document.querySelector(".output-box");
         const COOKIE = document.querySelector(".cookie");
+        const NAME   = document.querySelector(".name");
 
         function set_cookie(cookie) {
-            if (cookie === null)
-                COOKIE.innerText = "session=";
-            else
-                COOKIE.innerText = "session=" + cookie;
+        // this doesn't work and I don't want to fiddle with the headers so the cookie is visible from the JS
+        //    if (cookie === null)
+        //        COOKIE.innerText = "session=";
+        //    else
+        //        COOKIE.innerText = "session=" + cookie;
         }
 
         function set_err(txt) {
@@ -55,6 +57,19 @@
             OUTPUT.innerText = txt;
         }
 
+        function set_err_name(txt) {
+            NAME.classList.remove("ok")
+            NAME.classList.add("error")
+            NAME.innerText = txt;
+        }
+
+
+        function set_ok_name(txt) {
+            NAME.classList.remove("error")
+            NAME.classList.add("ok")
+            NAME.innerText = txt;
+        }
+
         function getCookie(name) {
             const value = `; ${document.cookie}`;
             const parts = value.split(`; ${name}=`);
@@ -68,7 +83,7 @@
 
             if (username.Length === 0 || password.Length == 0)
                 return set_err("username/password must be set");
-            let res = await fetch("/api/login.api", { method: "POST", body: `${username}\n${password}\n` });
+            let res = await fetch("/api/login.py", { method: "POST", body: `${username}\n${password}\n` });
             if (res.ok)
                 set_ok(await res.text())
             else
@@ -80,7 +95,7 @@
             document.querySelector(".username").value = "";
             document.querySelector(".password").value = "";
 
-            let res = await fetch("/api/logout.api");
+            let res = await fetch("/api/logout.py");
             if (res.ok)
                 set_ok(await res.text())
             else
@@ -94,7 +109,7 @@
 
             if (username.Length === 0 || password.Length == 0)
                 return set_err("username/password must be set");
-            let res = await fetch("/api/signin.api", { method: "POST", body: `${username}\n${password}\n` });
+            let res = await fetch("/api/signin.py", { method: "POST", body: `${username}\n${password}\n` });
             if (res.ok)
                 set_ok(await res.text())
             else
@@ -103,7 +118,7 @@
         }
 
         async function dumpdb() {
-            let res = await fetch("/api/dumpdb.api");
+            let res = await fetch("/api/dumpdb.py");
             if (res.ok)
                 set_ok(await res.text())
             else
@@ -114,7 +129,7 @@
         
         async function setinfo() {
             let info = document.querySelector(".info").value;
-            let res = await fetch("/api/setinfo.api", {method: "POST", body: `${info}\n`});
+            let res = await fetch("/api/setinfo.py", {method: "POST", body: `${info}\n`});
             if (res.ok)
                 set_ok(await res.text())
             else
@@ -123,13 +138,24 @@
         }
 
         async function getinfo() {
-            let res = await fetch("/api/getinfo.api");
+            let res = await fetch("/api/getinfo.py");
             if (res.ok)
                 set_ok(await res.text())
             else
                 set_err(await res.text())
             set_cookie(getCookie("session"))
         }
+
+		async function enqueueName() {
+            let res = await fetch("/api/whoami.py");
+            if (res.ok)
+                set_ok_name(await res.text());
+            else
+                set_err_name(await res.text());
+			setTimeout(enqueueName, 1000);
+		}
+
+		enqueueName();
     </script>
 </body>
 

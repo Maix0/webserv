@@ -1,7 +1,7 @@
 shutdown = 8000
 
 [cgi]
-api_cgi = { binary = "./api_cgi.py" }
+api_cgi = { binary = "python3" }
 cgi_tester = { binary = "./dl/cgi_tester" }
 
 [server.maix]
@@ -9,6 +9,7 @@ host = "local.maix.me"
 bind = "0.0.0.0"
 port = 8088
 root = "./static/"
+errors = { 404 = "errors/404.html", 500 = "errors/500.html" }
 
 [server.maix.routes."/"]
 allowed = ["GET"]
@@ -16,8 +17,7 @@ index = "index.html"
 
 [server.maix.routes."/api/"]
 allowed = ["DELETE", "POST", "GET"]
-cgi = { "api" = "api_cgi" }
-root = "/var/empty"
+cgi = { "py" = "api_cgi" }
 
 [server.example]
 host = "tester.local.maix.me"

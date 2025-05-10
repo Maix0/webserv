@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/07 21:50:04 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/05/07 08:58:12 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/05/10 12:40:12 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -264,7 +264,6 @@ namespace config {
 			std::set<std::vector<string> > route_seens;
 			for (IndexMap<string, Route>::iterator route = sit->second.routes.begin();
 				 route != sit->second.routes.end(); route++) {
-				LOG(info, route->first);
 				Url			   u	 = route->first;
 				vector<string> parts = u.getParts();
 				if (route_seens.count(parts) != 0) {

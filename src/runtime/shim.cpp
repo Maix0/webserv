@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/02 18:23:58 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/04/24 23:16:49 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/05/10 13:00:14 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,7 @@
 #include <cstring>
 #include <exception>
 #include <string>
+#include "app/State.hpp"
 #include "lib/ExitError.hpp"
 #include "runtime/Logger.hpp"
 

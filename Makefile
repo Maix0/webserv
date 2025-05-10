@@ -6,7 +6,7 @@
 #    By: rparodi <rparodi@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/11/12 11:05:05 by rparodi           #+#    #+#              #
-#    Updated: 2025/05/07 09:06:33 by maiboyer         ###   ########.fr        #
+#    Updated: 2025/05/10 11:58:46 by maiboyer         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -132,6 +132,7 @@ all:
 	@$(MAKE) --no-print-directory header
 	@$(MAKE) --no-print-directory -f ./Webserv.mk $(PMAKE)
 	@$(MAKE) --no-print-directory footer
+$(NAME): all;
 
 scan-build:
 	@$(SCAN_BUILD) $(MAKE) --no-print-directory -k re                  \

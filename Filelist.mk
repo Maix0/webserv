@@ -17,6 +17,11 @@ fs/ServerRessources                                                           \
 http/CgiOutput                                                                \
 http/Request                                                                  \
 http/Response                                                                 \
+http/Response/handler_cgi                                                     \
+http/Response/handler_post                                                    \
+http/Response/handler_redirect                                                \
+http/Response/handler_static                                                  \
+http/Response/status_pages                                                    \
 http/Routing                                                                  \
 http/StatusCode                                                               \
 http/Url                                                                      \
