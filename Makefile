@@ -6,7 +6,7 @@
 #    By: rparodi <rparodi@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/11/12 11:05:05 by rparodi           #+#    #+#              #
-#    Updated: 2025/05/10 11:58:46 by maiboyer         ###   ########.fr        #
+#    Updated: 2025/05/10 14:11:35 by maiboyer         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -86,7 +86,7 @@ ifeq ($(ENABLE_PRINT_PID), yes)
     endif
 endif
 
-#CXXFLAGS_ADDITIONAL	+= -gcolumn-info -g3 -fno-builtin
+CXXFLAGS_ADDITIONAL	+= -gcolumn-info -g3 -fno-builtin
 #CXXFLAGS_ADDITIONAL	+= -fdiagnostics-color=always
 #CXXFLAGS_ADDITIONAL	+= -DLOG_LEVEL=debug
 

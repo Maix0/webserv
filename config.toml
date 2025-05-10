@@ -2,7 +2,8 @@ shutdown = 8000
 
 [cgi]
 api_cgi = { binary = "python3" }
-cgi_tester = { binary = "./dl/cgi_tester" }
+tester_cgi = { binary = "./dl/cgi_tester" }
+sh_cgi = { binary = "/bin/sh" }
 
 [server.maix]
 host = "local.maix.me"
@@ -17,7 +18,7 @@ index = "index.html"
 
 [server.maix.routes."/api/"]
 allowed = ["DELETE", "POST", "GET"]
-cgi = { "py" = "api_cgi" }
+cgi = { "py" = "api_cgi", "sh" = "sh_cgi" }
 
 [server.example]
 host = "tester.local.maix.me"
@@ -27,22 +28,22 @@ root = "./YoupiBanane/"
 
 [server.example.routes."/"]
 allowed = ["GET"]
-cgi = { "bla" = "cgi_tester" }
+cgi = { "bla" = "tester_cgi" }
 
 [server.example.routes."/put_test/"]
 allowed = ["PUT"]
-cgi = { "bla" = "cgi_tester" }
+cgi = { "bla" = "tester_cgi" }
 post_directory = "./put_dir"
 
 [server.example.routes."/post_body"]
 allowed = ["POST"]
-cgi = { "bla" = "cgi_tester" }
+cgi = { "bla" = "tester_cgi" }
 max_size = 100
 post_directory = "./post_dir"
 
 [server.example.routes."/directory/"]
 allowed = ["GET", "POST"]
-cgi = { "bla" = "cgi_tester" }
+cgi = { "bla" = "tester_cgi" }
 index = "youpi.bad_extension"
 post_directory = "./post_dir"
 max_size = 100000000

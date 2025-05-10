@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/02 18:23:58 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/05/10 13:00:14 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/05/10 14:02:47 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,8 +23,8 @@
 
 int wrapped_main(char* argv0, int argc, char* argv[], char* envp[]);
 
-bool ft_strncmp(const char* s1, const char* s2, size_t n) {
-	for (size_t i = 0; i < n; i++)
+bool ft_strcmp(const char* s1, const char* s2) {
+	for (size_t i = 0; s1[i] && s2[i]; i++)
 		if (s1[i] != s2[i])
 			return false;
 	return true;
@@ -35,7 +35,7 @@ extern char __flags_end[];
 extern char __flags_size[];
 
 int main(int argc, char* argv[], char* envp[]) {
-	if (argc >= 2 && ft_strncmp(argv[1], "--print-flags", 15)) {
+	if (argc >= 2 && ft_strcmp(argv[1], "--print-flags")) {
 		try {
 			std::string msg(__flags_start, __flags_end);
 			std::cout << msg;
@@ -50,7 +50,12 @@ int main(int argc, char* argv[], char* envp[]) {
 		return wrapped_main(argv0, argc, argv, envp);
 	} catch (const ExitError& e) {
 		return e.code;
+	} catch (const std::exception& e) {
+		LOG(fatal, " caught unhandled exception. what(): " << e.what());
+	} catch (...) {
+		LOG(fatal, " caught unknown/unhandled exception");
 	}
+	return 127;
 }
 
 #ifdef TERMINATE_BACKTRACE

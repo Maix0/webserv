@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/25 15:00:28 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/05/10 13:29:34 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/05/10 14:18:54 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <exception>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -68,6 +69,11 @@ void CgiOutput::parseBytes() {
 				std::string::size_type pos = l.find(':');
 				if (pos == std::string::npos) {
 					LOG(warn, "invalid reponse from cgi: '" << l << "'");
+					this->finished_headers = true;
+					this->finished		   = true;
+					r->setStatus(500);
+					r->setBody(Rc<std::stringstream>().cast<std::istream>(), 0);
+					return;
 				}
 				std::string name(l.begin(), l.begin() + pos);
 				std::string val(l.begin() + pos + 1, l.end());
@@ -134,7 +140,6 @@ CgiOutput::CgiOutput(Epoll&				epoll,
 		char		resolved[4096];
 		std::string s	= r + "/" + this->script_path;
 		char*		ret = realpath(s.c_str(), resolved);
-		LOG(info, s);
 		if (ret == NULL)
 			throw std::runtime_error("Failed to get realpath of the script...");
 		this->script_path = resolved;
@@ -190,7 +195,7 @@ void CgiOutput::do_exec() {
 			std::vector<std::string> sbuf;
 			std::vector<char const*> obuf;
 			char* const*			 envp = setup_env(State::getInstance().getEnv(), sbuf, obuf);
-			LOG(info, "Cgi Sendoff: " << this->bin_path);
+			LOG(info, "Cgi Sendoff: " << this->bin_path << ", " << this->script_path);
 			char* argv[3];
 			argv[0] = (char*)(this->bin_path.c_str());
 			argv[1] = (char*)(this->script_path.c_str());

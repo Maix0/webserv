@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/23 00:07:08 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/05/07 10:12:40 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/05/10 14:13:41 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,7 @@
 
 #include "app/State.hpp"
 #include "app/fs/Directory.hpp"
+#include "app/http/Response.hpp"
 #include "app/http/Routing.hpp"
 #include "app/net/Socket.hpp"
 #include "config/Config.hpp"

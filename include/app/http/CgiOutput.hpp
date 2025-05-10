@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/25 15:01:23 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/05/10 12:47:56 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/05/10 14:10:30 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,6 +64,7 @@ class CgiOutput {
 		void setFinished();
 		int	 getPid() { return this->pid; };
 
-		int	 getPipeFd() { return this->req_fd; };
-		bool isFinished() { return this->finished; };
+		int				  getPipeFd() { return this->req_fd; };
+		bool			  isFinished() { return this->finished; };
+		Weak<Connection>& getConn() { return this->conn; };
 };
