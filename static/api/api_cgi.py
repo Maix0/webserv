@@ -176,7 +176,7 @@ elif req == "/api/whoami.py" and method == "GET":
     call = whoami
 else:
     call = not_found
-db = sqlite3.connect("../users.db")
+db = sqlite3.connect("../../users.db")
 db.execute(
     """
 CREATE TABLE IF NOT EXISTS users (

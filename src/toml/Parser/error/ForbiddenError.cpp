@@ -13,9 +13,9 @@
 #include "toml/Parser.hpp"
 
 namespace toml {
-	Parser::ForbiddenError::ForbiddenError(std::string m) : msg(m) {};
-	Parser::ForbiddenError::~ForbiddenError() throw() {};
+	Parser::ForbiddenError::ForbiddenError(std::string m) : msg(m) {}
+	Parser::ForbiddenError::~ForbiddenError() throw() {}
 	const char* Parser::ForbiddenError::what() const throw() {
 		return (this->msg.c_str());
-	};
+	}
 }  // namespace toml

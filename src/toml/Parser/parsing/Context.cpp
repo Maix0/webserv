@@ -25,15 +25,15 @@ namespace toml {
 		this->tok.line = 0;
 		this->tok.eof  = false;
 		this->tok.ty   = NEWLINE;
-	};
+	}
 
-	Parser::State::~State() {};
+	Parser::State::~State() {}
 	Parser::State::State(const Parser::State& rhs)
 		: root(rhs.root), current_table(&root), tok(Token()), buffer(rhs.buffer) {
 		this->tok.line = 0;
 		this->tok.eof  = false;
 		this->tok.ty   = NEWLINE;
-	};
+	}
 
 	Parser::State& Parser::State::operator=(const Parser::State& rhs) {
 		if (this != &rhs) {

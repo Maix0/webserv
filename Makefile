@@ -61,7 +61,7 @@ ifeq ($(CXX), g++)
 endif
 
 
-ENABLE_BACKTRACE ?= yes
+ENABLE_BACKTRACE ?= no
 ifeq ($(ENABLE_BACKTRACE), yes)
     LDFLAGS_ADDITIONAL += -rdynamic
     CXXFLAGS_ADDITIONAL += -DTERMINATE_BACKTRACE
@@ -70,7 +70,7 @@ ifeq ($(ENABLE_BACKTRACE), yes)
     endif
 endif
 
-ENABLE_SOCKET_PORT ?= yes
+ENABLE_SOCKET_PORT ?= no
 ifeq ($(ENABLE_BACKTRACE), yes)
     CXXFLAGS_ADDITIONAL += -DENABLE_SOCKET_PORT
     ifeq ($(MAKECMDGOALS), header)
@@ -86,11 +86,11 @@ ifeq ($(ENABLE_PRINT_PID), yes)
     endif
 endif
 
-CXXFLAGS_ADDITIONAL	+= -gcolumn-info -g3 -fno-builtin
+#CXXFLAGS_ADDITIONAL	+= -gcolumn-info -g3 -fno-builtin
 #CXXFLAGS_ADDITIONAL	+= -fdiagnostics-color=always
 #CXXFLAGS_ADDITIONAL	+= -DLOG_LEVEL=debug
 
-ENABLE_LLD ?= yes
+ENABLE_LLD ?= no
 LLD := $(shell command -v lld 2> /dev/null)
 ifdef LLD
     ifeq ($(ENABLE_LLD),yes)

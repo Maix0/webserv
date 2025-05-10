@@ -86,7 +86,7 @@ namespace log {
 		WARN  = warn,
 		INFO  = info,
 		DEBUG = debug,
-		TRACE = trace,
+		TRACE = trace
 	};
 
 	extern LogLevel	   logLevel;

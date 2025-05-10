@@ -170,4 +170,4 @@ namespace toml {
 		return lhs << "null";
 	}
 
-};	// namespace toml
+}	// namespace toml

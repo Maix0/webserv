@@ -30,7 +30,7 @@ void FileReadCallback::call(Epoll& epoll, Rc<Callback> self) {
 		return this->inner->setEof();
 	} else
 		epoll.addCallback(this->inner->asFd(), READ, self);
-};
+}
 
 void FileWriteCallback::call(Epoll& epoll, Rc<Callback> self) {
 	if (this->inner->getBuf().empty()) {
@@ -45,4 +45,4 @@ void FileWriteCallback::call(Epoll& epoll, Rc<Callback> self) {
 	buf.erase(buf.begin(), buf.begin() + res);
 	if (!buf.empty())
 		epoll.addCallback(this->inner->asFd(), WRITE, self);
-};
+}

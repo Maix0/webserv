@@ -63,7 +63,7 @@ namespace toml {
 				INT,
 				LIST,
 				STRING,
-				TABLE,
+				TABLE
 			};
 
 			Value(Bool);
@@ -96,13 +96,13 @@ namespace toml {
 			bool isReadonly(void) const;
 			void setReadonly(bool val);
 
-			_TOML_GETTERS(List, List);
-			_TOML_GETTERS(Null, Null);
-			_TOML_GETTERS(Table, Table);
-			_TOML_GETTERS(Bool, Bool);
-			_TOML_GETTERS(Float, Float);
-			_TOML_GETTERS(Number, Int);
-			_TOML_GETTERS(String, String);
+			_TOML_GETTERS(List, List)
+			_TOML_GETTERS(Null, Null)
+			_TOML_GETTERS(Table, Table)
+			_TOML_GETTERS(Bool, Bool)
+			_TOML_GETTERS(Float, Float)
+			_TOML_GETTERS(Number, Int)
+			_TOML_GETTERS(String, String)
 
 			class InvalidType : public std::exception {
 				private:
@@ -119,16 +119,16 @@ namespace toml {
 
 		private:
 			union RawTomlValue {
-					_UNION_TYPE(BOOL, bool, Bool);
-					_UNION_TYPE(FLOAT, float, Float);
-					_UNION_TYPE(INT, int, Number);
-					_UNION_TYPE(NULL_, null, Null);
+					_UNION_TYPE(BOOL, bool, Bool)
+					_UNION_TYPE(FLOAT, float, Float)
+					_UNION_TYPE(INT, int, Number)
+					_UNION_TYPE(NULL_, null, Null)
 
 					// Why pointers ?
 					// because cpp is a bitch...
-					_UNION_TYPE_PTR(LIST, list, List);
-					_UNION_TYPE_PTR(STRING, string, String);
-					_UNION_TYPE_PTR(TABLE, table, Table);
+					_UNION_TYPE_PTR(LIST, list, List)
+					_UNION_TYPE_PTR(STRING, string, String)
+					_UNION_TYPE_PTR(TABLE, table, Table)
 
 					RawTomlValue();
 			};
@@ -144,4 +144,4 @@ namespace toml {
 #undef _UNION_TYPE
 #undef _UNION_TYPE_PTR
 
-};	// namespace toml
+}	// namespace toml

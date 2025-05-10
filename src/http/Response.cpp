@@ -187,4 +187,4 @@ Response::~Response() {
 			}
 		} while (found);
 	}
-};
+}

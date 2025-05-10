@@ -61,4 +61,4 @@ void SocketCallback::call(Epoll& epoll, Rc<Callback> self) {
 		Functor1<ConnectionCallback<HANGUP>, Rc<Connection>& >(conn), RCFUNCTOR);
 	epoll.addCallback(res, READ, rcb.cast<Callback>());
 	epoll.addCallback(res, HANGUP, hcb.cast<Callback>());
-};
+}

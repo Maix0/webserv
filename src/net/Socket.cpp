@@ -87,7 +87,7 @@ Socket::Socket(const Ip& host, Port port, config::Server* server) {
 					   << this->fd << " (" << this->host << ":" << this->bound_port
 					   << (this->port != this->bound_port ? " OS-allocated port" : "") << ")");
 	}
-};
+}
 
 Socket::~Socket() {
 	LOG(trace, "dropping socket " << this->fd);

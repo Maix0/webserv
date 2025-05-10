@@ -21,4 +21,4 @@ void ShutdownCallback::call(Epoll& epoll, Rc<Callback> self) {
 	(void)(self);
 	LOG(info, "Shutdown has been requested");
 	do_shutdown = true;
-};
+}

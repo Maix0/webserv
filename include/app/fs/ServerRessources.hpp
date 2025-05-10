@@ -46,7 +46,7 @@ namespace fs {
 			static const std::string NOT_ALLOWED	= "Operation now allowed";
 			static const std::string FAILURE		= "Unknown failure";
 
-		};	// namespace kind
+		}	// namespace kind
 
 		/*
 		struct PlaceHolder : public ErrorBase {
@@ -76,5 +76,5 @@ namespace fs {
 				Failure(const std::string& file) : ErrorBase(file, kind::FAILURE) {};
 				virtual ~Failure() throw() {};
 		};
-	};	// namespace error
-}  // namespace fs
+	}	// namespace error
+} // namespace fs

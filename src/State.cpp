@@ -53,4 +53,4 @@ void State::openAllSockets() {
 		}
 	}
 	LOG(info, "all sockets are opened: " << this->sockets.size() << "opened sockets");
-};
+}

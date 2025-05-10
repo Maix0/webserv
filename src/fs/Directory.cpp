@@ -43,11 +43,11 @@ Directory::Directory(const std::string& path) : path(path) {
 	}
 
 	closedir(dir);
-};
+}
 
-Directory::Directory() : path("/var/empty/default_constructor") {};
-Directory::~Directory() {};
-Directory::Directory(const Directory& rhs) : entries(rhs.entries), path(rhs.path) {};
+Directory::Directory() : path("/var/empty/default_constructor") {}
+Directory::~Directory() {}
+Directory::Directory(const Directory& rhs) : entries(rhs.entries), path(rhs.path) {}
 
 Directory& Directory::operator=(const Directory& rhs) {
 	if (this != &rhs) {

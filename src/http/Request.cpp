@@ -177,8 +177,8 @@ bool Request::parseBytes(std::string& buffer) {
 						throw PageException(status::BAD_REQUEST, this->method != "HEAD");
 					char* end = NULL;
 					errno	  = 0;
-					unsigned long long val =
-						std::strtoull(this->headers.at("content-length").c_str(), &end, 10);
+					unsigned long val =
+						std::strtoul(this->headers.at("content-length").c_str(), &end, 10);
 					if (errno != 0 || (end != NULL && *end != '\0'))
 						throw PageException(status::BAD_REQUEST, this->method != "HEAD");
 					this->content_length = val;
@@ -199,7 +199,7 @@ bool Request::parseBytes(std::string& buffer) {
 
 				char* end			   = NULL;
 				errno				   = 0;
-				unsigned long long val = std::strtoull(header.c_str(), &end, 16);
+				unsigned long val = std::strtoul(header.c_str(), &end, 16);
 				if (errno != 0 || (end != NULL && *end != '\0'))
 					throw PageException(status::BAD_REQUEST, this->method != "HEAD");
 				this->current_chunk_size   = val;

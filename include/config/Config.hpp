@@ -151,10 +151,10 @@ namespace config {
 			virtual ~NAME##Error() throw();             \
 	};
 
-	ERROR(CgiParse);
-	ERROR(ConfigParse);
-	ERROR(RouteParse);
-	ERROR(ServerParse);
+	ERROR(CgiParse)
+	ERROR(ConfigParse)
+	ERROR(RouteParse)
+	ERROR(ServerParse)
 }  // namespace config
 
 #undef ERROR

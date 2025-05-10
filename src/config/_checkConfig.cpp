@@ -130,7 +130,7 @@ namespace config {
 		if (error) {
 			throw std::runtime_error("failed to get CGI paths");
 		}
-	};
+	}
 
 	/// this function will change the `host` of every server
 	static void _checkInvalidIpPorts(Config& config) {
@@ -255,7 +255,7 @@ namespace config {
 		if (error)
 			throw std::runtime_error("Duplicate hostname for same port");
 		State::getInstance().getPortServerMap() = out;
-	};
+	}
 
 	static void _setupRoutes(Config& config) {
 		bool error = false;

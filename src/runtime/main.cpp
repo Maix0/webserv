@@ -177,4 +177,4 @@ static void update_childs() {
 }
 static void install_signals(void) {
 	signal(SIGINT, _sigint_handler);
-};
+}

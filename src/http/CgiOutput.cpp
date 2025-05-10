@@ -170,7 +170,7 @@ void CgiOutput::setFinished() {
 	if (ores.hasValue()) {
 		ores.get()->setBody(this->body.cast<std::istream>(), this->body_size);
 	}
-};
+}
 
 void CgiOutput::do_exec() {
 	Option<Rc<Request> > oreq = this->req.upgrade();

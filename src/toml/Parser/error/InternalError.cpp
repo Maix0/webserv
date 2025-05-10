@@ -13,9 +13,9 @@
 #include "toml/Parser.hpp"
 
 namespace toml {
-	Parser::InternalError::InternalError(std::string m) : msg(m) {};
-	Parser::InternalError::~InternalError() throw() {};
+	Parser::InternalError::InternalError(std::string m) : msg(m) {}
+	Parser::InternalError::~InternalError() throw() {}
 	const char* Parser::InternalError::what() const throw() {
 		return (this->msg.c_str());
 	}
-};	// namespace toml
+}	// namespace toml

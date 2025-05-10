@@ -50,7 +50,7 @@ namespace toml {
 					"' but had '" + _toml_type_to_str(had) + "'";
 	}
 	Value::InvalidType::InvalidType(const InvalidType& rhs) : msg(rhs.msg) {}
-	Value::InvalidType::~InvalidType() throw() {};
+	Value::InvalidType::~InvalidType() throw() {}
 
 //
 // DESTRUCTOR
@@ -72,7 +72,7 @@ namespace toml {
 			DESTROY_CASE(ptr, TABLE, Table, table);
 			DESTROY_CASE(ptr, LIST, List, list);
 		}
-	};
+	}
 
 #undef DESTROY_CASE
 
@@ -93,7 +93,7 @@ namespace toml {
 	Value::Value(ALIAS val) {                                       \
 		this->readonly		   = false;                             \
 		this->raw._##FIELD.tag = TAG;                               \
-		this->raw._##FIELD.raw = IF_ELSE(STORAGE, new, ) TYPE(val); \
+		this->raw._##FIELD.raw = IF_ELSE(STORAGE, new, (TYPE)) TYPE(val); \
 	}
 
 // TYPE == ALIAS
@@ -101,25 +101,25 @@ namespace toml {
 	TOML_CONSTRUCTOR_ALIAS(STORAGE, TAG, TYPE, TYPE, FIELD)
 
 	Value::Value(void) {}
-	TOML_CONSTRUCTOR(inplace, NULL_, Null, null);
-	TOML_CONSTRUCTOR(inplace, INT, Number, int);
-	TOML_CONSTRUCTOR(inplace, BOOL, Bool, bool);
-	TOML_CONSTRUCTOR(inplace, FLOAT, Float, float);
-	TOML_CONSTRUCTOR(ptr, STRING, String, string);
-	TOML_CONSTRUCTOR(ptr, TABLE, Table, table);
-	TOML_CONSTRUCTOR(ptr, LIST, List, list);
+	TOML_CONSTRUCTOR(inplace, NULL_, Null, null)
+	TOML_CONSTRUCTOR(inplace, INT, Number, int)
+	TOML_CONSTRUCTOR(inplace, BOOL, Bool, bool)
+	TOML_CONSTRUCTOR(inplace, FLOAT, Float, float)
+	TOML_CONSTRUCTOR(ptr, STRING, String, string)
+	TOML_CONSTRUCTOR(ptr, TABLE, Table, table)
+	TOML_CONSTRUCTOR(ptr, LIST, List, list)
 
-	TOML_CONSTRUCTOR_ALIAS(inplace, FLOAT, Float, float, float);
-	TOML_CONSTRUCTOR_ALIAS(inplace, INT, Number, char, int);
-	TOML_CONSTRUCTOR_ALIAS(inplace, INT, Number, int, int);
-	TOML_CONSTRUCTOR_ALIAS(inplace, INT, Number, short, int);
-	TOML_CONSTRUCTOR_ALIAS(inplace, INT, Number, unsigned char, int);
-	TOML_CONSTRUCTOR_ALIAS(inplace, INT, Number, unsigned int, int);
-	TOML_CONSTRUCTOR_ALIAS(inplace, INT, Number, unsigned long, int);
-	TOML_CONSTRUCTOR_ALIAS(inplace, INT, Number, unsigned short, int);
+	TOML_CONSTRUCTOR_ALIAS(inplace, FLOAT, Float, float, float)
+	TOML_CONSTRUCTOR_ALIAS(inplace, INT, Number, char, int)
+	TOML_CONSTRUCTOR_ALIAS(inplace, INT, Number, int, int)
+	TOML_CONSTRUCTOR_ALIAS(inplace, INT, Number, short, int)
+	TOML_CONSTRUCTOR_ALIAS(inplace, INT, Number, unsigned char, int)
+	TOML_CONSTRUCTOR_ALIAS(inplace, INT, Number, unsigned int, int)
+	TOML_CONSTRUCTOR_ALIAS(inplace, INT, Number, unsigned long, int)
+	TOML_CONSTRUCTOR_ALIAS(inplace, INT, Number, unsigned short, int)
 
-	TOML_CONSTRUCTOR_ALIAS(ptr, STRING, String, char*, string);
-	TOML_CONSTRUCTOR_ALIAS(ptr, STRING, String, const char*, string);
+	TOML_CONSTRUCTOR_ALIAS(ptr, STRING, String, char*, string)
+	TOML_CONSTRUCTOR_ALIAS(ptr, STRING, String, const char*, string)
 
 #undef TOML_CONSTRUCTOR_ALIAS
 #undef TOML_CONSTRUCTOR
@@ -146,7 +146,7 @@ namespace toml {
 			COPY_CASE(ptr, TABLE, Table, table);
 			COPY_CASE(ptr, LIST, List, list);
 		}
-	};
+	}
 	Value& Value::operator=(const Value& rhs) {
 		if (this != &rhs) {
 			this->~Value();
@@ -173,12 +173,12 @@ namespace toml {
 	const TY& Value::get##NAME(void) const {                                                   \
 		if (!this->is##NAME())                                                                 \
 			throw Value::InvalidType(ETYPE, this->getType());                                  \
-		return (IF_ELSE(STORAGE, *, ) this->raw._##FIELD.raw);                                 \
+		return (IF_ELSE(STORAGE, *, *&) this->raw._##FIELD.raw);                                 \
 	}                                                                                          \
 	TY& Value::get##NAME(void) {                                                               \
 		if (!this->is##NAME())                                                                 \
 			throw Value::InvalidType(ETYPE, this->getType());                                  \
-		return (IF_ELSE(STORAGE, *, ) this->raw._##FIELD.raw);                                 \
+		return (IF_ELSE(STORAGE, *, *&) this->raw._##FIELD.raw);                                 \
 	}                                                                                          \
 	bool Value::is##NAME(void) const {                                                         \
 		return (this->raw._##FIELD.tag == Value::ETYPE);                                       \
@@ -191,14 +191,14 @@ namespace toml {
 		return (Value(TY()));                                                                  \
 	}
 
-	IMPL_GETTERS(inplace, Bool, bool, Bool, BOOL);
-	IMPL_GETTERS(inplace, Float, float, Float, FLOAT);
-	IMPL_GETTERS(inplace, Int, int, Number, INT);
-	IMPL_GETTERS(inplace, Null, null, Null, NULL_);
+	IMPL_GETTERS(inplace, Bool, bool, Bool, BOOL)
+	IMPL_GETTERS(inplace, Float, float, Float, FLOAT)
+	IMPL_GETTERS(inplace, Int, int, Number, INT)
+	IMPL_GETTERS(inplace, Null, null, Null, NULL_)
 
-	IMPL_GETTERS(ptr, List, list, List, LIST);
-	IMPL_GETTERS(ptr, String, string, String, STRING);
-	IMPL_GETTERS(ptr, Table, table, Table, TABLE);
+	IMPL_GETTERS(ptr, List, list, List, LIST)
+	IMPL_GETTERS(ptr, String, string, String, STRING)
+	IMPL_GETTERS(ptr, Table, table, Table, TABLE)
 
 #undef IMPL_GETTERS
 

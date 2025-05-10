@@ -45,7 +45,7 @@ namespace toml {
 				NEWLINE,
 				LBRACKET,
 				RBRACKET,
-				STRING,
+				STRING
 			};
 
 			// implemetation detail
@@ -133,4 +133,4 @@ namespace toml {
 					virtual const char* what() const throw();
 			};
 	};
-};	// namespace toml
+}	// namespace toml

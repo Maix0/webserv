@@ -125,4 +125,4 @@ namespace handlers {
 	const config::Cgi* find_cgi_for(const Url&			 url,
 									const config::Route& route,
 									std::string&		 cgi_suffix);
-};	// namespace handlers
+}	// namespace handlers

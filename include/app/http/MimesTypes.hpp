@@ -162,7 +162,7 @@ namespace mime {
 		static const std::pair<std::string, std::string> header_to_ext_inner[] = {
 			_MIME_ALL(HEADER_TO_EXT)};
 
-	};	// namespace inner
+	}	// namespace inner
 
 	static const std::map<std::string, std::string> EXT_TO_HEADER(
 		&inner::ext_to_header_inner[0],
@@ -181,7 +181,7 @@ namespace mime {
 		public:
 			MimeType() : mimetype("application/octet-stream") {}
 			~MimeType() {};
-			MimeType(const MimeType& rhs) : mimetype(rhs.mimetype) {};
+			MimeType(const MimeType& rhs) : mimetype(rhs.mimetype) {}
 			MimeType& operator=(const MimeType& rhs) {
 				if (this != &rhs) {
 					this->mimetype = rhs.mimetype;
@@ -200,7 +200,7 @@ namespace mime {
 
 			const std::string& getInner() const { return (this->mimetype); }
 	};
-};	// namespace mime
+}	// namespace mime
 
 #undef _MIME
 #undef _MIME_ALL

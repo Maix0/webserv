@@ -104,7 +104,7 @@ struct StatusCode {
 
 namespace status {
 
-	STATUS_CODES_ALL(VAL);
+	STATUS_CODES_ALL(VAL)
 	static const std::pair<int, const char*> _STATUS_CODES_STR[] = {STATUS_CODES_ALL(STR)};
 	static const std::pair<int, StatusCode>	 _STATUS_CODES_MAP[] = {STATUS_CODES_ALL(MAP)};
 

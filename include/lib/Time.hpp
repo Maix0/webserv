@@ -13,7 +13,7 @@
 #pragma once
 
 struct Time {
-		unsigned long long inner;
+		unsigned long inner;
 
 		bool operator==(const Time& rhs) const { return this->inner == rhs.inner; }
 		bool operator!=(const Time& rhs) const { return this->inner != rhs.inner; }
