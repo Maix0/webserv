@@ -291,19 +291,7 @@ diff.sort()
 
 # set your allowed function here :)
 # currently these are webserv functions :)
-funcs = {
-    "open",
-    "close",
-    "read",
-    "write",
-    "printf",
-    "malloc",
-    "free",
-    "perror",
-    "strerror",
-    "exit",
-    "gettimeofday",
-}
+funcs = set()
 funcs.update(args.allow)
 
 # set your allowed function here :)

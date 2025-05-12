@@ -41,6 +41,11 @@ cgi = { "bla" = "tester_cgi" }
 max_size = 100
 post_directory = "./post_dir"
 
+[server.example.routes."/delete_body"]
+allowed = ["DELETE"]
+max_size = 100
+post_directory = "./post_dir"
+
 [server.example.routes."/directory/"]
 allowed = ["GET", "POST"]
 cgi = { "bla" = "tester_cgi" }

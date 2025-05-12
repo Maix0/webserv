@@ -15,6 +15,8 @@
 #include <unistd.h>
 #include <algorithm>
 #include <cerrno>
+#include <cstdio>
+#include <cstring>
 #include <ctime>
 #include <deque>
 #include <exception>
@@ -37,6 +39,20 @@
 #include "config/Config.hpp"
 #include "lib/StringHelper.hpp"
 #include "runtime/Logger.hpp"
+
+static void _mkdir(std::string dir) {
+    size_t len = dir.size();
+
+    if (dir[len - 1] == '/')
+        dir[len - 1] = 0;
+    for (std::string::iterator p = dir.begin(); p!=dir.end() && *p != 0; p++)
+        if (*p == '/') {
+            *p = 0;
+            mkdir(dir.c_str(), S_IRWXU);
+            *p = '/';
+        }
+    mkdir(dir.c_str(), S_IRWXU);
+}
 
 void handlers::handle_post_delete(Epoll&		  epoll,
 								  Rc<Connection>& connection,
@@ -80,15 +96,24 @@ void handlers::handle_post_delete(Epoll&		  epoll,
 	for (std::string::size_type pos = file.find("//"); pos != std::string::npos;
 		 pos						= file.find("//"))
 		   file.replace(pos, 2, "/");
+	while (string_ends_with(file, "/"))
+		file.erase(--file.end());
+	std::string directory(file.begin(), (file.find_last_of('/') != std::string::npos) ? file.begin() + file.find_last_of('/') : file.end());
+	_mkdir(directory);
 
 	struct stat s;
 	int			sres = stat(file.c_str(), &s);
 	int			serr = errno;
-	if (req->getMethod() == "POST") {
+	if (req->getMethod() == "POST" || req->getMethod() == "PUT") {
+		if (sres != 0 && ! (s.st_mode & (S_IRWXU | S_IRWXG | S_IRWXO)))
+			throw Request::PageException(status::FORBIDDEN, req->getMethod() != "HEAD");
 		std::ofstream file_out;
 		file_out.open(file.c_str(), std::ios_base::out | std::ios_base::binary);
 		if (file_out.fail()) {
-			LOG(warn, "Failed to open file " << file);
+			int serr = errno;
+			LOG(warn, "Failed to open file " << file << ": " << strerror(serr));
+			if (serr == EPERM)
+				throw Request::PageException(status::FORBIDDEN, req->getMethod() != "HEAD");
 			throw Request::PageException(status::INTERNAL_SERVER_ERROR, req->getMethod() != "HEAD");
 		}
 		char*		  buffer = new char[COPY_BUFFER_SIZE];
@@ -118,11 +143,15 @@ void handlers::handle_post_delete(Epoll&		  epoll,
 		if (!(s.st_mode & (S_IWUSR | S_IWGRP | S_IWOTH)))
 			throw Request::PageException(status::FORBIDDEN, req->getMethod() != "HEAD");
 		// trying to remove the file/directory :)
-		if (unlink(file.c_str())) {
+		
+		if (remove(file.c_str())) {
 			int serr2 = errno;
 			(void)(serr2);
 			LOG(warn, "failed to unlink file '" << file << "': " << strerror(serr2));
-			throw Request::PageException(status::INTERNAL_SERVER_ERROR, req->getMethod() != "HEAD");
+			if (serr2 == ENOTEMPTY)
+				throw Request::PageException(status::CONFLICT, req->getMethod() != "HEAD");
+			else 
+				throw Request::PageException(status::INTERNAL_SERVER_ERROR, req->getMethod() != "HEAD");
 		}
 		res->setStatus(status::NO_CONTENT);
 	}
