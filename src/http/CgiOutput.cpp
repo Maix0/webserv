@@ -6,7 +6,7 @@
 /*   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/25 15:00:28 by maiboyer          #+#    #+#             */
-/*   Updated: 2025/05/10 14:18:54 by maiboyer         ###   ########.fr       */
+/*   Updated: 2025/05/12 18:04:02 by maiboyer         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -108,11 +108,7 @@ CgiOutput::CgiOutput(Epoll&				epoll,
 	this->script_path				= "";
 	std::vector<std::string> parts	= req->getUrl().getParts();
 	size_t					 r_size = rte->parts.size();
-	for (size_t i = 0; i < r_size; i++) {
-		this->script_path += "/";
-		this->script_path += parts[i];
-	}
-	size_t i = r_size;
+	size_t					 i		= r_size;
 	for (; i < parts.size(); i++) {
 		this->script_path += "/";
 		this->script_path += parts[i];
@@ -131,18 +127,28 @@ CgiOutput::CgiOutput(Epoll&				epoll,
 									: (req->getServer()->root + "/" + req->getRoute()->name))
 							 : req->getServer()->root);
 		char* ret = realpath(r2.c_str(), resolved);
+		LOG(debug, "Realpath of '" << r2 << "' = '" << (ret ? ret : "<null>") << "'");
 		if (ret == NULL)
 			throw std::runtime_error("Failed to get realpath of the directory...");
 		this->script_directory = resolved;
-		LOG(info, "CGI: script directory=" << this->script_directory);
+		LOG(debug, "CGI: script directory=" << this->script_directory);
+	}
+	{
+		char  resolved[4096];
+		char* ret = realpath(this->bin_path.c_str(), resolved);
+		LOG(debug, "Realpath of '" << this->bin_path << "' = '" << (ret ? ret : "<null>") << "'");
+		if (ret == NULL)
+			throw std::runtime_error("Failed to get realpath of the directory...");
+		this->bin_path = resolved;
+		LOG(debug, "CGI: cgi binary=" << this->bin_path);
 	}
 	{
 		char		resolved[4096];
 		std::string s	= r + "/" + this->script_path;
 		char*		ret = realpath(s.c_str(), resolved);
-		if (ret == NULL)
-			throw std::runtime_error("Failed to get realpath of the script...");
-		this->script_path = resolved;
+		LOG(debug, "Realpath of '" << s << "' = '" << (ret ? ret : "<null>") << "'");
+		if (ret)
+			this->script_path = ret;
 		LOG(info, "CGI: script path=" << this->script_path);
 	}
 	this->do_exec();

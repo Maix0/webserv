@@ -45,5 +45,6 @@ post_directory = "./post_dir"
 allowed = ["GET", "POST"]
 cgi = { "bla" = "tester_cgi" }
 index = "youpi.bad_extension"
+root = "./YoupiBanane/"
 post_directory = "./post_dir"
 max_size = 100000000
